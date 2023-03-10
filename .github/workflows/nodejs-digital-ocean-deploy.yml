@@ -59,4 +59,4 @@ jobs:
             npm --help
             cd ~/LetsApp-Back
             yarn prisma migrate deploy
-            pm2 restart Letsapp
+            pm2 restart server
