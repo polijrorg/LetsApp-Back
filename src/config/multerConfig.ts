@@ -8,7 +8,8 @@ export default {
   storage: multer.diskStorage({
     destination: tmpFolder,
     filename: (req, file, callback) => {
-      const fileName = 'table.csv';
+      const fileHash = `${Date.now()}`;
+      const fileName = `${fileHash}-${file.originalname.replace(/\s/g, '')}`;
 
       return callback(null, fileName);
     },
