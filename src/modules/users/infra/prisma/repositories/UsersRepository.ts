@@ -39,7 +39,13 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async update(id: string, data: IUpload): Promise<User> {
+  public async updatePhotoAndName(id: string, data: IUpload): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data });
+
+    return user;
+  }
+
+  public async updateEmail(id: string, data: string): Promise<User> {
     const user = await this.ormRepository.update({ where: { id }, data });
 
     return user;

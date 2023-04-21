@@ -33,7 +33,7 @@ export default class CreateUserService {
     if (!photoFile) throw new AppError('You cannot create a user without a photo.');
 
     const photo = photoFile.location;
-    const user = this.usersRepository.update(userAlreadyExists?.id, {
+    const user = this.usersRepository.updatePhotoAndName(userAlreadyExists?.id, {
       name,
       photo,
     });
