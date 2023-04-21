@@ -5,6 +5,7 @@ import CreateUserService from '@modules/users/services/CreateUserService';
 import VerifyUserService from '@modules/users/services/VerifyUserService';
 import AppError from '@shared/errors/AppError';
 import UploadUserService from '@modules/users/services/UploadUserService';
+import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -50,6 +51,23 @@ export default class UserController {
       name,
       phone,
       photoFile: photo as Express.Multer.File,
+    });
+
+    return res.status(201).json(user);
+  }
+
+  public async updateEmail(req: Request, res: Response): Promise<Response> {
+    const {
+      id, email,
+    } = req.body;
+    const photo = req.file;
+    if (!photo) {
+      throw new AppError('file not found', 400);
+    }
+    const updateEmail = container.resolve(AddEmailToUserService);
+
+    const user = await updateEmail.execute({
+      id, email,
     });
 
     return res.status(201).json(user);

@@ -11,7 +11,7 @@ interface IRequest {
 }
 
 @injectable()
-export default class CreateUserService {
+export default class AddEmailToUserServices {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
@@ -21,7 +21,7 @@ export default class CreateUserService {
   public async execute({ id, email }: IRequest): Promise<User> {
     // const userAlreadyExists = await this.usersRepository.findById(id);
 
-    const user = this.usersRepository.update(id, email);
+    const user = this.usersRepository.updateEmail(id, email);
 
     return user;
   }
