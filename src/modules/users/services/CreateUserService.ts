@@ -6,7 +6,7 @@ import { User } from '@prisma/client';
 
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
-import { SmsService } from './SmsService.ts';
+import SmsService from './SmsService';
 
 interface IRequest {
 
@@ -30,7 +30,7 @@ export default class CreateUserService {
     // Para testes
     const code = 111111;
     const message = `Letsapp: Olá seu codigo é ${code}`;
-    const sendSms = await container.resolve(SmsService);
+    const sendSms = await container.resolve(SmsService.SmsService);
     const status = await sendSms.execute({ phone, message });
     if (status === 'Error') throw new AppError('SMS not sent', 400);
 
