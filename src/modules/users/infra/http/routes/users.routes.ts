@@ -16,6 +16,6 @@ const usersController = new UsersController();
 usersRoutes.post('/register', usersController.create);
 usersRoutes.post('/verify', usersController.verifyCode);
 usersRoutes.post('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
-usersRoutes.post('/updateEmail', usersController.upload);
+usersRoutes.post('/updateEmail', usersController.updateEmail);
 
 export default usersRoutes;

@@ -2,6 +2,7 @@ import { inject, injectable } from 'tsyringe';
 
 import { User } from '@prisma/client';
 
+import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
@@ -11,7 +12,7 @@ interface IRequest {
 }
 
 @injectable()
-export default class AddEmailToUserServices {
+export default class AddEmailToUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
@@ -19,7 +20,9 @@ export default class AddEmailToUserServices {
   ) { }
 
   public async execute({ id, email }: IRequest): Promise<User> {
-    // const userAlreadyExists = await this.usersRepository.findById(id);
+    const userAlreadyExists = await this.usersRepository.findById(id);
+
+    if (!userAlreadyExists) throw new AppError('User Not Found', 400);
 
     const user = this.usersRepository.updateEmail(id, email);
 

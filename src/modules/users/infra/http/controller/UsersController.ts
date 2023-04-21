@@ -19,7 +19,7 @@ export default class UserController {
       phone,
     });
 
-    return res.status(201).json(user.phone);
+    return res.status(201).json(user);
   }
 
   public async verifyCode(req: Request, res: Response): Promise<Response> {
@@ -27,13 +27,13 @@ export default class UserController {
       phone, code,
     } = req.body;
 
-    const createUser = container.resolve(VerifyUserService);
+    const verifyUser = container.resolve(VerifyUserService);
 
-    await createUser.execute({
+    const user = await verifyUser.execute({
       phone, code,
     });
 
-    return res.status(201).json('OK');
+    return res.status(201).json(user);
   }
 
   public async upload(req: Request, res: Response): Promise<Response> {
@@ -60,10 +60,7 @@ export default class UserController {
     const {
       id, email,
     } = req.body;
-    const photo = req.file;
-    if (!photo) {
-      throw new AppError('file not found', 400);
-    }
+
     const updateEmail = container.resolve(AddEmailToUserService);
 
     const user = await updateEmail.execute({
