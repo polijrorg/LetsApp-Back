@@ -1,4 +1,4 @@
-import { inject, injectable } from 'tsyringe';
+import { container, inject, injectable } from 'tsyringe';
 
 import { User } from '@prisma/client';
 
@@ -6,6 +6,7 @@ import { User } from '@prisma/client';
 
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
+import SmsService from './SmsService';
 
 interface IRequest {
 
@@ -28,8 +29,10 @@ export default class CreateUserService {
     // }
     // Para testes
     const code = 111111;
-
-    // if (userAlreadyExists) throw new AppError('User with same email already exists', 400);
+    const message = `Letsapp: Olá seu codigo é ${code}`;
+    const sendSms = await container.resolve(SmsService.SmsService);
+    const status = await sendSms.execute({ phone, message });
+    if (status === 'Error') throw new AppError('SMS not sent', 400);
 
     const user = this.usersRepository.create({ phone, code });
 
