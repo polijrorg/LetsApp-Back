@@ -6,7 +6,7 @@ import { User } from '@prisma/client';
 
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
-import SmsService from './SmsService';
+import { SmsService } from './SmsService.ts';
 
 interface IRequest {
 
