@@ -41,9 +41,13 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.312.0",
     "@prisma/client": "^3.14.0",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/mime": "^3.0.1",
     "@types/multer": "^1.4.7",
-    "aws-sdk": "^2.846.0",
+    "@types/multer-s3": "^3.0.0",
+    "aws-sdk": "^2.1357.0",
     "axios": "^1.1.3",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -54,7 +58,9 @@
     "express-validator": "^6.14.2",
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^9.0.0",
+    "mime": "^3.0.0",
     "multer": "^1.4.5-lts.1",
+    "multer-s3": "^3.0.1",
     "nodemailer": "^6.4.18",
     "openapi-types": "^10.0.0",
     "pg": "^8.5.1",
@@ -64,6 +70,7 @@
     "swagger-ui-express": "^4.3.0",
     "tsyringe": "^4.4.0",
     "typeorm": "^0.2.31",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yarn": "^1.22.19"
   }
 }

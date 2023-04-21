@@ -3,8 +3,11 @@ import { Prisma, User } from '@prisma/client';
 
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
-import IUpdateUserDTO from '@modules/users/dtos/IUpdateUserDTO';
-
+// import IUpdateUserDTO from '@modules/users/dtos/IUpdateUserDTO';
+interface IUpload{
+  name:string,
+  photo:string
+}
 export default class UsersRepository implements IUsersRepository {
   private ormRepository: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -12,13 +15,13 @@ export default class UsersRepository implements IUsersRepository {
     this.ormRepository = prisma.user;
   }
 
-  // public async findByEmailWithRelations(email: string): Promise<User | null> {
-  //   const user = await this.ormRepository.findFirst({
-  //     where: { email },
-  //   });
+  public async findByEmailWithRelations(email: string): Promise<User | null> {
+    const user = await this.ormRepository.findFirst({
+      where: { email },
+    });
 
-  //   return user;
-  // }
+    return user;
+  }
 
   public async findByPhone(phone: string): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
@@ -36,7 +39,7 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async update(id: string, data: IUpdateUserDTO): Promise<User> {
+  public async update(id: string, data: IUpload): Promise<User> {
     const user = await this.ormRepository.update({ where: { id }, data });
 
     return user;
