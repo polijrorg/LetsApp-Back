@@ -17,5 +17,6 @@ usersRoutes.post('/register', usersController.create);
 usersRoutes.post('/verify', usersController.verifyCode);
 usersRoutes.post('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
 usersRoutes.post('/updateEmail', usersController.updateEmail);
+usersRoutes.delete('/deleteUser', usersController.deleteUser);
 
 export default usersRoutes;

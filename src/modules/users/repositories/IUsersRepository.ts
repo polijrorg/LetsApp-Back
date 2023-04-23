@@ -15,6 +15,7 @@ interface IUsersRepository {
   updatePhotoAndName(id: string, data: IUpload): Promise<User>;
   updateEmail(id: string, email: string): Promise<User>;
   create(data: ICreateUserDTO): Promise<User>;
+  delete(phone:string): Promise<User>;
 }
 
 export default IUsersRepository;

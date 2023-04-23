@@ -6,6 +6,7 @@ import VerifyUserService from '@modules/users/services/VerifyUserService';
 import AppError from '@shared/errors/AppError';
 import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
+import DeleteUserService from '@modules/users/services/DeleteUserService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -65,6 +66,20 @@ export default class UserController {
 
     const user = await updateEmail.execute({
       id, email,
+    });
+
+    return res.status(201).json(user);
+  }
+
+  public async deleteUser(req: Request, res: Response): Promise<Response> {
+    const {
+      phone,
+    } = req.body;
+
+    const deleteUser = container.resolve(DeleteUserService);
+
+    const user = await deleteUser.execute({
+      phone,
     });
 
     return res.status(201).json(user);
