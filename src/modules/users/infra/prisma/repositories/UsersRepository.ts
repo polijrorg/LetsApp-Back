@@ -24,8 +24,16 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async findByPhone(phone: string): Promise<User | null> {
-    const user = await this.ormRepository.findFirst({
+    const user = await this.ormRepository.findUnique({
       where: { phone },
+    });
+
+    return user;
+  }
+
+  public async findToken(): Promise<User | null> {
+    const user = await this.ormRepository.findFirst({
+      where: { tokens: '1' },
     });
 
     return user;
@@ -51,6 +59,12 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
+  public async updateToken(id: string, tokens: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { tokens } });
+
+    return user;
+  }
+
   public async create(data: ICreateUserDTO): Promise<User> {
     const user = await this.ormRepository.create({ data });
 
@@ -61,5 +75,11 @@ export default class UsersRepository implements IUsersRepository {
     const user = await this.ormRepository.delete({ where: { phone } });
 
     return user;
+  }
+
+  public async listUsers(): Promise<User[]> {
+    const users = await this.ormRepository.findMany();
+
+    return users;
   }
 }

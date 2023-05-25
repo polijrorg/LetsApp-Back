@@ -19,8 +19,7 @@ export default class DeleteUserService {
   ) { }
 
   public async execute({ phone }: IRequest): Promise<User> {
-    const user = this.usersRepository.delete(phone);
-
+    const user = await this.usersRepository.delete(phone);
     return user;
   }
 }

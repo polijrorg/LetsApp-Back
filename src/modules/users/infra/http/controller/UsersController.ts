@@ -7,6 +7,12 @@ import AppError from '@shared/errors/AppError';
 import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 import DeleteUserService from '@modules/users/services/DeleteUserService';
+import ListUsersService from '@modules/users/services/ListUsersService';
+// import GoogleAuthService from '@modules/users/services/GoogleAuthService';
+import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
+import GetTokensService from '@modules/users/services/GetTokensService';
+import CreateEventService from '@modules/users/services/CreateEventService';
+import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -43,6 +49,7 @@ export default class UserController {
       phone,
     } = req.body;
     const photo = req.file;
+
     if (!photo) {
       throw new AppError('file not found', 400);
     }
@@ -83,5 +90,69 @@ export default class UserController {
     });
 
     return res.status(201).json(user);
+  }
+
+  public async listUsers(req: Request, res: Response): Promise<Response> {
+    const listUsers = container.resolve(ListUsersService);
+
+    const users = await listUsers.execute();
+
+    return res.status(201).json(users);
+  }
+
+  // public async getcalendar(req: Request, res: Response): Promise<Response> {
+  //   const getCalendar = container.resolve(GoogleAuthService);
+  //   const clientId = process.env.CLIENTE_ID;
+  //   const clientSecret = process.env.CLIENT_SECRET;
+  //   const redirectUri = 'https://www.google.com/search?client=firefox-b-d&q=halsey';
+
+  //   if (!clientId || !clientSecret) {
+  //     throw new AppError('file not found', 400);
+  //   }
+  //   const user = await getCalendar.authenticate({
+  //     clientId, clientSecret redirectUri,
+  //   });
+
+  //   return res.status(201).json(user);
+  // }
+
+  public async code(req: Request, res: Response): Promise<Response> {
+    const { code } = req.query;
+
+    return res.status(201).json(code);
+  }
+
+  public async getAuthUrl(req: Request, res: Response): Promise<Response> {
+    const {
+      phone,
+    } = req.body;
+    const urlservice = container.resolve(GoogleAuthUrlService);
+
+    const Url = await urlservice.authenticate(phone);
+    return res.status(201).json(Url);
+  }
+
+  public async getTokens(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(GetTokensService);
+    const { code } = req.query;
+
+    const Url = await urlservice.authenticate(code);
+    return res.status(201).json(Url);
+  }
+
+  public async createEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(CreateEventService);
+    const { phone } = req.body;
+
+    const Url = await urlservice.authenticate(phone);
+    return res.status(201).json(Url);
+  }
+
+  public async getEvents(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(GetCalendarEventsService);
+    const { phone } = req.body;
+
+    const Url = await urlservice.authenticate(phone);
+    return res.status(201).json(Url);
   }
 }
