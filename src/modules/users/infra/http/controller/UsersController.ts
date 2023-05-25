@@ -20,6 +20,8 @@ export default class UserController {
       phone,
     } = req.body;
 
+    console.log(phone);
+
     const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
@@ -68,6 +70,8 @@ export default class UserController {
     const {
       id, email,
     } = req.body;
+
+    console.log(id);
 
     const updateEmail = container.resolve(AddEmailToUserService);
 
