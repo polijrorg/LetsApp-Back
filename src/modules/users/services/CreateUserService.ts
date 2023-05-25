@@ -28,6 +28,7 @@ export default class CreateUserService {
     //   code *= 10;
     // }
     // Para testes
+    console.log(phone);
     const code = 111111;
     const message = `Letsapp: Olá seu codigo é ${code}`;
     const sendSms = await container.resolve(SmsService);
