@@ -19,6 +19,8 @@ export default class UserController {
     const {
       phone,
     } = req.body;
+    
+    console.log(req);
 
     console.log(phone);
 
