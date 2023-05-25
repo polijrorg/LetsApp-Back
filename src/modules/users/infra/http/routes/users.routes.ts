@@ -13,10 +13,10 @@ const upload = multer(UploadFunction('user'));
 
 const usersController = new UsersController();
 
-usersRoutes.get('/register', usersController.create);
-usersRoutes.get('/verify', usersController.verifyCode);
-usersRoutes.get('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
-usersRoutes.get('/updateEmail', usersController.updateEmail);
+usersRoutes.post('/register', usersController.create);
+usersRoutes.post('/verify', usersController.verifyCode);
+usersRoutes.post('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
+usersRoutes.post('/updateEmail', usersController.updateEmail);
 usersRoutes.delete('/deleteUser', usersController.deleteUser);
 usersRoutes.get('/listUsers', usersController.listUsers);
 // usersRoutes.get('/getcalendar', usersController.getcalendar);
