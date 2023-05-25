@@ -6,7 +6,7 @@ import sessionsRoutes from '@modules/users/infra/http/routes/sessions.routes';
 
 const routes = Router();
 
-routes.use('', usersRoutes);
+routes.use('/', usersRoutes);
 routes.use('/sessions', sessionsRoutes);
 
 export default routes;
