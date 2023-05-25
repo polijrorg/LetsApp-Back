@@ -3,6 +3,7 @@ import { container } from 'tsyringe';
 
 import CreateUserService from '@modules/users/services/CreateUserService';
 import VerifyUserService from '@modules/users/services/VerifyUserService';
+import AppError from '@shared/errors/AppError';
 import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 import DeleteUserService from '@modules/users/services/DeleteUserService';
