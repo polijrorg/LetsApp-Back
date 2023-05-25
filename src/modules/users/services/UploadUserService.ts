@@ -9,7 +9,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 interface IRequest {
   name: string;
   phone:string;
-  photoFile: Express.Multer.File;
+  photoFile: Express.Multer.File| null;
 }
 
 @injectable()
@@ -30,9 +30,11 @@ export default class UploadUserService {
     );
     if (!userFound) throw new AppError('User not found', 400);
 
-    if (!photoFile) throw new AppError('You cannot create a user without a photo.');
+    let photo = '';
+    if (photoFile) {
+      photo = photoFile.location;
+    }
 
-    const photo = photoFile.location;
     const user = this.usersRepository.updatePhotoAndName(userFound?.id, {
       name,
       photo,
