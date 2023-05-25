@@ -3,7 +3,6 @@ import { container } from 'tsyringe';
 
 import CreateUserService from '@modules/users/services/CreateUserService';
 import VerifyUserService from '@modules/users/services/VerifyUserService';
-import AppError from '@shared/errors/AppError';
 import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 import DeleteUserService from '@modules/users/services/DeleteUserService';
@@ -19,11 +18,6 @@ export default class UserController {
     const {
       phone,
     } = req.body;
-    
-    console.log(req);
-
-    console.log(phone);
-
     const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
@@ -54,15 +48,12 @@ export default class UserController {
     } = req.body;
     const photo = req.file;
 
-    if (!photo) {
-      throw new AppError('file not found', 400);
-    }
     const uploadUser = container.resolve(UploadUserService);
 
     const user = await uploadUser.execute({
       name,
       phone,
-      photoFile: photo as Express.Multer.File,
+      photoFile: photo as Express.Multer.File| null,
     });
 
     return res.status(201).json(user);
