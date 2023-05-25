@@ -24,7 +24,7 @@ export default class AddEmailToUserService {
 
     if (!userAlreadyExists) throw new AppError('User Not Found', 400);
 
-    const user = this.usersRepository.updateEmail(id, email);
+    const user = await this.usersRepository.updateEmail(id, email);
 
     return user;
   }

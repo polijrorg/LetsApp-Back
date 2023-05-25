@@ -30,7 +30,6 @@ export default class SmsService {
     const publishTextPromise = new AWS.SNS({ apiVersion: '2010-03-31' })
       .publish(params)
       .promise();
-
     publishTextPromise
       .then((data) => {
         console.log(

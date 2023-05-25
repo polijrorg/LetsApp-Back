@@ -9,14 +9,17 @@ generator client {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  name       String?
-  phone      String   @unique
-  email      String?  @unique
-  photo      String?
-  code       Int?
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  id                  String   @id @default(uuid())
+  name                String?
+  phone               String   @unique
+  email               String?  @unique
+  photo               String?
+  code                Int?
+  googleRefeshCode    String?
+  microsoftRefeshCode String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now())
+  tokens              String?
 
   @@map("user")
 }

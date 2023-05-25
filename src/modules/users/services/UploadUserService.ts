@@ -13,7 +13,7 @@ interface IRequest {
 }
 
 @injectable()
-export default class CreateUserService {
+export default class UploadUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
@@ -25,15 +25,15 @@ export default class CreateUserService {
     phone,
     photoFile,
   }: IRequest): Promise<User> {
-    const userAlreadyExists = await this.usersRepository.findByPhone(
+    const userFound = await this.usersRepository.findByPhone(
       phone,
     );
-    if (!userAlreadyExists) throw new AppError('User with same email already exists', 400);
+    if (!userFound) throw new AppError('User not found', 400);
 
     if (!photoFile) throw new AppError('You cannot create a user without a photo.');
 
     const photo = photoFile.location;
-    const user = this.usersRepository.updatePhotoAndName(userAlreadyExists?.id, {
+    const user = this.usersRepository.updatePhotoAndName(userFound?.id, {
       name,
       photo,
     });

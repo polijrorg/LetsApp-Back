@@ -18,5 +18,12 @@ usersRoutes.post('/verify', usersController.verifyCode);
 usersRoutes.post('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
 usersRoutes.post('/updateEmail', usersController.updateEmail);
 usersRoutes.delete('/deleteUser', usersController.deleteUser);
+usersRoutes.get('/listUsers', usersController.listUsers);
+// usersRoutes.get('/getcalendar', usersController.getcalendar);
+usersRoutes.get('', usersController.getTokens);
+usersRoutes.get('/getAuthUrl', usersController.getAuthUrl);
+usersRoutes.get('/getTokens', usersController.getTokens);
+usersRoutes.post('/createEvent', usersController.createEvent);
+usersRoutes.get('/getEvents', usersController.getEvents);
 
 export default usersRoutes;
