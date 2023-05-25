@@ -64,6 +64,8 @@ export default class UserController {
       id, email,
     } = req.body;
 
+    console.log(id);
+
     const updateEmail = container.resolve(AddEmailToUserService);
 
     const user = await updateEmail.execute({
