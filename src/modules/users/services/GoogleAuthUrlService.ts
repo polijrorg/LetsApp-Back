@@ -31,8 +31,6 @@ export default class GoogleAuthUrlService {
 
     });
 
-   
-
     return authUrl;
   }
 }
