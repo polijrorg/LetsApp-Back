@@ -15,7 +15,7 @@ export default class GetTokensService {
   public async authenticate(code:string): Promise<[Credentials, calendar_v3.Schema$Event[]]> {
     // const oauth2Client = new google.auth.OAuth2();
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'http://localhost:3030');
+    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'https://letsapp.polijrinternal.com');
     const { tokens } = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokens);
     const calendar = google.calendar({

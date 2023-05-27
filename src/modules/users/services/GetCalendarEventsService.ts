@@ -14,7 +14,7 @@ export default class GetCalendarEvents {
   public async authenticate(phone:string): Promise<calendar_v3.Schema$Event[]> {
     // const oauth2Client = new google.auth.OAuth2();
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'http://localhost:3030');
+    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'https://letsapp.polijrinternal.com');
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
