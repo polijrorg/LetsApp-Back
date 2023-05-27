@@ -11,7 +11,7 @@ export default class CreateEventService {
 
   ) { }
 
-  public async authenticate(phone:string): Promise<string| null| undefined> {
+  public async authenticate(phone:string, begin:string, end:string): Promise<string| null| undefined> {
     // const oauth2Client = new google.auth.OAuth2();
 
     const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'http://localhost:3030');
@@ -33,11 +33,11 @@ export default class CreateEventService {
       location: '',
       attendees: [{ email: 'luizmariano203@gmail.com' }],
       start: {
-        dateTime: '2023-05-24T05:00:00-03:00',
+        dateTime: begin,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       end: {
-        dateTime: '2023-05-24T22:00:00-03:00',
+        dateTime: end,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     };

@@ -139,9 +139,9 @@ export default class UserController {
 
   public async createEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateEventService);
-    const { phone } = req.body;
+    const { phone, begin, end } = req.body;
 
-    const Url = await urlservice.authenticate(phone);
+    const Url = await urlservice.authenticate(phone, begin, end);
     return res.status(201).json(Url);
   }
 
