@@ -14,7 +14,6 @@ import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
 // import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 
-
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
     const {
