@@ -21,9 +21,10 @@ usersRoutes.delete('/deleteUser', usersController.deleteUser);
 usersRoutes.get('/listUsers', usersController.listUsers);
 // usersRoutes.get('/getcalendar', usersController.getcalendar);
 usersRoutes.get('', usersController.getTokens);
-usersRoutes.get('/getAuthUrl', usersController.getAuthUrl);
+usersRoutes.get('/getAuthUrl/:phone', usersController.getAuthUrl);
 usersRoutes.get('/getTokens', usersController.getTokens);
 usersRoutes.post('/createEvent', usersController.createEvent);
+// usersRoutes.post('/getRecommededTimes', usersController.getRecommendedTime);
 usersRoutes.get('/getEvents', usersController.getEvents);
 
 export default usersRoutes;

@@ -27,7 +27,7 @@ export default class GoogleAuthUrlService {
       access_type: 'offline',
       scope: scopes,
       client_id: process.env.CLIENT_ID,
-      redirect_uri: 'https://letsapp.polijrinternal.com',
+      redirect_uri: process.env.CLIENT_URI,
 
     });
 

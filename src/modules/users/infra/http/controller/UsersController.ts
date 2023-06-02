@@ -12,6 +12,8 @@ import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
 import GetTokensService from '@modules/users/services/GetTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
+import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
+import { stringify } from 'uuid';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -63,8 +65,6 @@ export default class UserController {
     const {
       id, email,
     } = req.body;
-
-    console.log(id);
 
     const updateEmail = container.resolve(AddEmailToUserService);
 
@@ -122,7 +122,7 @@ export default class UserController {
   public async getAuthUrl(req: Request, res: Response): Promise<Response> {
     const {
       phone,
-    } = req.body;
+    } = req.params;
     const urlservice = container.resolve(GoogleAuthUrlService);
 
     const Url = await urlservice.authenticate(phone);
@@ -152,4 +152,32 @@ export default class UserController {
     const Url = await urlservice.authenticate(phone);
     return res.status(201).json(Url);
   }
+
+  // public async getRecommendedTime(req: Request, res: Response): Promise<Response> {
+  //   const time = container.resolve(GetRecommendedTimeService);
+  //   const {
+  //     phone,
+  //     beginDate,
+  //     endDate,
+  //     beginHour,
+  //     endHour,
+  //     duration,
+  //     mandatoryGuests,
+  //     optionalGuests,
+  //   } = req.body;
+
+  //   const times = await time.authenticate(
+  //     {
+  //       phone,
+  //       beginDate,
+  //       endDate,
+  //       beginHour,
+  //       endHour,
+  //       duration,
+  //       mandatoryGuests,
+  //       optionalGuests,
+  //     },
+  //   );
+  //   return res.status(201).json(times);
+  // }
 }
