@@ -14,7 +14,7 @@ export default class CreateEventService {
   public async authenticate(phone:string, begin:string, end:string): Promise<string| null| undefined> {
     // const oauth2Client = new google.auth.OAuth2();
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, 'https://letsapp.polijrinternal.com');
+    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
@@ -47,8 +47,6 @@ export default class CreateEventService {
       requestBody: event,
 
     });
-    console.log(`Event created: ${back.data.htmlLink}`);
-
     return back.data.htmlLink;
   }
 }
