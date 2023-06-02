@@ -12,8 +12,8 @@ import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
 import GetTokensService from '@modules/users/services/GetTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
-import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
-import { stringify } from 'uuid';
+// import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
+
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
