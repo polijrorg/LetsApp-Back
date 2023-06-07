@@ -4,6 +4,10 @@
 // import IUsersRepository from '../repositories/IUsersRepository';
 // import GetCalendarEventsService from './GetCalendarEventsService';
 
+// interface ISchedule {
+//     start: Date;
+//     end: Date;
+//   }
 // interface IRequest{
 //   phone:string,
 //       beginDate:string,
@@ -25,30 +29,48 @@
 //   public async authenticate({
 //     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, optionalGuests, phone,
 //   }:IRequest): Promise<(calendar_v3.Schema$EventDateTime | undefined)[][]> {
-//     // const oauth2Client = new google.auth.OAuth2();
+//     // Define the type for the response
 
-//     const user = await this.usersRepository.findByPhone(phone);
-//     if (!user) throw new AppError('User not found', 400);
-//     const urlservice = container.resolve(GetCalendarEventsService);
+//     type EventsListResponse = calendar_v3.Schema$Events;
 
-//     const schedule = await urlservice.authenticate(phone);
+//     // Function to compare events and find free time intervals
+//     function findFreeTimeIntervals(events: EventsListResponse[]): calendar_v3.Schema$TimePeriod[] {
+//       // Sort the events by start time
+//       const sortedEvents = events.sort(
+//         (a, b) => new Date(a.start!.dateTime!).getTime() - new Date(b.start!.dateTime!).getTime(),
+//       );
 
-//     // eslint-disable-next-line no-sequences
-//     const simplerS = schedule.map((event) => ([event.start, event.end]));
+//       // Find the free time intervals between events
+//       const freeTimeIntervals: calendar_v3.Schema$TimePeriod[] = [];
+//       for (let i = 1; i < sortedEvents.length; i + 1) {
+//         const previousEvent = sortedEvents[i - 1];
+//         const currentEvent = sortedEvents[i];
 
-//     // eslint-disable-next-line no-restricted-syntax
-//     for (const set of simplerS) {
-//       const start = new Date(set[0].dateTime);
-//       const end = new Date(set[1].dateTime);
-//       const difference = end.getTime() - start.getTime();
-//       console.log(`Difference: ${difference} milliseconds`);
+//         const previousEndTime = new Date(previousEvent.end!.dateTime!).getTime();
+//         const currentStartTime = new Date(currentEvent.start!.dateTime!).getTime();
+
+//         if (previousEndTime < currentStartTime) {
+//           // There is a free time interval between the events
+//           const freeInterval: calendar_v3.Schema$TimePeriod = {
+//             start: {
+//               dateTime: new Date(previousEndTime).toISOString(),
+//             },
+//             end: {
+//               dateTime: new Date(currentStartTime).toISOString(),
+//             },
+//           };
+
+//           freeTimeIntervals.push(freeInterval);
+//         }
+//       }
+
+//       return freeTimeIntervals;
 //     }
-//     // const tempo = simplerS.forEach((item, index) => {
-//     //   const date1 = new Date(simplerS[index + 1][0].);
-//     //   return ( - simplerS?[index + 1][0]?.dateTime?)
-//     // });
 
-//     console.log(tempo);
+//     // Example usage
+//     const events: EventsListResponse[] = [eventsResponse1, eventsResponse2, eventsResponse3]; // Replace with your actual events data
+//     const freeTimeIntervals = findFreeTimeIntervals(events);
+//     console.log('Free Time Intervals:', freeTimeIntervals);
 
 //     return simplerS;
 //   }
