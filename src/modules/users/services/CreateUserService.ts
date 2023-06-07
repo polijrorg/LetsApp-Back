@@ -23,13 +23,11 @@ export default class CreateUserService {
 
   public async execute({ phone }: IRequest): Promise<User> {
     if (phone === '') throw new AppError('Phone is empty', 400);
-    // let code = Math.floor(Math.random() * 999999);
-    // while (code < 100000) {
-    //   code *= 10;
-    // }
-    // Para testes
+    let code = Math.floor(Math.random() * 999999);
+    while (code < 100000) {
+      code *= 10;
+    }
 
-    const code = 111111;
     const message = `Letsapp: Olá seu codigo é ${code}`;
     const sendSms = await container.resolve(SmsService);
     const status = await sendSms.execute({ phone, message });
