@@ -124,8 +124,8 @@ export default class UserController {
     } = req.params;
     const urlservice = container.resolve(GoogleAuthUrlService);
 
-    const Url = await urlservice.authenticate(phone);
-    return res.status(201).json(Url);
+    await urlservice.authenticate(phone);
+    return res.status(201).json('Ok');
   }
 
   public async getTokens(req: Request, res: Response): Promise<Response> {
