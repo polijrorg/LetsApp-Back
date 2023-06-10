@@ -127,7 +127,7 @@ export default class UserController {
     const urlservice = container.resolve(GetTokensService);
 
     await urlservice.authenticate(code);
-    
+
     return res.status(201).json('Ok');
   }
 
