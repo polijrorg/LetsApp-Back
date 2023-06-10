@@ -112,28 +112,23 @@ export default class UserController {
   //   return res.status(201).json(user);
   // }
 
-  public async code(req: Request, res: Response): Promise<Response> {
-    const { code } = req.query;
-
-    return res.status(201).json(code);
-  }
-
   public async getAuthUrl(req: Request, res: Response): Promise<Response> {
     const {
       phone,
     } = req.params;
     const urlservice = container.resolve(GoogleAuthUrlService);
 
-    await urlservice.authenticate(phone);
-    return res.status(201).json('Ok');
+    const Url = await urlservice.authenticate(phone);
+    return res.status(201).json(Url);
   }
 
   public async getTokens(req: Request, res: Response): Promise<Response> {
-    const urlservice = container.resolve(GetTokensService);
     const { code } = req.query;
+    const urlservice = container.resolve(GetTokensService);
 
     await urlservice.authenticate(code);
-    return res.status(201);
+
+    return res.status(201).json('Ok');
   }
 
   public async createEvent(req: Request, res: Response): Promise<Response> {
