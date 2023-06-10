@@ -132,8 +132,8 @@ export default class UserController {
     const urlservice = container.resolve(GetTokensService);
     const { code } = req.query;
 
-    const Url = await urlservice.authenticate(code);
-    return res.status(201).json(Url);
+    await urlservice.authenticate(code);
+    return res.status(201);
   }
 
   public async createEvent(req: Request, res: Response): Promise<Response> {
