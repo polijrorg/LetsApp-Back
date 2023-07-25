@@ -24,7 +24,8 @@ usersRoutes.get('', usersController.getTokens);
 usersRoutes.get('/getAuthUrl/:phone', usersController.getAuthUrl);
 usersRoutes.get('/getTokens', usersController.getTokens);
 usersRoutes.post('/createEvent', usersController.createEvent);
-// usersRoutes.post('/getRecommededTimes', usersController.getRecommendedTime);
+usersRoutes.post('/getRecommededTimes', usersController.getRecommendedTime);
 usersRoutes.get('/getEvents', usersController.getEvents);
+usersRoutes.post('/addContact', usersController.addContact);
 
 export default usersRoutes;

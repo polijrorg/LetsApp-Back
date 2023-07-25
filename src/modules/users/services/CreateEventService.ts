@@ -3,6 +3,15 @@ import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
+interface IRequest {
+    phone:string;
+    begin:string; end:string;
+    attendees:string[];
+    description:string;
+    address:string;
+    createMeetLink:boolean;
+    name:string;
+}
 @injectable()
 export default class CreateEventService {
   constructor(
@@ -11,7 +20,9 @@ export default class CreateEventService {
 
   ) { }
 
-  public async authenticate(phone:string, begin:string, end:string): Promise<string| null| undefined> {
+  public async authenticate({
+    address, attendees, begin, createMeetLink, description, end, phone, name,
+  }:IRequest): Promise<string| null| undefined> {
     // const oauth2Client = new google.auth.OAuth2();
 
     const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
@@ -26,12 +37,13 @@ export default class CreateEventService {
       auth: oAuth2Client,
 
     });
+    const emails = attendees.map((email) => ({ email }));
 
     const event = {
-      summary: 'tesssttteee',
-      description: '',
-      location: '',
-      attendees: [{ email: 'luizmariano203@gmail.com' }],
+      summary: name,
+      description,
+      location: address,
+      attendees: emails,
       start: {
         dateTime: begin,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -40,13 +52,30 @@ export default class CreateEventService {
         dateTime: end,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
+      conferenceData: {
+        createRequest: {
+          requestId: 'random_id', // Provide a unique ID for each request
+          conferenceSolutionKey: {
+            type: 'hangoutsMeet', // Use 'hangoutsMeet' for Google Meet
+          },
+        },
+      },
     };
+    let back;
+    if (createMeetLink) {
+      back = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+        conferenceDataVersion: 1,
 
-    const back = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: event,
+      });
+    } else {
+      back = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
 
-    });
-    return back.data.htmlLink;
+      });
+    }
+    return back.data;
   }
 }

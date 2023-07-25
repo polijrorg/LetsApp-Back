@@ -1,0 +1,21 @@
+model Invite {
+  id          String  @id @default(uuid())
+  name        String
+  date        String
+  beginHour   String
+  endHour     String
+  description String
+  address     String
+  link        String
+  Guests      User?   @relation(fields: [guests], references: [phone])
+  guests      String?
+
+  @@map("invite")
+}
+
+model User {
+  phone   String   @unique
+  invites Invite[]
+
+  @@map("user")
+}

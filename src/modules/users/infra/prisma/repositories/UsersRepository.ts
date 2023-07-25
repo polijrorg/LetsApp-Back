@@ -1,12 +1,19 @@
 import prisma from '@shared/infra/prisma/client';
 import { Prisma, User } from '@prisma/client';
 
-import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
-// import IUpdateUserDTO from '@modules/users/dtos/IUpdateUserDTO';
+import IUsersRepository from '@modules/users/repositories/IUsersRepository';
+
 interface IUpload{
   name:string,
   photo:string
+}
+interface IContact{
+
+  email:string,
+  phone:string,
+  name:string,
+  userId:string|null
 }
 export default class UsersRepository implements IUsersRepository {
   private ormRepository: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
@@ -51,6 +58,33 @@ export default class UsersRepository implements IUsersRepository {
     const user = await this.ormRepository.update({ where: { id }, data });
 
     return user;
+  }
+
+  public async addContact(userPhone:string, data: IContact): Promise<User> {
+    const user = await this.ormRepository.findUnique({
+      where: { phone: userPhone },
+    });
+
+    if (!user) {
+      throw new Error('User not found'); // Handle the case when the user doesn't exist.
+    }
+
+    const contact = await prisma.contato.create({
+      data: {
+        ...data,
+        userId: user.id, // Connect the contact to the user.
+      },
+    });
+    const contatosAtualizados = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        contatos: {
+          connect: [{ id: contact.id }], // Adicione o ID do novo contato à lista de contatos do usuário.
+        },
+      },
+      include: { contatos: true }, // Inclua a lista de contatos atualizada no resultado.
+    });
+    return contatosAtualizados;
   }
 
   public async updateEmail(id: string, email: string): Promise<User> {

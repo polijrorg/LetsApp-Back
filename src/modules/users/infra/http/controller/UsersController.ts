@@ -12,7 +12,8 @@ import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
 import GetTokensService from '@modules/users/services/GetTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
-// import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
+import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
+import AddContactService from '@modules/users/services/AddContactService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -133,9 +134,13 @@ export default class UserController {
 
   public async createEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateEventService);
-    const { phone, begin, end } = req.body;
+    const {
+      phone, begin, end, attendees, description, address, name, createMeetLink,
+    } = req.body;
 
-    const Url = await urlservice.authenticate(phone, begin, end);
+    const Url = await urlservice.authenticate({
+      phone, begin, end, attendees, description, address, name, createMeetLink,
+    });
     return res.status(201).json(Url);
   }
 
@@ -147,31 +152,43 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
-  // public async getRecommendedTime(req: Request, res: Response): Promise<Response> {
-  //   const time = container.resolve(GetRecommendedTimeService);
-  //   const {
-  //     phone,
-  //     beginDate,
-  //     endDate,
-  //     beginHour,
-  //     endHour,
-  //     duration,
-  //     mandatoryGuests,
-  //     optionalGuests,
-  //   } = req.body;
+  public async addContact(req: Request, res: Response): Promise<Response> {
+    const createContact = container.resolve(AddContactService);
+    const {
+      userPhone, phone, name, email,
+    } = req.body;
 
-  //   const times = await time.authenticate(
-  //     {
-  //       phone,
-  //       beginDate,
-  //       endDate,
-  //       beginHour,
-  //       endHour,
-  //       duration,
-  //       mandatoryGuests,
-  //       optionalGuests,
-  //     },
-  //   );
-  //   return res.status(201).json(times);
-  // }
+    const Url = await createContact.execute({
+      userPhone, phone, name, email,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async getRecommendedTime(req: Request, res: Response): Promise<Response> {
+    const time = container.resolve(GetRecommendedTimeService);
+    const {
+      phone,
+      beginDate,
+      endDate,
+      beginHour,
+      endHour,
+      duration,
+      mandatoryGuests,
+      optionalGuests,
+    } = req.body;
+
+    const times = await time.authenticate(
+      {
+        phone,
+        beginDate,
+        endDate,
+        beginHour,
+        endHour,
+        duration,
+        mandatoryGuests,
+        optionalGuests,
+      },
+    );
+    return res.status(201).json(times);
+  }
 }

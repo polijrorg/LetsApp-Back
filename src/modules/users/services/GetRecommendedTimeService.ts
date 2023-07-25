@@ -1,154 +1,122 @@
-// import { calendar_v3, google } from 'googleapis';
-// import { container, inject, injectable } from 'tsyringe';
-// import AppError from '@shared/errors/AppError';
-// import IUsersRepository from '../repositories/IUsersRepository';
-// import GetCalendarEventsService from './GetCalendarEventsService';
+import { calendar_v3, google } from 'googleapis';
+import { container, inject, injectable } from 'tsyringe';
+import AppError from '@shared/errors/AppError';
+import { homegraph } from 'googleapis/build/src/apis/homegraph';
+import moment from 'moment';
+import IUsersRepository from '../repositories/IUsersRepository';
+import GetCalendarEventsService from './GetCalendarEventsService';
 
-// interface ISchedule {
-//   dateTime?: string;
-//   timeZone?: string;
-//   date?: string;
-// }
+interface ISchedule {
+  dateTime?: string;
+  timeZone?: string;
+  date?: string;
+}
 
-// interface IFreeTime {
-//   date?: string |null;
-//   start?: string|null;
-//   end?: string|null;
-// }
-// interface IRequest{
-//   phone:string,
-//       beginDate:string,
-//       endDate:string,
-//       beginHour:string,
-//       endHour:string,
-//       duration:number,
-//       mandatoryGuests:string[],
-//       optionalGuests:string
-// }
-// @injectable()
-// export default class GetCalendarEvents {
-//   constructor(
-//     @inject('UsersRepository')
-//     private usersRepository: IUsersRepository,
+interface IFreeTime {
+  date?: Date|string |null;
+  start?: Date|string|null;
+  end?: Date|string|null;
+}
+interface IRequest{
+  phone:string,
+      beginDate:string,
+      endDate:string,
+      beginHour:string,
+      endHour:string,
+      duration:number,
+      mandatoryGuests:string[],
+      optionalGuests:string
+}
+@injectable()
+export default class GetCalendarEvents {
+  constructor(
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
 
-//   ) { }
+  ) { }
 
-//   public async authenticate({
-//     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, optionalGuests, phone,
-//   }:IRequest): Promise<IFreeTime[]> {
-//     const user = await this.usersRepository.findByPhone(phone);
-//     if (!user) throw new AppError('User not found', 400);
+  public async authenticate({
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, optionalGuests, phone,
+  }:IRequest): Promise<IFreeTime[]> {
+    const user = await this.usersRepository.findByPhone(phone);
+    if (!user) throw new AppError('User not found', 400);
 
-//     const urlservice = container.resolve(GetCalendarEventsService);
-//     console.log(mandatoryGuests);
-//     const schedule = await urlservice.authenticate(phone);
+    const urlservice = container.resolve(GetCalendarEventsService);
 
-//     mandatoryGuests.forEach(async (element) => {
-//       const aux = await urlservice.authenticate(element);
-//       schedule.push(aux[0]);
-//     });
+    const schedule = await urlservice.authenticate(phone);
+    const horarios:calendar_v3.Schema$Event[] = [];
+    schedule.forEach((element) => {
+      horarios.push(element);
+    });
 
-//     // eslint-disable-next-line no-sequences
-//     const simplerS = schedule.map((event) => ([event.start, event.end]));
-//     console.log(simplerS);
+    for (let i = 0; i < mandatoryGuests.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const aux = await urlservice.authenticate(mandatoryGuests[i]);
 
-//     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
-//     const freeTimes: IFreeTime[] = [];
+      for (let index = 0; index < aux.length; index += 1) {
+        horarios.push(aux[index]);
+      }
+    }
+    // eslint-disable-next-line no-sequences
+    const simplerS = horarios.map((event) => ([event.start, event.end]));
 
-//     try {
-//       simplerS.forEach((scheduleSet, index) => {
-//         if (index + 1 > simplerS.length) {
-//           return freeTimes;
-//         }
-//         if (simplerS[index + 1] !== undefined || scheduleSet !== undefined) {
-//           if (scheduleSet[1] !== undefined || simplerS[index + 1][0] !== undefined) {
-//             const start = scheduleSet[1]?.dateTime;
-//             const end = simplerS[index + 1][0]?.dateTime;
-//             if (start < end && start > beginDate && end < endDate && ((Date.parse(end) - Date.parse(start)) / 60000) >= duration) {
-//               const startDate1 = start?.slice(0, 11) + beginHour + start?.slice(19, 25);
-//               const endDate1 = end?.slice(0, 11) + endHour + end?.slice(19, 25);
+    if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
-//               if (start > startDate1 && end < endDate1) { freeTimes.push({ start, end }); }
-//             }
-//           }
-//         }
-//       });
-//     } catch (e) { console.log(e); }
+    const freeTimes: IFreeTime[] = [];
 
-//     //     // // eslint-disable-next-line no-restricted-syntax
-//     //     // for (const set of simplerS) {
-//     //     //   const start = new Date(set[0].dateTime);
-//     //     //   const end = new Date(set[1].dateTime);
-//     //     //   const difference = end.getTime() - start.getTime();
-//     //     //   console.log(`Difference: ${difference} milliseconds`);
-//     //     // }
-//     //     // // const tempo = simplerS.forEach((item, index) => {
-//     //     // //   const date1 = new Date(simplerS[index + 1][0].);
-//     //     // //   return ( - simplerS?[index + 1][0]?.dateTime?)
-//     //     // // });
+    const data = simplerS;
 
-//     //     const schedules: ISchedule[][] = [
-//     //       [
-//     //         {
-//     //           start: new Date('2023-06-05T23:00:00-03:00'),
-//     //           end: new Date('2023-06-05T23:30:00-03:00'),
-//     //         },
-//     //         {
-//     //           start: new Date('2023-06-06T05:00:00-03:00'),
-//     //           end: new Date('2023-06-06T05:45:00-03:00'),
-//     //         },
-//     //       ],
-//     //       [
-//     //         {
-//     //           start: new Date('2023-06-06T08:00:00-03:00'),
-//     //           end: new Date('2023-06-06T09:30:00-03:00'),
-//     //         },
-//     //         {
-//     //           start: new Date('2023-06-06T10:00:00-03:00'),
-//     //           end: new Date('2023-06-06T11:00:00-03:00'),
-//     //         },
-//     //       ],
-//     //       // Add more schedules here...
-//     //     ];
+    // Custom comparison function
+    function compareDates(a, b) {
+      const dateTimeA = new Date(a[0].dateTime);
 
-//     //     const secondSchedule: ISchedule[] = [
-//     //       {
-//     //         start: new Date('2023-06-05T23:00:00-03:00'),
-//     //         end: new Date('2023-06-05T23:30:00-03:00'),
-//     //       },
-//     //       {
-//     //         start: new Date('2023-06-06T03:00:00-03:00'),
-//     //         end: new Date('2023-06-06T05:45:00-03:00'),
-//     //       },
-//     //     ];
+      const dateTimeB = new Date(b[0].dateTime);
 
-//     //     const freeTimes: ISchedule[] = [];
+      return dateTimeA - dateTimeB;
+    }
 
-//     //     schedules.forEach((scheduleSet) => {
-//     //       scheduleSet.forEach((schedule) => {
-//     //         const endCurrent = scheduleSet[scheduleSet.length - 1].end;
-//     //         const startNext = secondSchedule[0].start;
+    // Sort the array based on the first datetime of each index
 
-//     //         const timeDiff = startNext.getTime() - endCurrent.getTime();
+    data.sort(compareDates);
 
-//     //         if (timeDiff > 0) {
-//     //           const minutesDiff = Math.floor(timeDiff / (1000 * 60)); // Convert milliseconds to minutes
-//     //           const hours = Math.floor(minutesDiff / 60);
-//     //           const minutes = minutesDiff % 60;
+    try {
+      // eslint-disable-next-line consistent-return
 
-//     //           const freeTimeStart = new Date(endCurrent.getTime() + 1000); // Add 1 second to avoid overlapping with the current schedule
-//     //           const freeTimeEnd = new Date(startNext.getTime() - 1000); // Subtract 1 second to avoid overlapping with the next schedule
+      data.forEach((scheduleSet, index) => {
+        if (index + 1 > data.length) {
+          return freeTimes;
+        }
+        if (data[index + 1] !== undefined || scheduleSet !== undefined) {
+          if (scheduleSet[1] !== undefined || data[index + 1][0] !== undefined) {
+            const start = scheduleSet[1]?.dateTime;
 
-//     //           freeTimes.push({ start: freeTimeStart, end: freeTimeEnd });
-//     //         }
-//     //       });
-//     //     });
+            const end = data[index + 1][0]?.dateTime;
 
-//     //     console.log('Free times between the schedules:');
-//     //     freeTimes.forEach((freeTime) => {
-//     //       console.log(`Start: ${freeTime.start.toISOString()}, End: ${freeTime.end.toISOString()}`);
-//     //     });
-//     console.log('auuuu');
-//     return freeTimes;
-//   }
-// }
+            if (start < end && start > beginDate && end < endDate && ((Date.parse(end) - Date.parse(start)) / 60000) >= duration) {
+              const startDate1 = start?.slice(0, 11) + beginHour + start?.slice(19, 25);
+
+              const endDate1 = start?.slice(0, 11) + endHour + start?.slice(19, 25);
+
+              if (start > startDate1 && end < endDate1) {
+                console.log(startDate1, endDate1);
+
+                let aux1 = moment(start);
+                const aux2 = moment(start);
+
+                while (aux2.format() < end) {
+                  aux2.add(duration, 'minutes');
+
+                  freeTimes.push({ start: aux1.format(), end: aux2.format() });
+
+                  aux1 = moment(aux2);
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (e) { console.log(e); }
+
+    return freeTimes;
+  }
+}
