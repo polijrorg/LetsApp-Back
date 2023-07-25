@@ -27,7 +27,7 @@ export default class GetCalendarEvents {
 
     const now = new Date();
     const end = new Date();
-    end.setDate(now.getDate() + 3);
+    end.setDate(now.getDate() + 180);
     const response = await calendar.events.list({
       calendarId: 'primary',
       timeMin: now.toISOString(),

@@ -7,6 +7,13 @@ interface IUpload{
   photo:string,
 
 }
+interface IContact{
+
+  email:string,
+  phone:string,
+  name:string,
+  userId:string|null
+}
 
 interface IUsersRepository {
   findByEmailWithRelations(email: string): Promise<User | null>;
@@ -17,6 +24,7 @@ interface IUsersRepository {
   updateEmail(id: string, email: string): Promise<User>;
   updateToken(id: string, tokens: string): Promise<User>;
   create(data: ICreateUserDTO): Promise<User>;
+  addContact(userPhone:string, data: IContact): Promise<User>;
   delete(phone:string): Promise<User>;
   listUsers(): Promise<User[]>;
 

@@ -8,18 +8,46 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Invite {
+  id          String  @id @default(uuid())
+  Guests      User?   @relation(fields: [guests], references: [phone])
+  guests      String?
+  name        String
+  date        String
+  beginHour   String
+  endHour     String
+  description String
+  address     String
+  link        String
+
+  @@map("invite")
+}
+
 model User {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   name                String?
-  phone               String   @unique
-  email               String?  @unique
+  phone               String    @unique
+  email               String?   @unique
   photo               String?
   code                Int?
   googleRefeshCode    String?
   microsoftRefeshCode String?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @default(now())
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now())
   tokens              String?
+  invites             Invite[]
+  contatos            Contato[]
 
   @@map("user")
+}
+
+model Contato {
+  id     String  @id @default(uuid())
+  name   String
+  phone  String
+  email  String
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@map("contato")
 }

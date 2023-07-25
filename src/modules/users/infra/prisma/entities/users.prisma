@@ -1,15 +1,37 @@
 model User {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   name                String?
-  phone               String   @unique
-  email               String?  @unique
+  phone               String    @unique
+  email               String?   @unique
   photo               String?
   code                Int?
   googleRefeshCode    String?
   microsoftRefeshCode String?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @default(now())
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now())
   tokens              String?
+  invites             Invite[]
+  contatos            Contato[]
 
   @@map("user")
+}
+
+model Invite {
+  id String @id @default(uuid())
+
+  Guests User?   @relation(fields: [guests], references: [phone])
+  guests String?
+
+  @@map("invite")
+}
+
+model Contato {
+  id     String  @id @default(uuid())
+  name   String
+  phone  String
+  email  String
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@map("contato")
 }
