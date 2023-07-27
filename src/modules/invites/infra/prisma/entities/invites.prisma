@@ -1,14 +1,16 @@
 model Invite {
-  id          String  @id @default(uuid())
+  id          String @id @default(uuid())
   name        String
   date        String
   beginHour   String
   endHour     String
   description String
+  phone       String
   address     String
   link        String
-  Guests      User?   @relation(fields: [guests], references: [phone])
-  guests      String?
+  guests      String
+  Guests      User   @relation(fields: [guests], references: [phone])
+  status      Int
 
   @@map("invite")
 }

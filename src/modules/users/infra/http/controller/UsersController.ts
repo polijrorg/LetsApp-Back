@@ -14,6 +14,7 @@ import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
+import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -140,6 +141,18 @@ export default class UserController {
 
     const Url = await urlservice.authenticate({
       phone, begin, end, attendees, description, address, name, createMeetLink,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async updateEventState(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(UpdateEventStateService);
+    const {
+      phone, state, eventId,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, state, eventId,
     });
     return res.status(201).json(Url);
   }

@@ -6,7 +6,7 @@ import { Invite } from '@prisma/client';
 import IInvitesRepository from '../repositories/IInvitesRepository';
 
 @injectable()
-export default class CreateInviteService {
+export default class ListEventsService {
   constructor(
     @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
@@ -14,7 +14,7 @@ export default class CreateInviteService {
   ) { }
 
   public async execute(phone:string): Promise<Invite[]> {
-    const invite = this.invitesRepository.listInvitesByUser(phone);
+    const invite = this.invitesRepository.listEventsByUser(phone);
 
     return invite;
   }

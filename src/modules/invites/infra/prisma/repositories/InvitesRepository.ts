@@ -17,8 +17,14 @@ export default class InvitesRepository implements IInvitesRepository {
     return invite;
   }
 
-  public async listAll(): Promise<Invite[]> {
-    const invite = await this.ormRepository.findMany();
+  public async listInvitesByUser(phone: string): Promise<Invite[]> {
+    const invite = await this.ormRepository.findMany({ where: { phone, status: 0 } });
+
+    return invite;
+  }
+
+  public async listEventsByUser(phone: string): Promise<Invite[]> {
+    const invite = await this.ormRepository.findMany({ where: { phone, status: 1 } });
 
     return invite;
   }

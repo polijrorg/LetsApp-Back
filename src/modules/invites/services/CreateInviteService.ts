@@ -17,12 +17,16 @@ export default class CreateInviteService {
   ) { }
 
   public async execute({
-    address, beginHour, date, description, endHour, guests, link, name,
+    address, beginHour, date, description, endHour, guests, link, name, phone, status,
   }: ICreateInviteDTO): Promise<Invite> {
     if (date === '') throw new AppError('Phone is empty', 400);
 
-    const invite = this.invitesRepository.create({
-      address, beginHour, date, description, endHour, guests, link, name,
+    const invite = await this.invitesRepository.create({
+      address, beginHour, date, description, endHour, guests, link, name, phone, status,
+    });
+
+    await this.invitesRepository.create({
+      address, beginHour, date, description, endHour, guests, link, name, phone: guests, status: 0,
     });
 
     return invite;
