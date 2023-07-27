@@ -19,8 +19,8 @@ model User {
 model Invite {
   id String @id @default(uuid())
 
-  Guests User?   @relation(fields: [guests], references: [phone])
-  guests String?
+  Guests User   @relation(fields: [guests], references: [phone])
+  guests String
 
   @@map("invite")
 }

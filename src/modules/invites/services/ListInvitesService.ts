@@ -13,8 +13,8 @@ export default class CreateInviteService {
 
   ) { }
 
-  public async execute(): Promise<Invite[]> {
-    const invite = this.invitesRepository.listAll();
+  public async execute(phone:string): Promise<Invite[]> {
+    const invite = this.invitesRepository.listInvitesByUser(phone);
 
     return invite;
   }

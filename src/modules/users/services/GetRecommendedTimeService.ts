@@ -82,6 +82,7 @@ export default class GetCalendarEvents {
     try {
       // eslint-disable-next-line consistent-return
 
+      // eslint-disable-next-line consistent-return
       data.forEach((scheduleSet, index) => {
         if (index + 1 > data.length) {
           return freeTimes;
@@ -98,8 +99,6 @@ export default class GetCalendarEvents {
               const endDate1 = start?.slice(0, 11) + endHour + start?.slice(19, 25);
 
               if (start > startDate1 && end < endDate1) {
-                console.log(startDate1, endDate1);
-
                 let aux1 = moment(start);
                 const aux2 = moment(start);
 

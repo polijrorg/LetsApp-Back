@@ -9,16 +9,18 @@ generator client {
 }
 
 model Invite {
-  id          String  @id @default(uuid())
-  Guests      User?   @relation(fields: [guests], references: [phone])
-  guests      String?
+  id          String @id @default(uuid())
+  Guests      User   @relation(fields: [guests], references: [phone])
+  guests      String
   name        String
   date        String
   beginHour   String
   endHour     String
   description String
+  phone       String
   address     String
   link        String
+  status      Int
 
   @@map("invite")
 }
