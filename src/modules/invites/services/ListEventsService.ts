@@ -14,7 +14,6 @@ export default class ListEventsService {
   ) { }
 
   public async execute(phone:string): Promise<Invite[]> {
-    console.log(phone);
     const invite = this.invitesRepository.listEventsByUser(phone);
 
     return invite;

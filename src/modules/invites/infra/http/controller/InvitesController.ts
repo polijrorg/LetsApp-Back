@@ -40,7 +40,6 @@ export default class InviteController {
   public async listEventsByUser(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(ListEventsService);
     const { phone } = req.body;
-    console.log(phone);
     const invites = await list.execute(phone);
 
     return res.status(201).json(invites);
@@ -49,7 +48,6 @@ export default class InviteController {
   public async listInvitesByUser(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(ListInvitesService);
     const { phone } = req.body;
-    console.log(phone);
     const invites = await list.execute(phone);
 
     return res.status(201).json(invites);
