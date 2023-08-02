@@ -1,21 +1,14 @@
-import { calendar_v3, google } from 'googleapis';
+import { calendar_v3 } from 'googleapis';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
-import { homegraph } from 'googleapis/build/src/apis/homegraph';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetCalendarEventsService from './GetCalendarEventsService';
 
-interface ISchedule {
-  dateTime?: string;
-  timeZone?: string;
-  date?: string;
-}
-
 interface IFreeTime {
-  date?: Date|string |null;
-  start?: Date|string|null;
-  end?: Date|string|null;
+  date?: Moment|string |null;
+  start1?: Moment|string|null;
+  end1?: Moment|string|null;
 }
 interface IRequest{
   phone:string,
@@ -36,7 +29,7 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, optionalGuests, phone,
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
@@ -58,7 +51,7 @@ export default class GetCalendarEvents {
       }
     }
     // eslint-disable-next-line no-sequences
-    const simplerS = horarios.map((event) => ([event.start, event.end]));
+    const simplerS = horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
@@ -67,10 +60,10 @@ export default class GetCalendarEvents {
     const data = simplerS;
 
     // Custom comparison function
-    function compareDates(a, b) {
-      const dateTimeA = new Date(a[0].dateTime);
+    function compareDates(a:any, b:any) {
+      const dateTimeA = a[0];
 
-      const dateTimeB = new Date(b[0].dateTime);
+      const dateTimeB = b[0];
 
       return dateTimeA - dateTimeB;
     }
@@ -78,7 +71,6 @@ export default class GetCalendarEvents {
     // Sort the array based on the first datetime of each index
 
     data.sort(compareDates);
-
     try {
       // eslint-disable-next-line consistent-return
 
@@ -89,25 +81,33 @@ export default class GetCalendarEvents {
         }
         if (data[index + 1] !== undefined || scheduleSet !== undefined) {
           if (scheduleSet[1] !== undefined || data[index + 1][0] !== undefined) {
-            const start = scheduleSet[1]?.dateTime;
+            const start = moment(scheduleSet[1]);
 
-            const end = data[index + 1][0]?.dateTime;
+            const end = moment(data[index + 1][0]);
 
-            if (start < end && start > beginDate && end < endDate && ((Date.parse(end) - Date.parse(start)) / 60000) >= duration) {
-              const startDate1 = start?.slice(0, 11) + beginHour + start?.slice(19, 25);
+            const diff = (Date.parse(end.toString()) - Date.parse(start.toString())) / 60000;
 
-              const endDate1 = start?.slice(0, 11) + endHour + start?.slice(19, 25);
+            if (start < end && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
+              const startDate1 = moment(start);
+              startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
+              startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
+              startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
+
+              const endDate1 = moment(start);
+              endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
+              endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
+              endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
 
               if (start > startDate1 && end < endDate1) {
-                let aux1 = moment(start);
-                const aux2 = moment(start);
+                let aux1 = start.clone();
+                const aux2 = start.clone();
 
-                while (aux2.format() < end) {
-                  aux2.add(duration, 'minutes');
+                while (aux2 < end) {
+                  aux2.add(duration, 'minute');
 
-                  freeTimes.push({ start: aux1.format(), end: aux2.format() });
+                  freeTimes.push({ start1: aux1.format(), end1: aux2.format() });
 
-                  aux1 = moment(aux2);
+                  aux1 = aux2.clone();
                 }
               }
             }
