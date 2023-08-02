@@ -15,6 +15,8 @@ import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsS
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
+import { appengine } from 'googleapis/build/src/apis/appengine';
+import AppError from '@shared/errors/AppError';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -127,10 +129,11 @@ export default class UserController {
   public async getTokens(req: Request, res: Response): Promise<Response> {
     const { code } = req.query;
     const urlservice = container.resolve(GetTokensService);
+    if (!code) throw new AppError('User not found', 400);
 
     await urlservice.authenticate(code);
 
-    return res.status(201).json('Ok');
+    return res.status(201).json('ok');
   }
 
   public async createEvent(req: Request, res: Response): Promise<Response> {
