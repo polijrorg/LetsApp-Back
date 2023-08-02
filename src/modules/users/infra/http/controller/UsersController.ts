@@ -15,7 +15,6 @@ import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsS
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
-import { appengine } from 'googleapis/build/src/apis/appengine';
 import AppError from '@shared/errors/AppError';
 
 export default class UserController {
