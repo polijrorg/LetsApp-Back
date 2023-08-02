@@ -51,7 +51,7 @@ export default class GetCalendarEvents {
       }
     }
     // eslint-disable-next-line no-sequences
-    const simplerS = await horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+    const simplerS = horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
@@ -70,13 +70,11 @@ export default class GetCalendarEvents {
 
     // Sort the array based on the first datetime of each index
 
-    await data.sort(compareDates);
-    try {
-      data.forEach((scheduleSet, index) => {
-        if (index + 1 > data.length) {
-          return freeTimes;
-        }
-        if (data[index + 1] !== undefined || scheduleSet !== undefined) {
+    data.sort(compareDates);
+
+    data.forEach((scheduleSet, index) => {
+      try {
+        if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
           if (scheduleSet[1] !== undefined || data[index + 1][0] !== undefined) {
             const start = moment(scheduleSet[1]);
 
@@ -110,9 +108,8 @@ export default class GetCalendarEvents {
             }
           }
         }
-      });
-      return freeTimes;
-    } catch (e) { console.log('error', e); }
+      } catch (e) { console.log('error', e); }
+    });
 
     return freeTimes;
   }
