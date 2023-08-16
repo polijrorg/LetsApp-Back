@@ -39,7 +39,7 @@ export default class GetCalendarEvents {
     const schedule = await urlservice.authenticate(phone);
     moment.tz.setDefault('America/Sao_Paulo');
     const horarios:calendar_v3.Schema$Event[] = [];
-    await schedule.forEach((element) => {
+    schedule.forEach((element) => {
       horarios.push(element);
     });
 
@@ -62,11 +62,11 @@ export default class GetCalendarEvents {
 
     // Custom comparison function
     function compareDates(a:any, b:any) {
-      const dateTimeA = a[0];
+      const dateTimeA = moment(a[0]);
 
-      const dateTimeB = b[0];
+      const dateTimeB = moment(b[0]);
 
-      return dateTimeA - dateTimeB;
+      return dateTimeA.diff(dateTimeB);
     }
 
     // Sort the array based on the first datetime of each index
@@ -112,6 +112,6 @@ export default class GetCalendarEvents {
       } catch (e) { console.log('error', e); }
     });
 
-    return freeTimes;
+    return data;
   }
 }

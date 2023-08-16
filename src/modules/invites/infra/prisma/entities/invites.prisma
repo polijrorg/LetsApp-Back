@@ -1,23 +1,34 @@
 model Invite {
-  id          String @id @default(uuid())
-  name        String
-  date        String
-  beginHour   String
-  endHour     String
-  description String
-  phone       String
-  address     String
-  link        String
-  guests      String
-  Guests      User   @relation(fields: [guests], references: [phone])
-  status      Int
+  id             String       @id @default(uuid())
+  name           String
+  begin          String
+  end            String
+  description    String
+  phone          String
+  address        String
+  link           String?
+  status         Int
+  googleId       String
+  guests         InviteUser[]
+  organizerPhoto String?
+  organizerName  String
 
   @@map("invite")
 }
 
 model User {
-  phone   String   @unique
-  invites Invite[]
+  phone   String       @unique
+  invites InviteUser[]
+  email   String       @unique
 
   @@map("user")
+}
+
+model InviteUser {
+  id        String @id @default(uuid())
+  User      User   @relation(fields: [userEmail], references: [email])
+  Invite    Invite @relation(fields: [idInvite], references: [id])
+  userEmail String
+  idInvite  String
+  Status    Int    @default(0)
 }

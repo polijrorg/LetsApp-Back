@@ -6,8 +6,10 @@ import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 interface IInvitesRepository {
 
   create(data: ICreateInviteDTO): Promise<Invite>;
-  listInvitesByUser(phone: string): Promise<Invite[]>
-  listEventsByUser(phone: string): Promise<Invite[]>
+  listInvitesByUser(email: string): Promise<Invite[]>
+  listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]>
+  listEventsByUser(email: string): Promise<Invite[]>
+  UpdatedInviteStatusById(id: string, status:number, email:string): Promise<Invite|null>
 }
 
 export default IInvitesRepository;

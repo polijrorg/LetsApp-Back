@@ -26,6 +26,7 @@ usersRoutes.get('/getTokens', usersController.getTokens);
 usersRoutes.post('/createEvent', usersController.createEvent);
 usersRoutes.post('/getRecommededTimes', usersController.getRecommendedTime);
 usersRoutes.get('/getEvents', usersController.getEvents);
+usersRoutes.get('/GetUserByPhone/:phone', usersController.GetUserByPhone);
 usersRoutes.post('/addContact', usersController.addContact);
 usersRoutes.post('/updateState', usersController.updateEventState);
 

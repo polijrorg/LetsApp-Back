@@ -4,7 +4,6 @@ import { Invite } from '@prisma/client';
 
 // import AppError from '@shared/errors/AppError';
 
-import AppError from '@shared/errors/AppError';
 import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 import IInvitesRepository from '../repositories/IInvitesRepository';
 
@@ -17,16 +16,10 @@ export default class CreateInviteService {
   ) { }
 
   public async execute({
-    address, beginHour, date, description, endHour, guests, link, name, phone, status,
+    address, begin, description, end, googleId, guests, link, name, phone, status, organizerPhoto, organizerName,
   }: ICreateInviteDTO): Promise<Invite> {
-    if (date === '') throw new AppError('Phone is empty', 400);
-
     const invite = await this.invitesRepository.create({
-      address, beginHour, date, description, endHour, guests, link, name, phone, status,
-    });
-
-    await this.invitesRepository.create({
-      address, beginHour, date, description, endHour, guests, link, name, phone: guests, status: 0,
+      address, begin, description, end, googleId, guests, link, name, phone, status, organizerPhoto, organizerName,
     });
 
     return invite;

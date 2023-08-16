@@ -13,9 +13,12 @@ export default class CreateInviteService {
 
   ) { }
 
-  public async execute(phone:string): Promise<Invite[]> {
-    const invite = this.invitesRepository.listInvitesByUser(phone);
-
+  public async execute(email:string): Promise<Invite[]> {
+    const invite = await this.invitesRepository.listInvitesByUser(email);
+    invite.forEach((itens) => {
+      // eslint-disable-next-line no-param-reassign
+      itens.status = 0;
+    });
     return invite;
   }
 }

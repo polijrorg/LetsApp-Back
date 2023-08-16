@@ -1,14 +1,16 @@
 interface ICreateInviteDTO {
 name:string;
-date:string;
-beginHour:string;
-endHour:string;
+begin:string;
+end:string;
 phone:string;
-guests:string;
+guests:string[];
 description:string;
 address:string;
-link:string;
+link:string|undefined|null;
 status:number;
+googleId:string;
+organizerPhoto:string|null;
+organizerName:string|null;
 
 }
 

@@ -1,6 +1,5 @@
 import { google } from 'googleapis';
 import { injectable, inject } from 'tsyringe';
-import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
@@ -11,17 +10,15 @@ export default class GoogleAuthUrlService {
 
   ) { }
 
-  public async authenticate(phone :string): Promise<string> {
+  public async authenticate(): Promise<string> {
     const oauth2Client = new google.auth.OAuth2();
-    const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found', 400);
 
-    this.usersRepository.updateToken(user.id, '1');
     const scopes = ['https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events',
       'https://www.googleapis.com/auth/calendar.events.readonly',
       'https://www.googleapis.com/auth/calendar.readonly',
-      'https://www.googleapis.com/auth/calendar.settings.readonly'];
+      'https://www.googleapis.com/auth/calendar.settings.readonly',
+      'https://www.googleapis.com/auth/userinfo.email'];
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
