@@ -9,38 +9,48 @@ generator client {
 }
 
 model Invite {
-  id          String @id @default(uuid())
-  Guests      User   @relation(fields: [guests], references: [phone])
-  guests      String
-  name        String
-  date        String
-  beginHour   String
-  endHour     String
-  description String
-  phone       String
-  address     String
-  link        String
-  status      Int
+  id             String       @id @default(uuid())
+  guests         InviteUser[]
+  name           String
+  begin          String
+  end            String
+  description    String
+  phone          String
+  address        String
+  link           String?
+  status         Int
+  googleId       String
+  organizerPhoto String?
+  organizerName  String
 
   @@map("invite")
 }
 
 model User {
-  id                  String    @id @default(uuid())
+  id                  String       @id @default(uuid())
   name                String?
-  phone               String    @unique
-  email               String?   @unique
+  phone               String       @unique
+  email               String?      @unique
   photo               String?
   code                Int?
   googleRefeshCode    String?
   microsoftRefeshCode String?
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @default(now())
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @default(now())
   tokens              String?
-  invites             Invite[]
+  invites             InviteUser[]
   contatos            Contato[]
 
   @@map("user")
+}
+
+model InviteUser {
+  id        String @id @default(uuid())
+  User      User   @relation(fields: [userEmail], references: [email])
+  Invite    Invite @relation(fields: [idInvite], references: [id])
+  userEmail String
+  idInvite  String
+  Status    Int    @default(0)
 }
 
 model Contato {

@@ -23,6 +23,8 @@ export default class CreateUserService {
 
   public async execute({ phone }: IRequest): Promise<User> {
     if (phone === '') throw new AppError('Phone is empty', 400);
+    const oldUser = await this.usersRepository.findByPhone(phone);
+    if (oldUser) { return oldUser; }
     let code = Math.floor(Math.random() * 999999);
     while (code < 100000) {
       code *= 10;
@@ -32,8 +34,7 @@ export default class CreateUserService {
     const sendSms = await container.resolve(SmsService);
     const status = await sendSms.execute({ phone, message });
     if (status === 'Error') throw new AppError('SMS not sent', 400);
-    const oldUser = await this.usersRepository.findByPhone(phone);
-    if (oldUser) { return oldUser; }
+
     const user = this.usersRepository.create({ phone, code });
 
     return user;

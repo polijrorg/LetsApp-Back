@@ -4,8 +4,8 @@ import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
-    phone:string;
-    state:string,
+    email:string;
+    state:number,
     eventId:string,
 }
 @injectable()
@@ -17,13 +17,13 @@ export default class UpdateEventStateService {
   ) { }
 
   public async authenticate({
-    phone, state, eventId,
+    email, state, eventId,
   }:IRequest): Promise<calendar_v3.Schema$Event> {
     // const oauth2Client = new google.auth.OAuth2();
-
+    console.log(eventId);
     const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
 
-    const user = await this.usersRepository.findByPhone(phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });
@@ -40,7 +40,7 @@ export default class UpdateEventStateService {
       attendees: [
         {
           email: attendeeEmail,
-          responseStatus: state,
+          responseStatus: state ? 'accepted' : 'declined',
         },
       ],
     };

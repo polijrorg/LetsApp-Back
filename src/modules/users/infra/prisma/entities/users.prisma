@@ -1,16 +1,16 @@
 model User {
-  id                  String    @id @default(uuid())
+  id                  String       @id @default(uuid())
   name                String?
-  phone               String    @unique
-  email               String?   @unique
+  phone               String       @unique
+  email               String?      @unique
   photo               String?
   code                Int?
   googleRefeshCode    String?
   microsoftRefeshCode String?
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @default(now())
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @default(now())
   tokens              String?
-  invites             Invite[]
+  invites             InviteUser[]
   contatos            Contato[]
 
   @@map("user")
@@ -19,8 +19,7 @@ model User {
 model Invite {
   id String @id @default(uuid())
 
-  Guests User   @relation(fields: [guests], references: [phone])
-  guests String
+  guests InviteUser[]
 
   @@map("invite")
 }
@@ -34,4 +33,13 @@ model Contato {
   userId String?
 
   @@map("contato")
+}
+
+model InviteUser {
+  id        String @id @default(uuid())
+  User      User   @relation(fields: [userEmail], references: [email])
+  Invite    Invite @relation(fields: [idInvite], references: [id])
+  userEmail String
+  idInvite  String
+  Status    Int    @default(0)
 }

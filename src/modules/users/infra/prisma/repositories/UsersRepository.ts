@@ -38,6 +38,22 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
+  public async findContactsByPhone(phone: string): Promise<User | null> {
+    const user = await this.ormRepository.findUnique({
+      where: { phone },
+    });
+    const contacts = await prisma.contato.findMany({ where: { userId: user?.id } });
+    return { user, contacts };
+  }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    const user = await this.ormRepository.findUnique({
+      where: { email },
+    });
+
+    return user;
+  }
+
   public async findToken(): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
       where: { tokens: '1' },
