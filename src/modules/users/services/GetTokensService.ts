@@ -24,8 +24,7 @@ export default class GetTokensService {
     const user = await this.usersRepository.findByEmail(userInfo.data.email);
     if (!user) throw new AppError('User not found', 400);
     if (!tokens.access_token) throw new AppError('Token not found', 400);
-    console.log(tokens);
-    console.log(tokens.refresh_token);
+
     this.usersRepository.updateToken(user.id, tokens.access_token);
   }
 }

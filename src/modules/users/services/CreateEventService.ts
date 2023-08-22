@@ -85,7 +85,7 @@ export default class CreateEventService {
     }
 
     const CreateInviteEvent = container.resolve(CreateInviteService);
-    const state = 'accepted';
+    const status = 1;
     const invite = await CreateInviteEvent.execute({
       name,
       begin,
@@ -95,7 +95,7 @@ export default class CreateEventService {
       description,
       address,
       link: back.data.hangoutLink,
-      state,
+      status,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       googleId: back.data.id!,
       organizerPhoto: user.photo,
