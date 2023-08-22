@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { Contato, User } from '@prisma/client';
 
 import ICreateUserDTO from '../dtos/ICreateUserDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
@@ -23,7 +23,7 @@ interface IUsersRepository {
   findByPhone(phone: string): Promise<User | null>;
   updatePhotoAndName(id: string, data: IUpload): Promise<User>;
   updateEmail(id: string, email: string): Promise<User>;
-  findContactsByPhone(phone: string): Promise<User | null>
+  findContactsByPhone(phone: string): Promise<Contato[]>
   updateToken(id: string, tokens: string): Promise<User>;
   create(data: ICreateUserDTO): Promise<User>;
   addContact(userPhone:string, data: IContact): Promise<User>;

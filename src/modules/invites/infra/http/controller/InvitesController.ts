@@ -65,9 +65,9 @@ export default class InviteController {
 
   public async UpdateEvent(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(UpdateEventService);
-    const { email, status, inviteId } = req.body;
+    const { email, state, inviteId } = req.body;
 
-    const invites = await list.execute(inviteId, parseInt(status, 10), email);
+    const invites = await list.execute(inviteId, state, email);
 
     return res.status(201).json(invites);
   }
