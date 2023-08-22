@@ -7,17 +7,16 @@ import axios from 'axios';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IUsersVerified {user:User, calendar_found: boolean}
-
 @injectable()
-export default class GetUserByPhone {
+export default class GetUserByEmailService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
 
   ) { }
 
-  public async execute(phone:string): Promise<IUsersVerified> {
-    const user = await this.usersRepository.findByPhone(phone);
+  public async execute(email:string): Promise<IUsersVerified> {
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User Not Found', 400);
     try {
       const response = await axios.get(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${user.tokens}`);

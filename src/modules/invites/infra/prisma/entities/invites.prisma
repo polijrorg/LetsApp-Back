@@ -7,7 +7,7 @@ model Invite {
   phone          String
   address        String
   link           String?
-  status         Int
+  state         String       @default("needsAction")
   googleId       String
   guests         InviteUser[]
   organizerPhoto String?

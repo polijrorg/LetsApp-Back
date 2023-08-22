@@ -4,6 +4,12 @@ import { Invite, Prisma } from '@prisma/client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
+interface IRequest{
+  element:Invite,
+  yes:number,
+  no:number,
+  maybe:number,
+}
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -49,15 +55,19 @@ export default class InvitesRepository implements IInvitesRepository {
 
   //   return a;
   // }
-
-  public async listInvitesByUser(email: string): Promise<Invite[]> {
+  public async listInvitesByUser(email: string): Promise<InviteWithConfirmation[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
-        userEmail: email,
-        Status: 0,
-      },
-      select: {
-        idInvite: true,
+        OR: [
+          {
+            userEmail: email,
+            Status: 0,
+          },
+          {
+            userEmail: email,
+            Status: -1,
+          },
+        ],
       },
     });
 
@@ -69,11 +79,44 @@ export default class InvitesRepository implements IInvitesRepository {
       },
       orderBy: {
         begin: 'asc',
-
       },
     });
 
-    return invited;
+    const invitedWithConfirmation: IRequest[] = [];
+
+    await Promise.all(invited.map(async (element) => {
+      const yes = await prisma.inviteUser.count({
+        where: {
+          Status: 1,
+          idInvite: element.id,
+        },
+      });
+
+      const no = await prisma.inviteUser.count({
+        where: {
+          Status: -1,
+          idInvite: element.id,
+        },
+      });
+
+      const maybe = await prisma.inviteUser.count({
+        where: {
+          Status: 0,
+          idInvite: element.id,
+        },
+      });
+
+      const temp: IRequest = {
+        element,
+        yes,
+        no,
+        maybe,
+      };
+
+      invitedWithConfirmation.push(temp);
+    }));
+
+    return invitedWithConfirmation;
   }
 
   public async listEventsByUser(email: string): Promise<Invite[]> {
@@ -82,9 +125,11 @@ export default class InvitesRepository implements IInvitesRepository {
         userEmail: email,
         Status: 1,
       },
+
       select: {
         idInvite: true,
       },
+
     });
 
     const inviteIds = invites.map((invite) => invite.idInvite);
@@ -97,17 +142,18 @@ export default class InvitesRepository implements IInvitesRepository {
         begin: 'asc',
 
       },
+
     });
 
     return invited;
   }
 
-  public async UpdatedInviteStatusById(id: string, status:number, email:string): Promise<Invite|null> {
+  public async UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null> {
     const invit = await this.ormRepository.update({
       where: {
         id,
       },
-      data: { status },
+      data: { state },
     });
 
     const inviteUser = await prisma.inviteUser.findFirst({
@@ -117,8 +163,18 @@ export default class InvitesRepository implements IInvitesRepository {
       },
 
     });
-    await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
 
+    if (state === 'needsAction') {
+      const status = 0;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    } else if (state === 'accepted') {
+      const status = 1;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    } else {
+      const status = -1;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    }
+    console.log(invit);
     return invit;
   }
 
