@@ -1,8 +1,9 @@
 import prisma from '@shared/infra/prisma/client';
-import { Prisma, User } from '@prisma/client';
+import { Contato, Prisma, User } from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
+import AppError from '@shared/errors/AppError';
 
 interface IUpload{
   name:string,
@@ -38,12 +39,14 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async findContactsByPhone(phone: string): Promise<User | null> {
+  public async findContactsByPhone(phone: string): Promise<Contato[]> {
     const user = await this.ormRepository.findUnique({
       where: { phone },
     });
+    if (!user) throw new AppError('User Not Found', 400);
+
     const contacts = await prisma.contato.findMany({ where: { userId: user?.id } });
-    return { user, contacts };
+    return contacts;
   }
 
   public async findByEmail(email: string): Promise<User | null> {

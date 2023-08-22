@@ -4,8 +4,8 @@ import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
-    email:string;
-    state:number,
+    email:string,
+    state:string,
     eventId:string,
 }
 @injectable()
@@ -20,7 +20,7 @@ export default class UpdateEventStateService {
     email, state, eventId,
   }:IRequest): Promise<calendar_v3.Schema$Event> {
     // const oauth2Client = new google.auth.OAuth2();
-    console.log(eventId);
+
     const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
 
     const user = await this.usersRepository.findByEmail(email);
@@ -40,7 +40,7 @@ export default class UpdateEventStateService {
       attendees: [
         {
           email: attendeeEmail,
-          responseStatus: state ? 'accepted' : 'declined',
+          responseStatus: state,
         },
       ],
     };
