@@ -1,8 +1,9 @@
 import prisma from '@shared/infra/prisma/client';
-import { Prisma, User } from '@prisma/client';
+import { Contato, Prisma, User } from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
+import AppError from '@shared/errors/AppError';
 
 interface IUpload{
   name:string,
@@ -33,6 +34,24 @@ export default class UsersRepository implements IUsersRepository {
   public async findByPhone(phone: string): Promise<User | null> {
     const user = await this.ormRepository.findUnique({
       where: { phone },
+    });
+
+    return user;
+  }
+
+  public async findContactsByPhone(phone: string): Promise<Contato[]> {
+    const user = await this.ormRepository.findUnique({
+      where: { phone },
+    });
+    if (!user) throw new AppError('User Not Found', 400);
+
+    const contacts = await prisma.contato.findMany({ where: { userId: user?.id } });
+    return contacts;
+  }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    const user = await this.ormRepository.findUnique({
+      where: { email },
     });
 
     return user;
@@ -115,5 +134,17 @@ export default class UsersRepository implements IUsersRepository {
     const users = await this.ormRepository.findMany();
 
     return users;
+  }
+
+  public async listUserEmailByInvite(id: string): Promise<string[]> {
+    const users = await prisma.inviteUser.findMany({
+      where: {
+        id,
+      },
+
+    });
+    const phones = await users.map((user) => user.userEmail);
+
+    return phones;
   }
 }

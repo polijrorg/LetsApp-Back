@@ -4,26 +4,30 @@ import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
-    phone:string;
-    state:string,
-    eventId:string,
+  email: string;
+  state: string;
+  eventId: string;
 }
+
 @injectable()
 export default class UpdateEventStateService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
-
-  ) { }
+  ) {}
 
   public async authenticate({
-    phone, state, eventId,
-  }:IRequest): Promise<calendar_v3.Schema$Event> {
-    // const oauth2Client = new google.auth.OAuth2();
+    email,
+    state,
+    eventId,
+  }: IRequest): Promise<calendar_v3.Schema$Event> {
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENT_ID,
+      process.env.CLIENT_SECRET,
+      process.env.CLIENT_URI,
+    );
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
-
-    const user = await this.usersRepository.findByPhone(phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });
@@ -31,20 +35,33 @@ export default class UpdateEventStateService {
     const calendar = google.calendar({
       version: 'v3',
       auth: oAuth2Client,
-
     });
 
-    const attendeeEmail = user.email;
+    // Fetch the event to get attendees
+    const eventResponse = await calendar.events.get({
+      calendarId: 'primary',
+      eventId,
+    });
+
+    const event = eventResponse.data;
+
+    // Modify attendee's response status
+    const updatedAttendees = event.attendees?.map((attendee) => {
+      if (attendee.email === user.email) {
+        return {
+          ...attendee,
+          responseStatus: state,
+        };
+      }
+      return attendee;
+    });
 
     const updatedEvent = {
-      attendees: [
-        {
-          email: attendeeEmail,
-          responseStatus: state,
-        },
-      ],
+      attendees: updatedAttendees,
+      sendUpdates: 'all',
     };
 
+    // Update the event
     const response = await calendar.events.patch({
       calendarId: 'primary',
       eventId,

@@ -1,6 +1,8 @@
 import { google } from 'googleapis';
-import { inject, injectable } from 'tsyringe';
+import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
+import CreateInviteService from '@modules/invites/services/CreateInviteService';
+import { Invite } from '@prisma/client';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
@@ -11,6 +13,7 @@ interface IRequest {
     address:string;
     createMeetLink:boolean;
     name:string;
+
 }
 @injectable()
 export default class CreateEventService {
@@ -22,8 +25,12 @@ export default class CreateEventService {
 
   public async authenticate({
     address, attendees, begin, createMeetLink, description, end, phone, name,
-  }:IRequest): Promise<string| null| undefined> {
+  }:IRequest): Promise<Invite> {
     // const oauth2Client = new google.auth.OAuth2();
+    const eventAttendees = attendees.map((email) => ({
+      email,
+      // You can initialize other properties of EventAttendee here if needed
+    }));
 
     const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
 
@@ -37,13 +44,14 @@ export default class CreateEventService {
       auth: oAuth2Client,
 
     });
-    const emails = attendees.map((email) => ({ email }));
+    // const emails = attendees.map((email) => ({ email }));
 
     const event = {
       summary: name,
+      sendUpdates: 'all',
       description,
       location: address,
-      attendees: emails,
+      attendees: eventAttendees,
       start: {
         dateTime: begin,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -54,9 +62,9 @@ export default class CreateEventService {
       },
       conferenceData: {
         createRequest: {
-          requestId: 'random_id', // Provide a unique ID for each request
+          requestId: 'random_id',
           conferenceSolutionKey: {
-            type: 'hangoutsMeet', // Use 'hangoutsMeet' for Google Meet
+            type: 'hangoutsMeet',
           },
         },
       },
@@ -76,6 +84,25 @@ export default class CreateEventService {
 
       });
     }
-    return back.data;
+
+    const CreateInviteEvent = container.resolve(CreateInviteService);
+    const state = 'accepted';
+    const invite = await CreateInviteEvent.execute({
+      name,
+      begin,
+      end,
+      guests: attendees,
+      phone,
+      description,
+      address,
+      link: back.data.hangoutLink,
+      state,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      googleId: back.data.id!,
+      organizerPhoto: user.photo,
+      organizerName: user.name,
+    });
+
+    return invite;
   }
 }
