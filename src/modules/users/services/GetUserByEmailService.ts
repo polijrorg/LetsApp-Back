@@ -25,7 +25,7 @@ export default class GetUserByEmailService {
       }
 
     // eslint-disable-next-line no-empty
-    } catch (err) {}
+    } catch (error) {}
     return { user, calendar_found: false };
   }
 }
