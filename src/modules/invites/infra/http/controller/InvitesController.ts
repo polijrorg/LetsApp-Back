@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 import ListEventsService from '@modules/invites/services/ListEventsService';
 import ListInvitesService from '@modules/invites/services/ListInvitesService';
 import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekService';
-import UpdateEventService from '@modules/invites/services/UpdateEventService';
+import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 
 export default class InviteController {
   // public async create(req: Request, res: Response): Promise<Response> {
@@ -64,10 +64,10 @@ export default class InviteController {
   }
 
   public async UpdateEvent(req: Request, res: Response): Promise<Response> {
-    const list = container.resolve(UpdateEventService);
-    const { email, status, inviteId } = req.body;
+    const list = container.resolve(UpdateInviteService);
+    const { email, state, inviteId } = req.body;
 
-    const invites = await list.execute(inviteId, parseInt(status, 10), email);
+    const invites = await list.execute(inviteId, state, email);
 
     return res.status(201).json(invites);
   }

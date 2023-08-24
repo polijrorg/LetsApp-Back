@@ -1,5 +1,5 @@
 import prisma from '@shared/infra/prisma/client';
-import { Prisma, User } from '@prisma/client';
+import { Contato, Prisma, User } from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
@@ -15,6 +15,9 @@ interface IContact{
   name:string,
   userId:string|null
 }
+interface IUserContact{
+  user:User|null,
+  contacts:Contato[]}
 export default class UsersRepository implements IUsersRepository {
   private ormRepository: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -38,11 +41,13 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async findContactsByPhone(phone: string): Promise<User | null> {
+  public async findContactsByPhone(phone: string): Promise<IUserContact | null> {
     const user = await this.ormRepository.findUnique({
       where: { phone },
     });
+
     const contacts = await prisma.contato.findMany({ where: { userId: user?.id } });
+
     return { user, contacts };
   }
 
@@ -131,5 +136,17 @@ export default class UsersRepository implements IUsersRepository {
     const users = await this.ormRepository.findMany();
 
     return users;
+  }
+
+  public async listUserEmailByInvite(id: string): Promise<string[]> {
+    const users = await prisma.inviteUser.findMany({
+      where: {
+        idInvite: id,
+      },
+
+    });
+    const emails = await users.map((user) => user.userEmail);
+
+    return emails;
   }
 }

@@ -17,6 +17,8 @@ import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
 import AppError from '@shared/errors/AppError';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
+import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
+import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -151,7 +153,7 @@ export default class UserController {
       email, state, eventId,
     } = req.body;
 
-    const Url = await urlservice.authenticate({
+    const Url = await urlservice.updateEventState({
       email, state, eventId,
     });
     return res.status(201).json(Url);
@@ -170,6 +172,14 @@ export default class UserController {
     const { phone } = req.params;
 
     const user = await findUser.execute(phone);
+    return res.status(201).json(user);
+  }
+
+  public async GetUserByEmail(req: Request, res: Response): Promise<Response> {
+    const findUser = container.resolve(GetUserByEmailService);
+    const { email } = req.params;
+
+    const user = await findUser.execute(email);
     return res.status(201).json(user);
   }
 
@@ -208,6 +218,22 @@ export default class UserController {
         duration,
         mandatoryGuests,
         optionalGuests,
+      },
+    );
+    return res.status(201).json(times);
+  }
+
+  public async SuggestNewTime(req: Request, res: Response): Promise<Response> {
+    const time = container.resolve(SuggestNewTimeService);
+    const {
+      phone,
+      inviteId,
+    } = req.body;
+
+    const times = await time.authenticate(
+      {
+        phone,
+        inviteId,
       },
     );
     return res.status(201).json(times);

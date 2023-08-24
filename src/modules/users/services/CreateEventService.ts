@@ -80,12 +80,13 @@ export default class CreateEventService {
       back = await calendar.events.insert({
         calendarId: 'primary',
         requestBody: event,
+        sendUpdates: 'all',
 
       });
     }
 
     const CreateInviteEvent = container.resolve(CreateInviteService);
-    const status = 1;
+    const state = 'accepted';
     const invite = await CreateInviteEvent.execute({
       name,
       begin,
@@ -95,7 +96,7 @@ export default class CreateEventService {
       description,
       address,
       link: back.data.hangoutLink,
-      status,
+      state,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       googleId: back.data.id!,
       organizerPhoto: user.photo,

@@ -4,6 +4,12 @@ import { Invite, Prisma } from '@prisma/client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
+interface IInviteWithConfirmation {
+  element: Invite; // Replace 'YourElementType' with the actual type of 'element'
+  yes: number;
+  no: number;
+  maybe: number;
+}
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -20,14 +26,14 @@ export default class InvitesRepository implements IInvitesRepository {
 
         create:
         data.guests.map((guest) => ({
-          Status: 0,
+          Status: 'needsAction',
           User: { connect: { email: guest } },
         })),
 
       },
     };
 
-    a.guests.create.push({ Status: 1, User: { connect: { email: UserEmail!.email! } } });
+    a.guests.create.push({ Status: 'accepted', User: { connect: { email: UserEmail!.email! } } });
     const invite = await this.ormRepository.create({ data: a });
 
     return invite;
@@ -50,14 +56,19 @@ export default class InvitesRepository implements IInvitesRepository {
   //   return a;
   // }
 
-  public async listInvitesByUser(email: string): Promise<Invite[]> {
+  public async listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
-        userEmail: email,
-        Status: 0,
-      },
-      select: {
-        idInvite: true,
+        OR: [
+          {
+            userEmail: email,
+            Status: 'needsAction',
+          },
+          {
+            userEmail: email,
+            Status: 'declined',
+          },
+        ],
       },
     });
 
@@ -69,22 +80,53 @@ export default class InvitesRepository implements IInvitesRepository {
       },
       orderBy: {
         begin: 'asc',
-
       },
     });
 
-    return invited;
+    const invitedWithConfirmation: IInviteWithConfirmation[] = [];
+
+    await Promise.all(invited.map(async (element) => {
+      const yes = await prisma.inviteUser.count({
+        where: {
+          Status: 'accepted',
+          idInvite: element.id,
+        },
+      });
+
+      const no = await prisma.inviteUser.count({
+        where: {
+          Status: 'declined',
+          idInvite: element.id,
+        },
+      });
+
+      const maybe = await prisma.inviteUser.count({
+        where: {
+          Status: 'needsAction',
+          idInvite: element.id,
+        },
+      });
+
+      const temp: IInviteWithConfirmation = {
+        element,
+        yes,
+        no,
+        maybe,
+      };
+
+      invitedWithConfirmation.push(temp);
+    }));
+
+    return invitedWithConfirmation;
   }
 
   public async listEventsByUser(email: string): Promise<Invite[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
         userEmail: email,
-        Status: 1,
+        Status: 'accepted',
       },
-      select: {
-        idInvite: true,
-      },
+
     });
 
     const inviteIds = invites.map((invite) => invite.idInvite);
@@ -102,12 +144,12 @@ export default class InvitesRepository implements IInvitesRepository {
     return invited;
   }
 
-  public async UpdatedInviteStatusById(id: string, status:number, email:string): Promise<Invite|null> {
+  public async UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null> {
     const invit = await this.ormRepository.update({
       where: {
         id,
       },
-      data: { status },
+      data: { state },
     });
 
     const inviteUser = await prisma.inviteUser.findFirst({
@@ -117,7 +159,8 @@ export default class InvitesRepository implements IInvitesRepository {
       },
 
     });
-    await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+
+    await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: state } });
 
     return invit;
   }
@@ -125,7 +168,7 @@ export default class InvitesRepository implements IInvitesRepository {
   public async listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]> {
     const events = await this.ormRepository.findMany({
       where: {
-        phone, status: 1, begin: { gte: beginWeek }, end: { lte: endWeek },
+        phone, state: 'accepted', begin: { gte: beginWeek }, end: { lte: endWeek },
       },
       orderBy: {
         begin: 'asc',

@@ -7,7 +7,7 @@ guests:string[];
 description:string;
 address:string;
 link:string|undefined|null;
-status:number;
+state:string
 googleId:string;
 organizerPhoto:string|null;
 organizerName:string|null;
