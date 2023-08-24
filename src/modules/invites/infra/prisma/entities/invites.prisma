@@ -7,7 +7,7 @@ model Invite {
   phone          String
   address        String
   link           String?
-  status         Int
+  status         String
   googleId       String
   guests         InviteUser[]
   organizerPhoto String?
@@ -30,5 +30,5 @@ model InviteUser {
   Invite    Invite @relation(fields: [idInvite], references: [id])
   userEmail String
   idInvite  String
-  Status    Int    @default(0)
+  Status    String @default("needsAction")
 }

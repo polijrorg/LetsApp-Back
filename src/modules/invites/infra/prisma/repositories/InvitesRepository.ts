@@ -20,14 +20,14 @@ export default class InvitesRepository implements IInvitesRepository {
 
         create:
         data.guests.map((guest) => ({
-          Status: 0,
+          Status: 'needsAction',
           User: { connect: { email: guest } },
         })),
 
       },
     };
 
-    a.guests.create.push({ Status: 1, User: { connect: { email: UserEmail!.email! } } });
+    a.guests.create.push({ Status: 'accepted', User: { connect: { email: UserEmail!.email! } } });
     const invite = await this.ormRepository.create({ data: a });
 
     return invite;

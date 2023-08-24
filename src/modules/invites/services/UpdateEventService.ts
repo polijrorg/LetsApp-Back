@@ -15,15 +15,14 @@ export default class UpdateEventService {
 
   ) { }
 
-  public async execute(inviteId:string, status:number, email:string): Promise<Invite> {
-    const invite = await this.invitesRepository.UpdatedInviteStatusById(inviteId, status, email);
+  public async execute(inviteId:string, state:string, email:string): Promise<Invite> {
+    const invite = await this.invitesRepository.UpdatedInviteStatusById(inviteId, state, email);
 
     if (!invite) throw new AppError('Invite Not Found', 400);
 
-    console.log(inviteId, status, email);
     const urlservice = container.resolve(UpdateEventStateService);
     await urlservice.authenticate({
-      email, state: status, eventId: invite.googleId,
+      email, state, eventId: invite.googleId,
     });
 
     return invite;
