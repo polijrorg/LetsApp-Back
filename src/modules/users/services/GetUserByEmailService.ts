@@ -15,8 +15,8 @@ export default class GetUserByEmailService {
 
   ) { }
 
-  public async execute(phone:string): Promise<IUsersVerified> {
-    const user = await this.usersRepository.findByPhone(phone);
+  public async execute(email:string): Promise<IUsersVerified> {
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User Not Found', 400);
     try {
       const response = await axios.get(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${user.tokens}`);
