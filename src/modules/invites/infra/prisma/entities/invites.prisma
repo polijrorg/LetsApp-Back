@@ -7,7 +7,7 @@ model Invite {
   phone          String
   address        String
   link           String?
-  status         String
+  state          String
   googleId       String
   guests         InviteUser[]
   organizerPhoto String?

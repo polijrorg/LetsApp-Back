@@ -80,12 +80,13 @@ export default class CreateEventService {
       back = await calendar.events.insert({
         calendarId: 'primary',
         requestBody: event,
+        sendUpdates: 'all',
 
       });
     }
 
     const CreateInviteEvent = container.resolve(CreateInviteService);
-    const state = 1;
+    const state = 'accepted';
     const invite = await CreateInviteEvent.execute({
       name,
       begin,

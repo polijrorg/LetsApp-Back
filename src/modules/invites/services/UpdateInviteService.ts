@@ -8,7 +8,7 @@ import UpdateEventStateService from '@modules/users/services/UpdateEventStateSer
 import IInvitesRepository from '../repositories/IInvitesRepository';
 
 @injectable()
-export default class UpdateEventService {
+export default class UpdateInviteService {
   constructor(
     @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
@@ -21,7 +21,7 @@ export default class UpdateEventService {
     if (!invite) throw new AppError('Invite Not Found', 400);
 
     const urlservice = container.resolve(UpdateEventStateService);
-    await urlservice.authenticate({
+    await urlservice.updateEventState({
       email, state, eventId: invite.googleId,
     });
 

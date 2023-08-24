@@ -53,11 +53,16 @@ export default class InvitesRepository implements IInvitesRepository {
   public async listInvitesByUser(email: string): Promise<Invite[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
-        userEmail: email,
-        Status: 0,
-      },
-      select: {
-        idInvite: true,
+        OR: [
+          {
+            userEmail: email,
+            Status: 'needsAction',
+          }, {
+            userEmail: email,
+            Status: 'declined',
+          },
+
+        ],
       },
     });
 
@@ -80,11 +85,9 @@ export default class InvitesRepository implements IInvitesRepository {
     const invites = await prisma.inviteUser.findMany({
       where: {
         userEmail: email,
-        Status: 1,
+        Status: 'accepted',
       },
-      select: {
-        idInvite: true,
-      },
+
     });
 
     const inviteIds = invites.map((invite) => invite.idInvite);
@@ -118,16 +121,7 @@ export default class InvitesRepository implements IInvitesRepository {
 
     });
 
-    if (state === 'accepted') {
-      const status = 1;
-      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
-    } else if (state === 'declined') {
-      const status = -1;
-      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
-    } if (state === 'needsAction') {
-      const status = 0;
-      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
-    }
+    await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: state } });
 
     return invit;
   }
