@@ -55,7 +55,7 @@ export default class InvitesRepository implements IInvitesRepository {
 
   //   return a;
   // }
-  public async listInvitesByUser(email: string): Promise<InviteWithConfirmation[]> {
+  public async listInvitesByUser(email: string): Promise<IRequest[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
         OR: [
@@ -174,14 +174,14 @@ export default class InvitesRepository implements IInvitesRepository {
       const status = -1;
       await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
     }
-    console.log(invit);
+
     return invit;
   }
 
   public async listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]> {
     const events = await this.ormRepository.findMany({
       where: {
-        phone, status: 1, begin: { gte: beginWeek }, end: { lte: endWeek },
+        phone, state: 'accepted', begin: { gte: beginWeek }, end: { lte: endWeek },
       },
       orderBy: {
         begin: 'asc',
@@ -190,5 +190,17 @@ export default class InvitesRepository implements IInvitesRepository {
     });
 
     return events;
+  }
+
+  public async listUserEmailByInvite(id: string): Promise<string[]> {
+    const users = await prisma.inviteUser.findMany({
+      where: {
+        id,
+      },
+
+    });
+    const phones = await users.map((user) => user.userEmail);
+
+    return phones;
   }
 }

@@ -48,6 +48,7 @@ export default class CreateEventService {
 
     const event = {
       summary: name,
+      sendUpdates: 'all',
       description,
       location: address,
       attendees: eventAttendees,

@@ -10,6 +10,7 @@ interface IInvitesRepository {
   listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]>
   listEventsByUser(email: string): Promise<Invite[]>
   UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null>
+  listUserEmailByInvite(id: string): Promise<string[]>
 }
 
 export default IInvitesRepository;

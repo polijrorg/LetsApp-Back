@@ -19,6 +19,7 @@ import AppError from '@shared/errors/AppError';
 import GetContactsByPhoneService from '@modules/users/services/GetContactsByPhoneService';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
+import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -226,6 +227,22 @@ export default class UserController {
         duration,
         mandatoryGuests,
         optionalGuests,
+      },
+    );
+    return res.status(201).json(times);
+  }
+
+  public async SuggestNewTime(req: Request, res: Response): Promise<Response> {
+    const time = container.resolve(SuggestNewTimeService);
+    const {
+      phone,
+      inviteId,
+    } = req.body;
+
+    const times = await time.authenticate(
+      {
+        phone,
+        inviteId,
       },
     );
     return res.status(201).json(times);

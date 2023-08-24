@@ -58,7 +58,7 @@ export default class UpdateEventStateService {
 
     const updatedEvent = {
       attendees: updatedAttendees,
-      sendNotifications: true,
+      sendUpdates: 'all',
     };
 
     // Update the event
