@@ -4,6 +4,12 @@ import { Invite, Prisma } from '@prisma/client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
+interface IInviteWithConfirmation {
+  element: Invite; // Replace 'YourElementType' with the actual type of 'element'
+  yes: number;
+  no: number;
+  maybe: number;
+}
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -50,18 +56,18 @@ export default class InvitesRepository implements IInvitesRepository {
   //   return a;
   // }
 
-  public async listInvitesByUser(email: string): Promise<Invite[]> {
+  public async listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
         OR: [
           {
             userEmail: email,
             Status: 'needsAction',
-          }, {
+          },
+          {
             userEmail: email,
             Status: 'declined',
           },
-
         ],
       },
     });
@@ -74,11 +80,44 @@ export default class InvitesRepository implements IInvitesRepository {
       },
       orderBy: {
         begin: 'asc',
-
       },
     });
 
-    return invited;
+    const invitedWithConfirmation: IInviteWithConfirmation[] = [];
+
+    await Promise.all(invited.map(async (element) => {
+      const yes = await prisma.inviteUser.count({
+        where: {
+          Status: 'accepted',
+          idInvite: element.id,
+        },
+      });
+
+      const no = await prisma.inviteUser.count({
+        where: {
+          Status: 'declined',
+          idInvite: element.id,
+        },
+      });
+
+      const maybe = await prisma.inviteUser.count({
+        where: {
+          Status: 'needsAction',
+          idInvite: element.id,
+        },
+      });
+
+      const temp: IInviteWithConfirmation = {
+        element,
+        yes,
+        no,
+        maybe,
+      };
+
+      invitedWithConfirmation.push(temp);
+    }));
+
+    return invitedWithConfirmation;
   }
 
   public async listEventsByUser(email: string): Promise<Invite[]> {
