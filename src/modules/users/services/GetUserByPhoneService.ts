@@ -8,7 +8,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IUsersVerified {user:User, calendar_found: boolean}
 @injectable()
-export default class GetUserByEmailService {
+export default class GetUserByPhoneService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
