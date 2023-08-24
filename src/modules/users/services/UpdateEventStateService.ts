@@ -4,9 +4,15 @@ import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
+<<<<<<< HEAD
   email: string;
   state: string;
   eventId: string;
+=======
+    email:string;
+    state:number,
+    eventId:string,
+>>>>>>> fb3f22bf4fa83a174e75a32510b8ea59ed66b1f1
 }
 
 @injectable()
@@ -17,6 +23,7 @@ export default class UpdateEventStateService {
   ) {}
 
   public async authenticate({
+<<<<<<< HEAD
     email,
     state,
     eventId,
@@ -26,6 +33,13 @@ export default class UpdateEventStateService {
       process.env.CLIENT_SECRET,
       process.env.CLIENT_URI,
     );
+=======
+    email, state, eventId,
+  }:IRequest): Promise<calendar_v3.Schema$Event> {
+    // const oauth2Client = new google.auth.OAuth2();
+    console.log(eventId);
+    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
+>>>>>>> fb3f22bf4fa83a174e75a32510b8ea59ed66b1f1
 
     const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
@@ -57,8 +71,17 @@ export default class UpdateEventStateService {
     });
 
     const updatedEvent = {
+<<<<<<< HEAD
       attendees: updatedAttendees,
       sendUpdates: 'all',
+=======
+      attendees: [
+        {
+          email: attendeeEmail,
+          responseStatus: state ? 'accepted' : 'declined',
+        },
+      ],
+>>>>>>> fb3f22bf4fa83a174e75a32510b8ea59ed66b1f1
     };
 
     // Update the event

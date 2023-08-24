@@ -11,6 +11,7 @@ interface IInvitesRepository {
   listEventsByUser(email: string): Promise<Invite[]>
   UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null>
   listUserEmailByInvite(id: string): Promise<string[]>
+
 }
 
 export default IInvitesRepository;
