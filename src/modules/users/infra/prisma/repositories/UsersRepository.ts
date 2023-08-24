@@ -137,4 +137,16 @@ export default class UsersRepository implements IUsersRepository {
 
     return users;
   }
+
+  public async listUserEmailByInvite(id: string): Promise<string[]> {
+    const users = await prisma.inviteUser.findMany({
+      where: {
+        idInvite: id,
+      },
+
+    });
+    const emails = await users.map((user) => user.userEmail);
+
+    return emails;
+  }
 }

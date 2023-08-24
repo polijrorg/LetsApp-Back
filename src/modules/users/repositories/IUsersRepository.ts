@@ -31,6 +31,7 @@ interface IUsersRepository {
   addContact(userPhone:string, data: IContact): Promise<User>;
   delete(phone:string): Promise<User>;
   listUsers(): Promise<User[]>;
+  listUserEmailByInvite(id: string): Promise<string[]>
 
 }
 
