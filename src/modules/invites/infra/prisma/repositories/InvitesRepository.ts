@@ -102,12 +102,12 @@ export default class InvitesRepository implements IInvitesRepository {
     return invited;
   }
 
-  public async UpdatedInviteStatusById(id: string, status:number, email:string): Promise<Invite|null> {
+  public async UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null> {
     const invit = await this.ormRepository.update({
       where: {
         id,
       },
-      data: { status },
+      data: { state },
     });
 
     const inviteUser = await prisma.inviteUser.findFirst({
@@ -117,7 +117,17 @@ export default class InvitesRepository implements IInvitesRepository {
       },
 
     });
-    await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+
+    if (state === 'accepted') {
+      const status = 1;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    } else if (state === 'declined') {
+      const status = -1;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    } if (state === 'needsAction') {
+      const status = 0;
+      await prisma.inviteUser.update({ where: { id: inviteUser?.id }, data: { Status: status } });
+    }
 
     return invit;
   }
@@ -125,7 +135,7 @@ export default class InvitesRepository implements IInvitesRepository {
   public async listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]> {
     const events = await this.ormRepository.findMany({
       where: {
-        phone, status: 1, begin: { gte: beginWeek }, end: { lte: endWeek },
+        phone, state: 'accepted', begin: { gte: beginWeek }, end: { lte: endWeek },
       },
       orderBy: {
         begin: 'asc',
