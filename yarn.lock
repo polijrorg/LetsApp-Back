@@ -1200,6 +1200,20 @@
   dependencies:
     tslib "^2.5.0"
 
+"@azure/msal-common@14.0.2":
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.0.2.tgz#e5898dcdbb6b630146b227ead14f5e03f8d837fd"
+  integrity sha512-yvVP63oXe20JFzvooTVxiX9UorxcL8VFoVwEtKuGlQnEnNGzrOpQZ6lKa1lqwGqxMtwKpW7oAFQhbbskG5RbYA==
+
+"@azure/msal-node@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@azure/msal-node/-/msal-node-2.0.2.tgz#1ad0e3b5c4c52faa3d9f59011bb80e3988559767"
+  integrity sha512-T8GJU+3pN+3y5BnaDL46NEOBoq5jWquHGEaNVOO5adOJTU47/QB4moUf70QdCve6kI+wZqa0OkKgx5H7uxT0KA==
+  dependencies:
+    "@azure/msal-common" "14.0.2"
+    jsonwebtoken "^9.0.0"
+    uuid "^8.3.0"
+
 "@babel/cli@^7.12.1":
   version "7.12.1"
   resolved "https://registry.npmjs.org/@babel/cli/-/cli-7.12.1.tgz"
@@ -7546,7 +7560,7 @@ uuid@8.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.0.0.tgz#bc6ccf91b5ff0ac07bbcdbf1c7c4e150db4dbb6c"
   integrity sha512-jOXGuXZAWdsTH7eZLtyXMqUb9EcWMGZNbL9YcGBJl4MH4nrxHmZJhEHvyLFrkxo+28uLb/NYRcStH48fnD0Vzw==
 
-uuid@8.3.2, uuid@^8.3.2:
+uuid@8.3.2, uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==

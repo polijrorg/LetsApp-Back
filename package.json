@@ -43,6 +43,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.312.0",
     "@aws-sdk/client-sns": "^3.316.0",
+    "@azure/msal-node": "^2.0.2",
     "@microsoft/microsoft-graph-client": "^3.0.5",
     "@prisma/client": "^3.14.0",
     "@types/aws-sdk": "^2.7.0",
