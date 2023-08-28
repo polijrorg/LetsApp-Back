@@ -11,24 +11,6 @@ export default class GoogleAuthUrlService {
   ) { }
 
   public async authenticate(): Promise<string> {
-    // const oauth2Client = new google.auth.OAuth2();
-
-    // const scopes = ['https://www.googleapis.com/auth/calendar',
-    //   'https://www.googleapis.com/auth/calendar.events',
-    //   'https://www.googleapis.com/auth/calendar.events.readonly',
-    //   'https://www.googleapis.com/auth/calendar.readonly',
-    //   'https://www.googleapis.com/auth/calendar.settings.readonly',
-    //   'https://www.googleapis.com/auth/userinfo.email'];
-
-    // const authUrl = oauth2Client.generateAuthUrl({
-    //   access_type: 'offline',
-    //   scope: scopes,
-    //   client_id: process.env.CLIENT_ID,
-    //   redirect_uri: process.env.CLIENT_URI,
-
-    // });
-
-    // return authUrl;
     const clientConfig = {
       auth: {
         clientId: process.env.CLIENT_ID as string,
@@ -39,11 +21,11 @@ export default class GoogleAuthUrlService {
     const cca = new msal.ConfidentialClientApplication(clientConfig);
 
     const authCodeUrlParameters = {
-      scopes: ['user.read', 'calendars.read', 'calendars.readwrite', 'calendars.read.shared', 'calendars.readwrite.shared'],
+      scopes: ['https://graph.microsoft.com/.default'],
       redirectUri: process.env.CLIENT_URI as string,
     };
 
-    const url = cca.getAuthCodeUrl(authCodeUrlParameters);
-    return url;
+    const authUrl = cca.getAuthCodeUrl(authCodeUrlParameters);
+    return authUrl;
   }
 }
