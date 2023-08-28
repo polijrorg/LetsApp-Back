@@ -1,6 +1,7 @@
-import { calendar_v3, google } from 'googleapis';
+import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
+import { Client } from '@microsoft/microsoft-graph-client';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
@@ -11,35 +12,21 @@ export default class GetCalendarEvents {
 
   ) { }
 
-  public async authenticate(phone:string): Promise<calendar_v3.Schema$Event[]> {
-    // const oauth2Client = new google.auth.OAuth2();
-
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
+  public async authenticate(phone:string): Promise<Response> {
+    const now = new Date();
+    const end = new Date();
+    end.setDate(now.getDate() + 180);
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    oAuth2Client.setCredentials({ access_token: user?.tokens });
-    const calendar = google.calendar({
-      version: 'v3',
-      auth: oAuth2Client,
-    });
+    const authProvider = {
+      getAccessToken: async () => user.tokens as string,
+    };
 
-    const now = new Date();
-    const end = new Date();
-    end.setDate(now.getDate() + 180);
-    const response = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: now.toISOString(),
-      timeMax: end.toISOString(),
-      maxResults: 10000,
-      singleEvents: true,
-      orderBy: 'startTime',
-
-    });
-
-    const events = response.data.items;
-    if (!events) throw new AppError('Events not found', 400);
+    const graphClient = Client.initWithMiddleware({ authProvider });
+    const events = await graphClient.api('/me/calendar/events').filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).get();
+    console.log(events);
 
     return events;
   }
