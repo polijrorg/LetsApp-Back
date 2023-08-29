@@ -14,8 +14,8 @@ export default class GetTokensService {
   public async authenticate(code: string): Promise<void> {
     const clientConfig = {
       auth: {
-        clientId: process.env.CLIENT_ID as string,
-        clientSecret: process.env.CLIENT_SECRET,
+        clientId: process.env.OUTLOOK_CLIENT_ID as string,
+        clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
       },
     };
 
