@@ -10,7 +10,8 @@ import ListUsersService from '@modules/users/services/ListUsersService';
 // import GoogleAuthService from '@modules/users/services/GoogleAuthService';
 import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
 import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService';
-import GetTokensService from '@modules/users/services/GetTokensService';
+import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
+import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
@@ -133,9 +134,19 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
-  public async getTokens(req: Request, res: Response): Promise<Response> {
+  public async getGoogleTokens(req: Request, res: Response): Promise<Response> {
     const { code } = req.query;
-    const urlservice = container.resolve(GetTokensService);
+    const urlservice = container.resolve(GetGoogleTokensService);
+    if (!code) throw new AppError('User not found', 400);
+
+    await urlservice.authenticate(code.toString());
+
+    return res.status(201).json('ok');
+  }
+
+  public async getOutlookTokens(req: Request, res: Response): Promise<Response> {
+    const { code } = req.query;
+    const urlservice = container.resolve(GetOutlookTokensService);
     if (!code) throw new AppError('User not found', 400);
 
     await urlservice.authenticate(code.toString());
