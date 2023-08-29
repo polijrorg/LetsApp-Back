@@ -32,11 +32,12 @@ export default class GetCalendarEvents {
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
+    console.log(user);
     if (!user) throw new AppError('User not found', 400);
 
     const urlservice = container.resolve(GetCalendarEventsService);
 
-    const schedule = await urlservice.authenticate(phone);
+    const schedule = await urlservice.authenticate(user.email!);
     moment.tz.setDefault('America/Sao_Paulo');
     const horarios:calendar_v3.Schema$Event[] = [];
     schedule.forEach((element) => {

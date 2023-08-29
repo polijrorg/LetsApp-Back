@@ -4,9 +4,10 @@ import { Invite } from '@prisma/client';
 
 // import AppError from '@shared/errors/AppError';
 import AppError from '@shared/errors/AppError';
-import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
+import UpdateEventService from '@modules/users/services/UpdateEventService';
 import IInvitesRepository from '../repositories/IInvitesRepository';
 
+interface IRequest {eventId: string, begin: string, end: string, phone: string, }
 @injectable()
 export default class UpdateInviteService {
   constructor(
@@ -15,14 +16,26 @@ export default class UpdateInviteService {
 
   ) { }
 
-  public async execute(inviteId:string, state:string, email:string): Promise<Invite> {
-    const invite = await this.invitesRepository.UpdatedInviteStatusById(inviteId, state, email);
+  public async execute({
+    eventId, begin, end, phone,
+  }:IRequest): Promise<Invite> {
+    const invite = await this.invitesRepository.UpdatedInviteById(
+
+      eventId,
+      begin,
+      end,
+      phone,
+
+    );
 
     if (!invite) throw new AppError('Invite Not Found', 400);
 
-    const urlservice = container.resolve(UpdateEventStateService);
-    await urlservice.updateEventState({
-      email, state, eventId: invite.googleId,
+    const urlservice = container.resolve(UpdateEventService);
+    await urlservice.authenticate({
+      eventId: invite.googleId,
+      phone,
+      begin,
+      end,
     });
 
     return invite;

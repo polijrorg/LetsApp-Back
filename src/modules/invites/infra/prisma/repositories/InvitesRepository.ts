@@ -165,6 +165,29 @@ export default class InvitesRepository implements IInvitesRepository {
     return invit;
   }
 
+  public async UpdatedInviteById(eventId:string, begin:string, end:string, phone:string): Promise<Invite|null> {
+    const inviteUser = await this.ormRepository.findFirst({
+      where: {
+        id: eventId,
+      },
+
+    });
+    const invit = await this.ormRepository.update({
+      where: {
+        id: eventId,
+      },
+      data: { ...inviteUser, begin, end },
+
+    });
+    const user = await prisma.user.findUnique({ where: { phone } });
+    console.log(user);
+
+    await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id }, data: { Status: 'needsAction' } });
+    await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id, userEmail: user!.email! }, data: { Status: 'accepted' } });
+
+    return invit;
+  }
+
   public async listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]> {
     const events = await this.ormRepository.findMany({
       where: {

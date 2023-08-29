@@ -1,4 +1,4 @@
-import { Contato, User } from '@prisma/client';
+import { Contato, Invite, User } from '@prisma/client';
 
 import ICreateUserDTO from '../dtos/ICreateUserDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
@@ -31,6 +31,7 @@ interface IUsersRepository {
   addContact(userPhone:string, data: IContact): Promise<User>;
   delete(phone:string): Promise<User>;
   listUsers(): Promise<User[]>;
+  findInvite(id: string): Promise<Invite|null>
   listUserEmailByInvite(id: string): Promise<string[]>
 
 }

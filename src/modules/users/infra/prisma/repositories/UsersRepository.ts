@@ -1,5 +1,7 @@
 import prisma from '@shared/infra/prisma/client';
-import { Contato, Prisma, User } from '@prisma/client';
+import {
+  Contato, Invite, Prisma, User,
+} from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
@@ -138,15 +140,27 @@ export default class UsersRepository implements IUsersRepository {
     return users;
   }
 
+  public async findInvite(id: string): Promise<Invite|null> {
+    const users = await prisma.invite.findUnique({
+      where: {
+        id,
+      },
+
+    });
+
+    return users;
+  }
+
   public async listUserEmailByInvite(id: string): Promise<string[]> {
     const users = await prisma.inviteUser.findMany({
       where: {
         idInvite: id,
       },
+      select: { userEmail: true },
 
     });
-    const emails = await users.map((user) => user.userEmail);
+    const userEmail = users.map((invite) => invite.userEmail);
 
-    return emails;
+    return userEmail;
   }
 }
