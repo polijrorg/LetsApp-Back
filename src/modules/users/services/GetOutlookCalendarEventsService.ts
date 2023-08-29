@@ -26,7 +26,6 @@ export default class GetCalendarEvents {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
     const events = await graphClient.api('/me/calendar/events').filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).get();
-    console.log(events);
 
     return events;
   }
