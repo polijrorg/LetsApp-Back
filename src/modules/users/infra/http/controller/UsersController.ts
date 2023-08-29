@@ -9,6 +9,7 @@ import DeleteUserService from '@modules/users/services/DeleteUserService';
 import ListUsersService from '@modules/users/services/ListUsersService';
 // import GoogleAuthService from '@modules/users/services/GoogleAuthService';
 import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
+import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService';
 import GetTokensService from '@modules/users/services/GetTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
 import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
@@ -118,8 +119,15 @@ export default class UserController {
   //   return res.status(201).json(user);
   // }
 
-  public async getAuthUrl(req: Request, res: Response): Promise<Response> {
+  public async getGoogleAuthUrl(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(GoogleAuthUrlService);
+
+    const Url = await urlservice.authenticate();
+    return res.status(201).json(Url);
+  }
+
+  public async getOutlookAuthUrl(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(OutlookAuthUrlService);
 
     const Url = await urlservice.authenticate();
     return res.status(201).json(Url);
