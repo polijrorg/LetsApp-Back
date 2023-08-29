@@ -1,4 +1,3 @@
-import invitesRoutes from '@modules/invites/infra/http/routes/invites.routes';
 import AppError from '@shared/errors/AppError';
 import moment from 'moment';
 import { container, inject, injectable } from 'tsyringe';

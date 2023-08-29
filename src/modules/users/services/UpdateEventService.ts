@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { container, inject, injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Invite } from '@prisma/client';
 import IUsersRepository from '../repositories/IUsersRepository';
