@@ -19,6 +19,7 @@ import AppError from '@shared/errors/AppError';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
+import UpdateEventService from '@modules/users/services/UpdateEventService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -155,6 +156,18 @@ export default class UserController {
 
     const Url = await urlservice.updateEventState({
       email, state, eventId,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async updateEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(UpdateEventService);
+    const {
+      phone, begin, end, eventId,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, begin, end, eventId,
     });
     return res.status(201).json(Url);
   }

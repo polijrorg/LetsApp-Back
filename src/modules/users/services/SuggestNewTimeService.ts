@@ -1,6 +1,9 @@
+import invitesRoutes from '@modules/invites/infra/http/routes/invites.routes';
 import AppError from '@shared/errors/AppError';
-import { inject, injectable } from 'tsyringe';
+import moment from 'moment';
+import { container, inject, injectable } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
+import GetRecommendedTimeService from './GetRecommendedTimeService';
 
 interface IRequest{
   inviteId:string,
@@ -20,9 +23,25 @@ export default class SuggestNewTimeService {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    const emails = await this.usersRepository.listUserEmailByInvite(inviteId);
-    console.log(emails);
+    const invite = await this.usersRepository.findInvite(inviteId);
+    if (!invite) throw new AppError('Invite not found', 400);
+    const time = container.resolve(GetRecommendedTimeService);
+    const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
+    console.log(usersEmails);
 
-    return emails;
+    const times = await time.authenticate(
+      {
+        phone,
+        beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
+        endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
+        beginHour: invite.begin.slice(11, 25),
+        endHour: invite.end.slice(11, 25),
+        duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
+        mandatoryGuests: usersEmails,
+        optionalGuests: 'undefined',
+      },
+    );
+
+    return times;
   }
 }
