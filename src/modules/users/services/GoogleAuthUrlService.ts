@@ -24,7 +24,7 @@ export default class GoogleAuthUrlService {
       access_type: 'offline',
       scope: scopes,
       client_id: process.env.GOOGLE_CLIENT_ID,
-      redirect_uri: process.env.CLIENT_URI,
+      redirect_uri: process.env.GOOGLE_CLIENT_URI,
 
     });
 

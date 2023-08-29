@@ -21,7 +21,7 @@ export default class GetTokensService {
 
     const tokenRequest = {
       code,
-      redirectUri: process.env.CLIENT_URI as string,
+      redirectUri: process.env.OUTLOOK_CLIENT_URI as string,
       scopes: ['https://graph.microsoft.com/.default'],
     };
 

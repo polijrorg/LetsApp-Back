@@ -11,7 +11,7 @@ export default class GetTokensService {
   ) { }
 
   public async authenticate(code: string): Promise<void> {
-    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.CLIENT_URI);
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
     const { tokens } = await oAuth2Client.getToken(code);
 
     oAuth2Client.setCredentials(tokens);

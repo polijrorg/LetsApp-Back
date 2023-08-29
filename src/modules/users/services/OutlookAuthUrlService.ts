@@ -22,7 +22,7 @@ export default class GoogleAuthUrlService {
 
     const authCodeUrlParameters = {
       scopes: ['https://graph.microsoft.com/.default'],
-      redirectUri: process.env.CLIENT_URI as string,
+      redirectUri: process.env.OUTLOOK_CLIENT_URI as string,
     };
 
     const authUrl = cca.getAuthCodeUrl(authCodeUrlParameters);
