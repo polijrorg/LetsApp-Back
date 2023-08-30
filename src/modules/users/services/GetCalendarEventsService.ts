@@ -1,6 +1,7 @@
-import { calendar_v3, google } from 'googleapis';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
+import { calendar_v3, google } from 'googleapis';
+
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
@@ -14,7 +15,7 @@ export default class GetCalendarEvents {
   public async authenticate(email:string): Promise<calendar_v3.Schema$Event[]> {
     // const oauth2Client = new google.auth.OAuth2();
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
 
     const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);

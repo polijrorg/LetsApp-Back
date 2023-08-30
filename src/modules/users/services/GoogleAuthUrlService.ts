@@ -23,8 +23,8 @@ export default class GoogleAuthUrlService {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      client_id: process.env.CLIENT_ID,
-      redirect_uri: process.env.CLIENT_URI,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      redirect_uri: process.env.GOOGLE_CLIENT_URI,
 
     });
 
