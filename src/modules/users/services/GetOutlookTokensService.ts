@@ -28,6 +28,12 @@ export default class GetTokensService {
     const cca = new msal.ConfidentialClientApplication(clientConfig);
 
     const tokens = await cca.acquireTokenByCode(tokenRequest);
+    const tokenCache = cca.getTokenCache().serialize();
+    const refreshTokenObject = (JSON.parse(tokenCache)).RefreshToken;
+    const refreshToken = refreshTokenObject[Object.keys(refreshTokenObject)[0]].secret;
+
+    // provavelmente o refreshtoken tera de ser adicionado ao usuario
+
     if (!tokens.accessToken) throw new AppError('Token not found', 400);
 
     const authProvider = {
