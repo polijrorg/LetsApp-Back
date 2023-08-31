@@ -121,17 +121,17 @@ export default class UserController {
 
   public async getAuthUrl(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(GoogleAuthUrlService);
-
-    const Url = await urlservice.authenticate();
+    const { phone } = req.params;
+    const Url = await urlservice.authenticate(phone);
     return res.status(201).json(Url);
   }
 
   public async getTokens(req: Request, res: Response): Promise<Response> {
-    const { code } = req.query;
+    const { code, state } = req.query;
     const urlservice = container.resolve(GetTokensService);
-    if (!code) throw new AppError('User not found', 400);
-
-    await urlservice.authenticate(code.toString());
+    if (!code) throw new AppError('Code not found', 400);
+    if (!state) throw new AppError('state not found', 400);
+    await urlservice.authenticate(code.toString(), state.toString());
 
     return res.status(201).json('ok');
   }
@@ -233,6 +233,7 @@ export default class UserController {
         optionalGuests,
       },
     );
+
     return res.status(201).json(times);
   }
 

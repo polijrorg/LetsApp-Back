@@ -10,7 +10,7 @@ export default class GoogleAuthUrlService {
 
   ) { }
 
-  public async authenticate(): Promise<string> {
+  public async authenticate(phone:string): Promise<string> {
     const oauth2Client = new google.auth.OAuth2();
 
     const scopes = ['https://www.googleapis.com/auth/calendar',
@@ -25,6 +25,7 @@ export default class GoogleAuthUrlService {
       scope: scopes,
       client_id: process.env.CLIENT_ID,
       redirect_uri: process.env.CLIENT_URI,
+      state: phone,
 
     });
 
