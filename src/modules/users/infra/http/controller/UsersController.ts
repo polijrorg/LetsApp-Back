@@ -129,8 +129,9 @@ export default class UserController {
 
   public async getOutlookAuthUrl(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(OutlookAuthUrlService);
+    const { phone } = req.params;
 
-    const Url = await urlservice.authenticate();
+    const Url = await urlservice.authenticate(phone);
     return res.status(201).json(Url);
   }
 
@@ -145,11 +146,12 @@ export default class UserController {
   }
 
   public async getOutlookTokens(req: Request, res: Response): Promise<Response> {
-    const { code } = req.query;
+    const { code, state } = req.query;
     const urlservice = container.resolve(GetOutlookTokensService);
     if (!code) throw new AppError('User not found', 400);
+    if (!state) throw new AppError('User not found', 400);
 
-    await urlservice.authenticate(code.toString());
+    await urlservice.authenticate(code.toString(), state.toString());
 
     return res.status(201).json('ok');
   }

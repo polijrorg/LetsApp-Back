@@ -5,13 +5,13 @@ import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
-export default class GetTokensService {
+export default class GetOutlookTokensService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
   ) { }
 
-  public async authenticate(code: string): Promise<void> {
+  public async authenticate(code: string, phone: string): Promise<void> {
     const clientConfig = {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
@@ -43,8 +43,9 @@ export default class GetTokensService {
     const graphClient = Client.initWithMiddleware({ authProvider });
     const userInfo = await graphClient.api('/me').get();
 
-    const user = await this.usersRepository.findByEmail(userInfo.mail);
+    const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
+    await this.usersRepository.updateEmail(user.id, userInfo.mail);
     this.usersRepository.updateToken(user.id, tokens.accessToken);
     this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
     this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
