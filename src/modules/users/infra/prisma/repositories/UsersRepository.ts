@@ -61,7 +61,7 @@ export default class UsersRepository implements IUsersRepository {
 
   public async findToken(): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
-      where: { tokens: '1' },
+      where: { token: '1' },
     });
 
     return user;
@@ -114,8 +114,14 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateToken(id: string, tokens: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { tokens } });
+  public async updateToken(id: string, token: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { token } });
+
+    return user;
+  }
+
+  public async updateMicrosoftRefreshCode(id: string, microsoftRefreshCode: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { microsoftRefreshCode } });
 
     return user;
   }
@@ -148,5 +154,11 @@ export default class UsersRepository implements IUsersRepository {
     const emails = await users.map((user) => user.userEmail);
 
     return emails;
+  }
+
+  public async updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { microsoftExpiresIn } });
+
+    return user;
   }
 }

@@ -1,5 +1,4 @@
 import { Contato, User } from '@prisma/client';
-
 import ICreateUserDTO from '../dtos/ICreateUserDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
 interface IUpload{
@@ -32,7 +31,8 @@ interface IUsersRepository {
   delete(phone:string): Promise<User>;
   listUsers(): Promise<User[]>;
   listUserEmailByInvite(id: string): Promise<string[]>
-
+  updateMicrosoftRefreshCode(id: string, refreshToken: string): Promise<User>;
+  updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User>;
 }
 
 export default IUsersRepository;
