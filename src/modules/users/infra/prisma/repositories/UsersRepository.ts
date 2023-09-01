@@ -1,6 +1,6 @@
 import prisma from '@shared/infra/prisma/client';
 import {
-  Contato, Invite, Prisma, User,
+  Contato, Invite, Prisma, Type, User,
 } from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
@@ -162,5 +162,11 @@ export default class UsersRepository implements IUsersRepository {
     const userEmail = users.map((invite) => invite.userEmail);
 
     return userEmail;
+  }
+
+  public async updateUserType(id: string, type: Type): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { type } });
+
+    return user;
   }
 }

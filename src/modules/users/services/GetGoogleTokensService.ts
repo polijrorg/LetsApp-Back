@@ -26,5 +26,7 @@ export default class GetTokensService {
     if (!tokens.access_token) throw new AppError('Token not found', 400);
 
     this.usersRepository.updateToken(user.id, tokens.access_token);
+
+    this.usersRepository.updateUserType(user.id, 'GOOGLE');
   }
 }

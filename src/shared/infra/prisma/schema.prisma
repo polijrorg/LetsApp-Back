@@ -38,6 +38,7 @@ model User {
   created_at          DateTime     @default(now())
   updated_at          DateTime     @default(now())
   tokens              String?
+  type                Type?
   invites             InviteUser[]
   contatos            Contato[]
 
@@ -62,4 +63,9 @@ model Contato {
   userId String?
 
   @@map("contato")
+}
+
+enum Type {
+  GOOGLE
+  OUTLOOK
 }
