@@ -57,8 +57,7 @@ export default class GetOutlookCalendarEvents {
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
-    const events = await graphClient.api(`/users/${user.email}/calendar/events`).get();
-    // // .filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).get();
+    const events = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).get();
 
     return events;
   }
