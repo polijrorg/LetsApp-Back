@@ -43,51 +43,10 @@ export default class GetTokensService {
     const graphClient = Client.initWithMiddleware({ authProvider });
     const userInfo = await graphClient.api('/me').get();
 
-    // Unificar??
     const user = await this.usersRepository.findByEmail(userInfo.mail);
     if (!user) throw new AppError('User not found', 400);
     this.usersRepository.updateToken(user.id, tokens.accessToken);
     this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
     this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
-
-    // const phone = '+5521973242622';
-
-    // const beforeCacheAccess = async (cacheContext: TokenCacheContext) => {
-    //   const tokenCache = this.usersRepository.getTokenCache(phone);
-
-    //   if (!tokenCache) {
-    //     this.usersRepository.setTokenCache(phone, cacheContext.tokenCache.serialize());
-    //   } else {
-    //     // found cache data, restore into the cache context
-    //     cacheContext.tokenCache.deserialize(tokenCache as unknown as string);
-    //   }
-    // };
-
-    // const afterCacheAccess = async (cacheContext: TokenCacheContext) => {
-    //   if (cacheContext.cacheHasChanged) {
-    //     // store changes to db
-    //     this.usersRepository.setTokenCache(phone, cacheContext.tokenCache.serialize());
-    //   }
-    // };
-
-    // const cachePlugin = {
-    //   beforeCacheAccess,
-    //   afterCacheAccess,
-    // };
-
-    // const clientConfig = {
-    //   auth: {
-    //     clientId: process.env.OUTLOOK_CLIENT_ID as string,
-    //     clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
-    //   },
-    //   cache: {
-    //     cachePlugin,
-    //   },
-    // };
-
-    // const cca = new msal.ConfidentialClientApplication(clientConfig);
-    // const cache = cca.getTokenCache().serialize();
-    // const account = (JSON.parse(cache)).Account;
-    // console.log(account);
   }
 }
