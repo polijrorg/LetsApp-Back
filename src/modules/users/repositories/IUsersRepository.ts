@@ -1,4 +1,3 @@
-
 import {
   Contato, Invite, Type, User,
 } from '@prisma/client';
@@ -38,9 +37,7 @@ interface IUsersRepository {
   listUserEmailByInvite(id: string): Promise<string[]>
   updateMicrosoftRefreshCode(id: string, refreshToken: string): Promise<User>;
   updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User>;
-
   updateUserType(id: string, type: Type): Promise<User>;
-
 }
 
 export default IUsersRepository;

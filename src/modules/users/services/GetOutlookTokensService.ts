@@ -51,8 +51,6 @@ export default class GetOutlookTokensService {
     this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
     this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
 
-
     this.usersRepository.updateUserType(user.id, 'OUTLOOK');
-
   }
 }
