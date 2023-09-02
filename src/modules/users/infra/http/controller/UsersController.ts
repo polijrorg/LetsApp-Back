@@ -13,7 +13,7 @@ import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService
 import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
 import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
-import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
+import GetOutlookCalendarEventsService from '@modules/users/services/GetOutlookCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
@@ -192,7 +192,7 @@ export default class UserController {
   }
 
   public async getEvents(req: Request, res: Response): Promise<Response> {
-    const urlservice = container.resolve(GetCalendarEventsService);
+    const urlservice = container.resolve(GetOutlookCalendarEventsService);
     const { phone } = req.body;
 
     const Url = await urlservice.authenticate(phone);

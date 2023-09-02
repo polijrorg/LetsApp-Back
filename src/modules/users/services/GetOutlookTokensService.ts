@@ -26,9 +26,15 @@ export default class GetTokensService {
     };
 
     const cca = new msal.ConfidentialClientApplication(clientConfig);
-
     const tokens = await cca.acquireTokenByCode(tokenRequest);
     if (!tokens.accessToken) throw new AppError('Token not found', 400);
+
+    const expirationDate = tokens.expiresOn as Date;
+    const microsoftExpiresIn = expirationDate.toString();
+
+    const tokenCache = cca.getTokenCache().serialize();
+    const refreshCodeObject = (JSON.parse(tokenCache)).RefreshToken;
+    const microsoftRefreshCode = refreshCodeObject[Object.keys(refreshCodeObject)[0]].secret;
 
     const authProvider = {
       getAccessToken: async () => tokens.accessToken,
@@ -37,11 +43,15 @@ export default class GetTokensService {
     const graphClient = Client.initWithMiddleware({ authProvider });
     const userInfo = await graphClient.api('/me').get();
 
-    // Unificar??
     const user = await this.usersRepository.findByEmail(userInfo.mail);
     if (!user) throw new AppError('User not found', 400);
     this.usersRepository.updateToken(user.id, tokens.accessToken);
 
+    this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
+    this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
+
+
     this.usersRepository.updateUserType(user.id, 'OUTLOOK');
+
   }
 }

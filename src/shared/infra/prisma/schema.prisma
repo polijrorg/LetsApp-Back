@@ -26,7 +26,22 @@ model Invite {
   @@map("invite")
 }
 
-model User {
+
+  id                   String       @id @default(uuid())
+  name                 String?
+  phone                String       @unique
+  email                String?      @unique
+  photo                String?
+  code                 Int?
+  googleRefreshCode    String?
+  microsoftRefreshCode String?
+  created_at           DateTime     @default(now())
+  updated_at           DateTime     @default(now())
+  token                String?
+  invites              InviteUser[]
+  contatos             Contato[]
+ 
+
   id                  String       @id @default(uuid())
   name                String?
   phone               String       @unique
@@ -41,6 +56,8 @@ model User {
   type                Type?
   invites             InviteUser[]
   contatos            Contato[]
+  microsoftExpiresIn   String?
+
 
   @@map("user")
 }
