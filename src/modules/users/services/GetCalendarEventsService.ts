@@ -12,12 +12,12 @@ export default class GetCalendarEvents {
 
   ) { }
 
-  public async authenticate(phone:string): Promise<calendar_v3.Schema$Event[]> {
+  public async authenticate(email:string): Promise<calendar_v3.Schema$Event[]> {
     // const oauth2Client = new google.auth.OAuth2();
 
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
 
-    const user = await this.usersRepository.findByPhone(phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     oAuth2Client.setCredentials({ access_token: user?.tokens });
