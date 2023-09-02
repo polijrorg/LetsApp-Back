@@ -47,7 +47,12 @@ export default class GetOutlookTokensService {
     if (!user) throw new AppError('User not found', 400);
     await this.usersRepository.updateEmail(user.id, userInfo.mail);
     this.usersRepository.updateToken(user.id, tokens.accessToken);
+
     this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
     this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
+
+
+    this.usersRepository.updateUserType(user.id, 'OUTLOOK');
+
   }
 }

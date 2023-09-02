@@ -26,7 +26,7 @@ model Invite {
   @@map("invite")
 }
 
-model User {
+
   id                   String       @id @default(uuid())
   name                 String?
   phone                String       @unique
@@ -40,7 +40,24 @@ model User {
   token                String?
   invites              InviteUser[]
   contatos             Contato[]
+ 
+
+  id                  String       @id @default(uuid())
+  name                String?
+  phone               String       @unique
+  email               String?      @unique
+  photo               String?
+  code                Int?
+  googleRefeshCode    String?
+  microsoftRefeshCode String?
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @default(now())
+  tokens              String?
+  type                Type?
+  invites             InviteUser[]
+  contatos            Contato[]
   microsoftExpiresIn   String?
+
 
   @@map("user")
 }
@@ -63,4 +80,9 @@ model Contato {
   userId String?
 
   @@map("contato")
+}
+
+enum Type {
+  GOOGLE
+  OUTLOOK
 }

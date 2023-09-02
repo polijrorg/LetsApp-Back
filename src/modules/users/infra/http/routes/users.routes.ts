@@ -32,6 +32,7 @@ usersRoutes.get('/GetUserByPhone/:phone', usersController.GetUserByPhone);
 usersRoutes.get('/GetUserByEmail/:email', usersController.GetUserByEmail);
 usersRoutes.post('/addContact', usersController.addContact);
 usersRoutes.post('/updateState', usersController.updateEventState);
+usersRoutes.post('/updateEvent', usersController.updateEvent);
 usersRoutes.post('/suggestNewTime', usersController.SuggestNewTime);
 
 export default usersRoutes;
