@@ -1,4 +1,3 @@
-import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
@@ -12,10 +11,7 @@ export default class CheckUserAvailabilityService {
 
   ) { }
 
-  public async execute(id: string, idInvite: string): Promise<Response> {
-    // tirar funcao do invitesRepository dps...
-    // tirar a rota de teste
-
+  public async execute(id: string, idInvite: string): Promise<boolean> {
     const user = await this.invitesRepository.findById(id);
     if (!user) throw new AppError('User not found', 400);
 
@@ -29,21 +25,28 @@ export default class CheckUserAvailabilityService {
     const graphClient = Client.initWithMiddleware({ authProvider });
 
     const scheduleInformation = {
-      // timezone Monróvia ?????
       schedules: [user.email],
       startTime: {
         dateTime: invite.begin,
-        timeZone: 'UTC',
+        timeZone: 'America/Sao_Paulo',
       },
       endTime: {
         dateTime: invite.end,
-        timeZone: 'UTC',
+        timeZone: 'America/Sao_Paulo',
       },
       availabilityViewInterval: 30,
     };
 
-    const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).post(scheduleInformation);
+    const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
 
-    return check;
+    const availability = check.value[0].availabilityView;
+
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < availability.length; i++) {
+      if (availability[i] !== '0') {
+        return false;
+      }
+    }
+    return true;
   }
 }
