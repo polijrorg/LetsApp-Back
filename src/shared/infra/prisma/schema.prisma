@@ -45,12 +45,13 @@ model User {
 }
 
 model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [idInvite], references: [id])
+  id        String  @id @default(uuid())
+  User      User    @relation(fields: [userEmail], references: [email])
+  Invite    Invite  @relation(fields: [idInvite], references: [id])
   userEmail String
   idInvite  String
-  Status    String @default("needsAction")
+  Status    String  @default("needsAction")
+  optional  Boolean
 }
 
 model Contato {

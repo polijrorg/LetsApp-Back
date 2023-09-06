@@ -29,7 +29,7 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone, optionalGuests,
   }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
 
@@ -73,7 +73,7 @@ export default class GetCalendarEvents {
     // Sort the array based on the first datetime of each index
 
     data.sort(compareDates);
-
+    console.log();
     data.forEach((scheduleSet, index) => {
       try {
         if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
