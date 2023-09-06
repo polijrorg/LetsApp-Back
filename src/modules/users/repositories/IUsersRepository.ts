@@ -1,4 +1,6 @@
-import { Contato, User } from '@prisma/client';
+import {
+  Contato, Invite, Type, User,
+} from '@prisma/client';
 
 import ICreateUserDTO from '../dtos/ICreateUserDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
@@ -31,8 +33,11 @@ interface IUsersRepository {
   addContact(userPhone:string, data: IContact): Promise<User>;
   delete(phone:string): Promise<User>;
   listUsers(): Promise<User[]>;
+  findInvite(id: string): Promise<Invite|null>
   listUserEmailByInvite(id: string): Promise<string[]>
-
+  updateMicrosoftRefreshCode(id: string, refreshToken: string): Promise<User>;
+  updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User>;
+  updateUserType(id: string, type: Type): Promise<User>;
 }
 
 export default IUsersRepository;

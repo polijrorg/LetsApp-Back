@@ -9,9 +9,11 @@ import DeleteUserService from '@modules/users/services/DeleteUserService';
 import ListUsersService from '@modules/users/services/ListUsersService';
 // import GoogleAuthService from '@modules/users/services/GoogleAuthService';
 import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
-import GetTokensService from '@modules/users/services/GetTokensService';
+import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService';
+import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
+import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
-import GetCalendarEventsService from '@modules/users/services/GetCalendarEventsService';
+import GetOutlookCalendarEventsService from '@modules/users/services/GetOutlookCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
@@ -19,6 +21,7 @@ import AppError from '@shared/errors/AppError';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
+import UpdateEventService from '@modules/users/services/UpdateEventService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -118,19 +121,40 @@ export default class UserController {
   //   return res.status(201).json(user);
   // }
 
-  public async getAuthUrl(req: Request, res: Response): Promise<Response> {
+  public async getGoogleAuthUrl(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(GoogleAuthUrlService);
+    const { phone } = req.params;
 
-    const Url = await urlservice.authenticate();
+    const Url = await urlservice.authenticate(phone);
     return res.status(201).json(Url);
   }
 
-  public async getTokens(req: Request, res: Response): Promise<Response> {
-    const { code } = req.query;
-    const urlservice = container.resolve(GetTokensService);
-    if (!code) throw new AppError('User not found', 400);
+  public async getOutlookAuthUrl(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(OutlookAuthUrlService);
+    const { phone } = req.params;
 
-    await urlservice.authenticate(code.toString());
+    const Url = await urlservice.authenticate(phone);
+    return res.status(201).json(Url);
+  }
+
+  public async getGoogleTokens(req: Request, res: Response): Promise<Response> {
+    const { code, state } = req.query;
+    const urlservice = container.resolve(GetGoogleTokensService);
+
+    if (!code) throw new AppError('Code not found', 400);
+    if (!state) throw new AppError('state not found', 400);
+    await urlservice.authenticate(code.toString(), state.toString());
+
+    return res.status(201).json('ok');
+  }
+
+  public async getOutlookTokens(req: Request, res: Response): Promise<Response> {
+    const { code, state } = req.query;
+    const urlservice = container.resolve(GetOutlookTokensService);
+    if (!code) throw new AppError('User not found', 400);
+    if (!state) throw new AppError('User not found', 400);
+
+    await urlservice.authenticate(code.toString(), state.toString());
 
     return res.status(201).json('ok');
   }
@@ -159,8 +183,20 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
+  public async updateEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(UpdateEventService);
+    const {
+      phone, begin, end, eventId,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, begin, end, eventId,
+    });
+    return res.status(201).json(Url);
+  }
+
   public async getEvents(req: Request, res: Response): Promise<Response> {
-    const urlservice = container.resolve(GetCalendarEventsService);
+    const urlservice = container.resolve(GetOutlookCalendarEventsService);
     const { phone } = req.body;
 
     const Url = await urlservice.authenticate(phone);
@@ -220,6 +256,7 @@ export default class UserController {
         optionalGuests,
       },
     );
+
     return res.status(201).json(times);
   }
 

@@ -10,6 +10,7 @@ const invitesController = new InvitesController();
 invitesRoutes.post('/listEventsByUser', invitesController.listEventsByUser);
 invitesRoutes.get('/listEventsInWeek/:phone', invitesController.listEventsInAWeekByUser);
 invitesRoutes.post('/listInvitesByUser', invitesController.listInvitesByUser);
+invitesRoutes.post('/updateInviteState', invitesController.UpdateEventState);
 invitesRoutes.post('/updateInvite', invitesController.UpdateEvent);
 
 export default invitesRoutes;

@@ -1,5 +1,7 @@
 import prisma from '@shared/infra/prisma/client';
-import { Contato, Prisma, User } from '@prisma/client';
+import {
+  Contato, Invite, Prisma, Type, User,
+} from '@prisma/client';
 
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
@@ -61,7 +63,7 @@ export default class UsersRepository implements IUsersRepository {
 
   public async findToken(): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
-      where: { tokens: '1' },
+      where: { token: '1' },
     });
 
     return user;
@@ -114,8 +116,14 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateToken(id: string, tokens: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { tokens } });
+  public async updateToken(id: string, token: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { token } });
+
+    return user;
+  }
+
+  public async updateMicrosoftRefreshCode(id: string, microsoftRefreshCode: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { microsoftRefreshCode } });
 
     return user;
   }
@@ -138,15 +146,39 @@ export default class UsersRepository implements IUsersRepository {
     return users;
   }
 
+  public async findInvite(id: string): Promise<Invite|null> {
+    const users = await prisma.invite.findUnique({
+      where: {
+        id,
+      },
+
+    });
+
+    return users;
+  }
+
   public async listUserEmailByInvite(id: string): Promise<string[]> {
     const users = await prisma.inviteUser.findMany({
       where: {
         idInvite: id,
       },
+      select: { userEmail: true },
 
     });
-    const emails = await users.map((user) => user.userEmail);
+    const userEmail = users.map((invite) => invite.userEmail);
 
-    return emails;
+    return userEmail;
+  }
+
+  public async updateUserType(id: string, type: Type): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { type } });
+
+    return user;
+  }
+
+  public async updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User> {
+    const user = await this.ormRepository.update({ where: { id }, data: { microsoftExpiresIn } });
+
+    return user;
   }
 }

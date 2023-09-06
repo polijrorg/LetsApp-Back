@@ -1200,6 +1200,20 @@
   dependencies:
     tslib "^2.5.0"
 
+"@azure/msal-common@14.0.2":
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.0.2.tgz#e5898dcdbb6b630146b227ead14f5e03f8d837fd"
+  integrity sha512-yvVP63oXe20JFzvooTVxiX9UorxcL8VFoVwEtKuGlQnEnNGzrOpQZ6lKa1lqwGqxMtwKpW7oAFQhbbskG5RbYA==
+
+"@azure/msal-node@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@azure/msal-node/-/msal-node-2.0.2.tgz#1ad0e3b5c4c52faa3d9f59011bb80e3988559767"
+  integrity sha512-T8GJU+3pN+3y5BnaDL46NEOBoq5jWquHGEaNVOO5adOJTU47/QB4moUf70QdCve6kI+wZqa0OkKgx5H7uxT0KA==
+  dependencies:
+    "@azure/msal-common" "14.0.2"
+    jsonwebtoken "^9.0.0"
+    uuid "^8.3.0"
+
 "@babel/cli@^7.12.1":
   version "7.12.1"
   resolved "https://registry.npmjs.org/@babel/cli/-/cli-7.12.1.tgz"
@@ -2135,13 +2149,18 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@microsoft/microsoft-graph-client@^3.0.5":
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/@microsoft/microsoft-graph-client/-/microsoft-graph-client-3.0.5.tgz#c661b5bb271fd59d34391b0657b8a78c02af9ab8"
-  integrity sha512-xQADFNLUhE78RzYadFZtOmy/5wBZenSZhVK193m40MTDC5hl1aYMQO1QOJApnKga8WcvMCDCU10taRhuXTOz5w==
+"@microsoft/microsoft-graph-client@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@microsoft/microsoft-graph-client/-/microsoft-graph-client-3.0.6.tgz#84c93b47c64877a6e42b7f0b32930460d7e74795"
+  integrity sha512-corwIFZ+yzOguEWfzhWycOBqekBzaTH0ymf060D0ONdloICcGfNVNv4LIrhbNUeB3jxsotnTY931crPDTqKM0g==
   dependencies:
     "@babel/runtime" "^7.12.5"
     tslib "^2.2.0"
+
+"@microsoft/microsoft-graph-types@^2.38.0":
+  version "2.38.0"
+  resolved "https://registry.yarnpkg.com/@microsoft/microsoft-graph-types/-/microsoft-graph-types-2.38.0.tgz#abd61ba898b56eae6d6b3186ca9ac37541d3b92b"
+  integrity sha512-EXpTf/TFUb0EfBXiQ0rTmZf6fRgBn73lNfYdU2QKvqiMPQD/Cs2Gt+VmWVtK19F9Mf5Mt4bDTu5Ft0TGXOF8rA==
 
 "@nicolo-ribaudo/chokidar-2@^2.1.8":
   version "2.1.8"
@@ -7546,7 +7565,7 @@ uuid@8.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.0.0.tgz#bc6ccf91b5ff0ac07bbcdbf1c7c4e150db4dbb6c"
   integrity sha512-jOXGuXZAWdsTH7eZLtyXMqUb9EcWMGZNbL9YcGBJl4MH4nrxHmZJhEHvyLFrkxo+28uLb/NYRcStH48fnD0Vzw==
 
-uuid@8.3.2, uuid@^8.3.2:
+uuid@8.3.2, uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==

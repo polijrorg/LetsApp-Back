@@ -5,6 +5,7 @@ import { container } from 'tsyringe';
 import ListEventsService from '@modules/invites/services/ListEventsService';
 import ListInvitesService from '@modules/invites/services/ListInvitesService';
 import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekService';
+import UpdateInviteStateService from '@modules/invites/services/UpdateInviteStateService';
 import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 
 export default class InviteController {
@@ -63,11 +64,30 @@ export default class InviteController {
     return res.status(201).json(invites);
   }
 
-  public async UpdateEvent(req: Request, res: Response): Promise<Response> {
-    const list = container.resolve(UpdateInviteService);
+  public async UpdateEventState(req: Request, res: Response): Promise<Response> {
+    const list = container.resolve(UpdateInviteStateService);
     const { email, state, inviteId } = req.body;
 
     const invites = await list.execute(inviteId, state, email);
+
+    return res.status(201).json(invites);
+  }
+
+  public async UpdateEvent(req: Request, res: Response): Promise<Response> {
+    const list = container.resolve(UpdateInviteService);
+    const {
+      eventId,
+      phone,
+      begin,
+      end,
+    } = req.body;
+    console.log('222', phone);
+    const invites = await list.execute({
+      eventId,
+      phone,
+      begin,
+      end,
+    });
 
     return res.status(201).json(invites);
   }
