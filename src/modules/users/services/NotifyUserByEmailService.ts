@@ -1,4 +1,4 @@
-import { container, inject, injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 // import AppError from '@shared/errors/AppError';
 import path from 'path';

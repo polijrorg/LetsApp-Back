@@ -29,7 +29,7 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone, optionalGuests,
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
 

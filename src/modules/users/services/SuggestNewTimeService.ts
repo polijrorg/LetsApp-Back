@@ -35,7 +35,7 @@ export default class SuggestNewTimeService {
         beginHour: invite.begin.slice(11, 25),
         endHour: invite.end.slice(11, 25),
         duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
-        mandatoryGuests: [],
+        mandatoryGuests: usersEmails,
         optionalGuests: 'undefined',
       },
     );

@@ -285,7 +285,6 @@ export default class UserController {
       },
     );
 
-
     return res.status(201).json(times);
   }
 
