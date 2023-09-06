@@ -4,6 +4,7 @@ begin:string;
 end:string;
 phone:string;
 guests:string[];
+optionalGuests:string[];
 description:string;
 address:string;
 link:string|undefined|null;

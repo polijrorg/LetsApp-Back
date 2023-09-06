@@ -73,7 +73,7 @@ export default class GetCalendarEvents {
     // Sort the array based on the first datetime of each index
 
     data.sort(compareDates);
-
+    console.log();
     data.forEach((scheduleSet, index) => {
       try {
         if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
