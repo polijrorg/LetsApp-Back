@@ -13,6 +13,7 @@ interface IRequest {
     address:string;
     createMeetLink:boolean;
     name:string;
+    optionalAtendees:string[];
 
 }
 @injectable()
@@ -24,7 +25,7 @@ export default class CreateEventService {
   ) { }
 
   public async authenticate({
-    address, attendees, begin, createMeetLink, description, end, phone, name,
+    address, attendees, begin, createMeetLink, description, end, phone, name, optionalAtendees,
   }:IRequest): Promise<Invite> {
     // const oauth2Client = new google.auth.OAuth2();
     const eventAttendees = attendees.map((email) => ({
@@ -92,6 +93,7 @@ export default class CreateEventService {
       begin,
       end,
       guests: attendees,
+      optionalGuests: optionalAtendees,
       phone,
       description,
       address,

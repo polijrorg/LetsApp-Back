@@ -22,6 +22,8 @@ import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 import UpdateEventService from '@modules/users/services/UpdateEventService';
+import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
+import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -32,6 +34,32 @@ export default class UserController {
 
     const user = await createUser.execute({
       phone,
+    });
+
+    return res.status(201).json(user);
+  }
+
+  public async NotifyBySms(req: Request, res: Response): Promise<Response> {
+    const {
+      phone,
+    } = req.params;
+    const createUser = container.resolve(NotifyUserbySmsService);
+
+    const user = await createUser.execute({
+      phone,
+    });
+
+    return res.status(201).json(user);
+  }
+
+  public async NotifyByEmail(req: Request, res: Response): Promise<Response> {
+    const {
+      email, name,
+    } = req.body;
+    const createUser = container.resolve(NotifyUserbyEmailService);
+
+    const user = await createUser.execute({
+      email, name,
     });
 
     return res.status(201).json(user);
@@ -162,11 +190,11 @@ export default class UserController {
   public async createEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateEventService);
     const {
-      phone, begin, end, attendees, description, address, name, createMeetLink,
+      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAtendees,
     } = req.body;
 
     const Url = await urlservice.authenticate({
-      phone, begin, end, attendees, description, address, name, createMeetLink,
+      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAtendees,
     });
     return res.status(201).json(Url);
   }
@@ -256,6 +284,7 @@ export default class UserController {
         optionalGuests,
       },
     );
+
 
     return res.status(201).json(times);
   }
