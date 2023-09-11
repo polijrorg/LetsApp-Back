@@ -13,6 +13,7 @@ import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService
 import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
 import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
+import CreateOutlookEventService from '@modules/users/services/CreateOutlookEventService';
 import GetOutlookCalendarEventsService from '@modules/users/services/GetOutlookCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
@@ -169,6 +170,18 @@ export default class UserController {
       phone, begin, end, attendees, description, address, name, createMeetLink,
     });
     return res.status(201).json(Url);
+  }
+
+  public async createOutlookEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(CreateOutlookEventService);
+    const {
+      email,
+    } = req.body;
+
+    console.log(email);
+
+    await urlservice.authenticate(email);
+    return res.status(201).json('ok');
   }
 
   public async updateEventState(req: Request, res: Response): Promise<Response> {
