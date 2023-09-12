@@ -175,12 +175,16 @@ export default class UserController {
   public async createOutlookEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateOutlookEventService);
     const {
-      email,
+      phone,
+      begin,
+      end,
+      attendees,
+      description,
     } = req.body;
 
-    console.log(email);
-
-    await urlservice.authenticate(email);
+    await urlservice.authenticate({
+      phone, begin, end, attendees, description,
+    });
     return res.status(201).json('ok');
   }
 
