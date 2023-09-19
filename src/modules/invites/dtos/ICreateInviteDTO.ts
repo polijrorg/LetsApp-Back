@@ -11,8 +11,7 @@ link:string|undefined|null;
 state:string
 googleId:string;
 organizerPhoto:string|null;
-organizerName:string|null;
-
+organizerName:string;
 }
 
 export default ICreateInviteDTO;
