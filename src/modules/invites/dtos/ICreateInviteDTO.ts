@@ -3,7 +3,7 @@ name:string;
 begin:string;
 end:string;
 phone:string;
-guests:string[];
+guests: string[];
 optionalGuests:string[];
 description:string;
 address:string;

@@ -208,10 +208,13 @@ export default class UserController {
       end,
       attendees,
       description,
+      address,
+      name,
+      optionalAttendees,
     } = req.body;
 
     await urlservice.authenticate({
-      phone, begin, end, attendees, description,
+      phone, begin, end, attendees, description, address, name, optionalAttendees,
     });
     return res.status(201).json('ok');
   }

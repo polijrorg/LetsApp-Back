@@ -102,7 +102,7 @@ export default class CreateEventService {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       googleId: back.data.id!,
       organizerPhoto: user.photo,
-      organizerName: user.name,
+      organizerName: user.name!,
     });
 
     return invite;

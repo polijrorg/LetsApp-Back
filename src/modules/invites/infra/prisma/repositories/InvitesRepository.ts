@@ -17,31 +17,38 @@ export default class InvitesRepository implements IInvitesRepository {
     this.ormRepository = prisma.invite;
   }
 
-  public async create(data: ICreateInviteDTO): Promise<Invite> {
-    const user = await prisma.user.findUnique({ where: { phone: data.phone } });
+  public async create({
+    name, begin, end, phone, guests, optionalGuests, description, address, state, googleId, organizerName, organizerPhoto,
+  }: ICreateInviteDTO): Promise<Invite> {
+    const user = await prisma.user.findUnique({ where: { phone } });
     const createData = {
-      ...data,
-
+      name,
+      begin,
+      end,
+      phone,
+      description,
       guests: {
-
         create:
-        data.guests.map((guest) => ({
+        guests.map((guest) => ({
           Status: 'needsAction',
-          optional: 0,
+          optional: false,
           User: { connect: { email: guest } },
-        }
-        )),
-
+        })),
       },
+      address,
+      state,
+      googleId,
+      organizerPhoto,
+      organizerName,
     };
 
-    createData.guests.create.concat(data.optionalGuests.map((guest) => ({
+    createData.guests.create.concat(optionalGuests.map((guest) => ({
       Status: 'needsAction',
-      optional: 1,
+      optional: true,
       User: { connect: { email: guest } },
     }
     )));
-    createData.guests.create.push({ Status: 'accepted', optional: 0, User: { connect: { email: user!.email! } } });
+    createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
     const invite = await this.ormRepository.create({ data: createData });
 
     return invite;
