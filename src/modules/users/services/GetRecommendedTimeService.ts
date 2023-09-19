@@ -32,7 +32,7 @@ export default class GetCalendarEvents {
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
-    console.log(user);
+
     if (!user) throw new AppError('User not found', 400);
 
     const urlservice = container.resolve(GetCalendarEventsService);
@@ -73,18 +73,18 @@ export default class GetCalendarEvents {
     // Sort the array based on the first datetime of each index
 
     data.sort(compareDates);
-
+    console.log();
     data.forEach((scheduleSet, index) => {
       try {
         if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
-          if (scheduleSet[1] !== undefined || data[index + 1][0] !== undefined) {
+          if (scheduleSet[1] !== undefined && data[index + 1][0] !== undefined) {
             const start = moment(scheduleSet[1]);
 
             const end = moment(data[index + 1][0]);
 
-            const diff = (Date.parse(end.toString()) - Date.parse(start.toString())) / 60000;
+            const diff = end.diff(start) / 60000;
 
-            if (start < end && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
+            if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
               const startDate1 = moment(start);
               startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
               startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
@@ -96,15 +96,14 @@ export default class GetCalendarEvents {
               endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
 
               if (start > startDate1 && end < endDate1) {
-                let aux1 = start.clone();
-                const aux2 = start.clone();
+                let aux1 = moment(start);
+                const aux2 = moment(start);
 
                 while (aux2 < end) {
                   aux2.add(duration, 'minute');
 
-                  freeTimes.push({ start1: aux1.format(), end1: aux2.format() });
-
-                  aux1 = aux2.clone();
+                  freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
+                  aux1 = moment(aux2);
                 }
               }
             }
@@ -113,6 +112,6 @@ export default class GetCalendarEvents {
       } catch (e) { console.log('error', e); }
     });
 
-    return data;
+    return freeTimes;
   }
 }

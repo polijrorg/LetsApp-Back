@@ -26,7 +26,6 @@ export default class SuggestNewTimeService {
     if (!invite) throw new AppError('Invite not found', 400);
     const time = container.resolve(GetRecommendedTimeService);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
-    console.log(usersEmails);
 
     const times = await time.authenticate(
       {

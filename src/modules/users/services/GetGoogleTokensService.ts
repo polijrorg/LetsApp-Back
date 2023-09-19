@@ -10,7 +10,7 @@ export default class GetTokensService {
     private usersRepository: IUsersRepository,
   ) { }
 
-  public async authenticate(code: string): Promise<void> {
+  public async authenticate(code: string, state: string): Promise<void> {
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
     const { tokens } = await oAuth2Client.getToken(code);
 
@@ -21,8 +21,10 @@ export default class GetTokensService {
       throw new AppError('Email not found in user info', 400);
     }
 
-    const user = await this.usersRepository.findByEmail(userInfo.data.email);
-    if (!user) throw new AppError('User not found', 400);
+    const user = await this.usersRepository.findByPhone(state);
+    if (!user) throw new AppError('User Not Found', 400);
+    await this.usersRepository.updateEmail(user?.id, userInfo.data.email);
+
     if (!tokens.access_token) throw new AppError('Token not found', 400);
 
     this.usersRepository.updateToken(user.id, tokens.access_token);
