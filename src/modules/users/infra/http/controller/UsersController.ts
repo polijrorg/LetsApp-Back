@@ -23,6 +23,7 @@ import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 import UpdateEventService from '@modules/users/services/UpdateEventService';
+import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 
@@ -319,5 +320,14 @@ export default class UserController {
       },
     );
     return res.status(201).json(times);
+  }
+
+  public async CheckUserAvailability(req: Request, res: Response): Promise<Response> {
+    const check = container.resolve(CheckUserAvailabilityService);
+    const { id, idInvite } = req.body;
+
+    const checks = await check.execute(id, idInvite);
+
+    return res.status(201).json(checks);
   }
 }
