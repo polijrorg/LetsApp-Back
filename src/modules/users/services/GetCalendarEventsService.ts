@@ -20,7 +20,7 @@ export default class GetCalendarEvents {
     const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
-    oAuth2Client.setCredentials({ access_token: user?.tokens });
+    oAuth2Client.setCredentials({ access_token: user?.token });
     const calendar = google.calendar({
       version: 'v3',
       auth: oAuth2Client,
