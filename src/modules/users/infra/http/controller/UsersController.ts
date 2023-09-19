@@ -13,6 +13,7 @@ import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService
 import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
 import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
 import CreateEventService from '@modules/users/services/CreateEventService';
+import CreateOutlookEventService from '@modules/users/services/CreateOutlookEventService';
 import GetOutlookCalendarEventsService from '@modules/users/services/GetOutlookCalendarEventsService';
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
@@ -22,6 +23,7 @@ import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 import UpdateEventService from '@modules/users/services/UpdateEventService';
+import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 
@@ -199,6 +201,22 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
+  public async createOutlookEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(CreateOutlookEventService);
+    const {
+      phone,
+      begin,
+      end,
+      attendees,
+      description,
+    } = req.body;
+
+    await urlservice.authenticate({
+      phone, begin, end, attendees, description,
+    });
+    return res.status(201).json('ok');
+  }
+
   public async updateEventState(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(UpdateEventStateService);
     const {
@@ -302,5 +320,14 @@ export default class UserController {
       },
     );
     return res.status(201).json(times);
+  }
+
+  public async CheckUserAvailability(req: Request, res: Response): Promise<Response> {
+    const check = container.resolve(CheckUserAvailabilityService);
+    const { id, idInvite } = req.body;
+
+    const checks = await check.execute(id, idInvite);
+
+    return res.status(201).json(checks);
   }
 }

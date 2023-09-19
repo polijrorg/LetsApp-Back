@@ -1,5 +1,5 @@
 import prisma from '@shared/infra/prisma/client';
-import { Invite, Prisma } from '@prisma/client';
+import { Invite, Prisma, User } from '@prisma/client';
 
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
@@ -13,8 +13,11 @@ interface IInviteWithConfirmation {
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
+  private ormRepository2: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
   constructor() {
     this.ormRepository = prisma.invite;
+    this.ormRepository2 = prisma.user;
   }
 
   public async create(data: ICreateInviteDTO): Promise<Invite> {
@@ -208,5 +211,21 @@ export default class InvitesRepository implements IInvitesRepository {
     });
 
     return events;
+  }
+
+  public async findInviteById(id: string): Promise<Invite | null> {
+    const invite = await this.ormRepository.findFirst({
+      where: { id },
+    });
+
+    return invite;
+  }
+
+  public async findById(id: string): Promise<User | null> {
+    const user = await this.ormRepository2.findFirst({
+      where: { id },
+    });
+
+    return user;
   }
 }

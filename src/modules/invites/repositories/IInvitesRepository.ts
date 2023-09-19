@@ -1,4 +1,4 @@
-import { Invite } from '@prisma/client';
+import { Invite, User } from '@prisma/client';
 
 import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
@@ -16,6 +16,8 @@ interface IInvitesRepository {
   listEventsByUser(email: string): Promise<Invite[]>
   UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null>
   UpdatedInviteById(eventId:string, begin:string, end:string, phone:string): Promise<Invite|null>
+  findInviteById(idInvite:string): Promise<Invite|null>;
+  findById(id:string): Promise<User|null>;
 }
 
 export default IInvitesRepository;
