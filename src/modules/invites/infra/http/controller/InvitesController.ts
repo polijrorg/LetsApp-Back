@@ -7,6 +7,7 @@ import ListInvitesService from '@modules/invites/services/ListInvitesService';
 import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekService';
 import UpdateInviteStateService from '@modules/invites/services/UpdateInviteStateService';
 import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
+import OutlookUpdateInviteState from '@modules/invites/services/OutlookUpdateInviteStateService';
 
 export default class InviteController {
   // public async create(req: Request, res: Response): Promise<Response> {
@@ -88,6 +89,15 @@ export default class InviteController {
       begin,
       end,
     });
+
+    return res.status(201).json(invites);
+  }
+
+  public async outlookUpdateInviteState(req: Request, res: Response): Promise<Response> {
+    const invite = container.resolve(OutlookUpdateInviteState);
+    const { id } = req.body;
+
+    const invites = await invite.execute(id);
 
     return res.status(201).json(invites);
   }

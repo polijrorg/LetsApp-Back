@@ -1,3 +1,4 @@
+import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
@@ -18,8 +19,30 @@ export default class CheckUserAvailabilityService {
     const invite = await this.invitesRepository.findInviteById(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
 
+    const tokenCache = JSON.parse(user.token!);
+
+    const clientConfig = {
+      auth: {
+        clientId: process.env.OUTLOOK_CLIENT_ID as string,
+        clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+      },
+    };
+
+    const cca = new msal.ConfidentialClientApplication(clientConfig);
+    cca.getTokenCache().deserialize(tokenCache);
+
+    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
+
+    const tokenRequest = {
+      account,
+      scopes: ['https://graph.microsoft.com/.default'],
+    };
+
+    const tokens = await cca.acquireTokenSilent(tokenRequest);
+    if (!tokens) throw new AppError('Token not found', 400);
+
     const authProvider = {
-      getAccessToken: async () => user.tokens as string,
+      getAccessToken: async () => tokens.accessToken as string,
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
