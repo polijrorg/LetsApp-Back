@@ -5,7 +5,7 @@ import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import CreateInviteService from '@modules/invites/services/CreateInviteService';
 import { Invite } from '@prisma/client';
-import axios from 'axios';
+// import axios from 'axios';
 
 import IUsersRepository from '../repositories/IUsersRepository';
 
