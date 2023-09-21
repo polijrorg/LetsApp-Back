@@ -36,6 +36,8 @@ export default class CreateOutlookCalendarEventService {
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
   }: IRequest): Promise<Invite> {
+    // eslint-disable-next-line no-var
+    var attendeesEmail = attendees;
     // const oauth2Client = new google.auth.OAuth2();
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
@@ -68,6 +70,19 @@ export default class CreateOutlookCalendarEventService {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
+    // // eslint-disable-next-line no-plusplus
+    // for (let i = 0; attendees[i] != null; i++) {
+    //   if (attendeesEmail[i].includes('@')) {
+    //     attendeesEmail[i] = this.usersRepository.findEmailByPhone(attendees[i]);
+    //   }
+    // }
+
+    attendeesEmail.forEach((element, index) => {
+      if (!element.includes('@')) {
+        attendeesEmail[index] = this.usersRepository.findEmailByPhone(element);
+      }
+    });
+
     const event: Event = {
       subject: name,
       bodyPreview: description,
@@ -83,7 +98,7 @@ export default class CreateOutlookCalendarEventService {
         dateTime: end,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
-      attendees: attendees.map((email) => ({
+      attendees: attendeesEmail.map((email) => ({
         emailAddress: {
           address: email,
         },
