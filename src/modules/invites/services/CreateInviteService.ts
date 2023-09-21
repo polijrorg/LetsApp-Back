@@ -6,7 +6,7 @@ import { Invite } from '@prisma/client';
 
 // import AppError from '@shared/errors/AppError';
 
-import CreatePseudoUserService from '@modules/pseudousers/services/CreatePseudoUserService';
+import CreatePseudoUserService from '@modules/users/services/CreatePseudoUserService';
 import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 import IInvitesRepository from '../repositories/IInvitesRepository';
 
@@ -25,18 +25,10 @@ export default class CreateInviteService {
   public async execute({
     address, begin, description, end, googleId, guests, link, name, phone, state, organizerPhoto, organizerName, optionalGuests,
   }: ICreateInviteDTO): Promise<Invite> {
-    const unregisteredGuests: string[] = [];
-
     guests.forEach((guest) => {
       const userAlreadyExists = usersRepository.findByEmail(guest);
-      if (!userAlreadyExists) {
-        unregisteredGuests.push(guest);
-      }
-    });
-
-    unregisteredGuests.forEach((guest) => {
       const pseudoUserAlreadyExists = pseudoUsersRepository.findByEmail(guest);
-      if (!pseudoUserAlreadyExists) {
+      if (!userAlreadyExists && !pseudoUserAlreadyExists) {
         createPseudoUserService.execute({ email: guest, phone: null });
       }
     });

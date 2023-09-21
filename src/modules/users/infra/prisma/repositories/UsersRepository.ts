@@ -122,12 +122,6 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateMicrosoftRefreshCode(id: string, microsoftRefreshCode: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { microsoftRefreshCode } });
-
-    return user;
-  }
-
   public async create(data: ICreateUserDTO): Promise<User> {
     const user = await this.ormRepository.create({ data });
 
@@ -172,12 +166,6 @@ export default class UsersRepository implements IUsersRepository {
 
   public async updateUserType(id: string, type: Type): Promise<User> {
     const user = await this.ormRepository.update({ where: { id }, data: { type } });
-
-    return user;
-  }
-
-  public async updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { microsoftExpiresIn } });
 
     return user;
   }

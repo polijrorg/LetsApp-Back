@@ -1,5 +1,5 @@
-import ICreatePseudoUserDTO from '@modules/pseudousers/dtos/ICreatePseudoUserDTO';
-import IPseudoUsersRepository from '@modules/pseudousers/repositories/IPseudoUsersRepository';
+import ICreatePseudoUserDTO from '@modules/users/dtos/ICreatePseudoUserDTO';
+import IPseudoUsersRepository from '@modules/users/repositories/IPseudoUsersRepository';
 import { PseudoUser, Prisma } from '@prisma/client';
 import prisma from '@shared/infra/prisma/client';
 import { injectable } from 'tsyringe';

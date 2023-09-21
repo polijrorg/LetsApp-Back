@@ -44,6 +44,14 @@ model InviteUser {
   Status    String @default("needsAction")
 }
 
+model PseudoUser {
+  id    String  @id @default(uuid())
+  phone String? @unique
+  email String? @unique
+
+  @@map("pseudo_users")
+}
+
 enum Type {
   GOOGLE
   OUTLOOK
