@@ -13,14 +13,13 @@ export default class InviteController {
   // public async create(req: Request, res: Response): Promise<Response> {
   //   const {
   //     name,
-
   //     begin,
   //     end,
   //     guests,
-  //     description,
   //     phone,
+  //     description,
   //     address,
-  //     link,
+  //     googleId,
 
   //   } = req.body;
   //   const createInvite = container.resolve(CreateInviteService);
@@ -33,7 +32,6 @@ export default class InviteController {
   //     phone,
   //     description,
   //     address,
-  //     link,
   //     status,
   //     googleId,
   //   });

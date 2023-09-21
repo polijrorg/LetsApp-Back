@@ -19,7 +19,19 @@ export default class CreateInviteService {
     address, begin, description, end, googleId, guests, link, name, phone, state, organizerPhoto, organizerName, optionalGuests,
   }: ICreateInviteDTO): Promise<Invite> {
     const invite = await this.invitesRepository.create({
-      address, begin, description, end, googleId, guests, link, name, phone, state, organizerPhoto, organizerName, optionalGuests,
+      address,
+      begin,
+      description,
+      end,
+      googleId,
+      guests,
+      link,
+      name,
+      phone,
+      state,
+      organizerPhoto,
+      organizerName,
+      optionalGuests,
     });
 
     return invite;
