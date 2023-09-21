@@ -1,5 +1,7 @@
+import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
+import { Client } from '@microsoft/microsoft-graph-client';
 
 @injectable()
 export default class OutlookUpdateInviteState {
@@ -9,9 +11,13 @@ export default class OutlookUpdateInviteState {
 
   ) { }
 
-  public async execute(id: string): Promise<invite> {
-    // const user = await this.invitesRepository.findById(id);
-    // if (!user) throw new AppError('User not found', 400);
+  public async execute(id: string, idInvite: string, status: string): Promise<Response> {
+    const user = await this.invitesRepository.findById(id);
+    if (!user) throw new AppError('User not found', 400);
+
+    const invite = await this.invitesRepository.findInviteById(idInvite);
+    if (!invite) throw new AppError('Invite not found', 400);
+
     const tokenCache = JSON.parse(user.token!);
 
     const clientConfig = {
@@ -39,5 +45,40 @@ export default class OutlookUpdateInviteState {
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
+
+    const accept = {
+      comment: 'comment-value',
+      sendResponse: true,
+    };
+
+    const decline = {
+      sendResponse: true,
+    };
+
+    const inviteUser = await this.invitesRepository.findEventByInvite(user, invite);
+    if (!inviteUser) throw new AppError('inviteUser not found, user do not match with the invite', 400);
+
+    const subject = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('subject').get();
+
+    const start = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('start').get();
+
+    const end = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('end').get();
+
+    let idEvent = null;
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; subject.value[i] != null; i++) {
+      if ((subject.value[i].subject === invite.name) && (start.value[i].start.dateTime.slice(0, 19) === invite.begin) && (end.value[i].end.dateTime.slice(0, 19) === invite.end)) {
+        idEvent = subject.value[i].id;
+      }
+    }
+    if (!idEvent) throw new AppError('Users invite not found', 400);
+
+    if (status === 'accept') {
+      await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/accept`).post(accept);
+    } else if (status === 'decline') {
+      await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/decline`).post(decline);
+    } else { throw new AppError('Invalid status'); }
+
+    return inviteUser;
   }
 }

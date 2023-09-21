@@ -95,10 +95,10 @@ export default class InviteController {
 
   public async outlookUpdateInviteState(req: Request, res: Response): Promise<Response> {
     const invite = container.resolve(OutlookUpdateInviteState);
-    const { id } = req.body;
+    const { id, idInvite, status } = req.body;
 
-    const invites = await invite.execute(id);
+    const inviteUser = await invite.execute(id, idInvite, status);
 
-    return res.status(201).json(invites);
+    return res.status(201).json(inviteUser);
   }
 }
