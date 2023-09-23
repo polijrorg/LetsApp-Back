@@ -33,3 +33,28 @@ model InviteUser {
   idInvite  String
   Status    String  @default("needsAction")
 }
+
+model PseudoUser {
+  id            String                   @id @default(uuid())
+  phone         String?                  @unique
+  email         String?                  @unique
+  PseudoInvites PseudoInvitePseudoUser[]
+
+  @@map("pseudo_users")
+}
+
+model PseudoInvite {
+  id String @id @default(uuid())
+
+  guests PseudoInvitePseudoUser[]
+
+  @@map("pseudo_invites")
+}
+
+model PseudoInvitePseudoUser {
+  id             String       @id @default(uuid())
+  PseudoUser     PseudoUser   @relation(fields: [pseudoUserId], references: [id])
+  pseudoUserId   String
+  pseudoInvite   PseudoInvite @relation(fields: [pseudoInviteId], references: [id])
+  pseudoInviteId String
+}
