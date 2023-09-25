@@ -181,4 +181,11 @@ export default class UsersRepository implements IUsersRepository {
 
     return user;
   }
+
+  public async findEmailByPhone(phone: string): Promise<string> {
+    const user = await this.findByPhone(phone);
+    if (!user || !user.email) throw new Error('Attendee user not found');
+
+    return user.email;
+  }
 }
