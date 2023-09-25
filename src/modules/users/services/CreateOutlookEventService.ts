@@ -12,7 +12,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 interface IRequest {
   phone:string;
   begin:string; end:string;
-  attendees:string[];
+  attendees: string[];
   description:string;
   address:string;
   createMeetLink:boolean;
@@ -70,18 +70,14 @@ export default class CreateOutlookCalendarEventService {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
-    // // eslint-disable-next-line no-plusplus
-    // for (let i = 0; attendees[i] != null; i++) {
-    //   if (attendeesEmail[i].includes('@')) {
-    //     attendeesEmail[i] = this.usersRepository.findEmailByPhone(attendees[i]);
-    //   }
-    // }
-
-    attendeesEmail.forEach((element, index) => {
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < attendeesEmail.length; index++) {
+      const element = attendeesEmail[index];
       if (!element.includes('@')) {
-        attendeesEmail[index] = this.usersRepository.findEmailByPhone(element);
+        // eslint-disable-next-line no-await-in-loop
+        attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
       }
-    });
+    }
 
     const event: Event = {
       subject: name,
@@ -105,7 +101,6 @@ export default class CreateOutlookCalendarEventService {
         type: 'required',
       })),
     };
-
     await graphClient.api('me/events').post(event);
 
     const getMeetLink = async (): Promise<IMeeting | null> => {
