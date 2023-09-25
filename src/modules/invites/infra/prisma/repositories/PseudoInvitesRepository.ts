@@ -15,13 +15,21 @@ export default class PseudoInvitesRepository implements IPseudoInvitesRepository
       guests: {
         create:
         data.guests.map((guest) => ({
-          PseudoUser: { connect: { id: guest.id } },
+          PseudoUser: {
+            connect: {
+              id: guest.id,
+            },
+          },
         })),
       },
     };
 
     createData.guests.create.concat(data.optionalGuests.map((optionalGuest) => ({
-      PseudoUser: { connect: { id: optionalGuest.id } },
+      PseudoUser: {
+        connect: {
+          id: optionalGuest.id,
+        },
+      },
     })));
 
     const pseudoInvite = await this.ormRepository.create({

@@ -102,7 +102,7 @@ export default class CreateOutlookCalendarEventService {
     };
 
     // Creates an event on the user's calendar and invites the attendees
-    // await graphClient.api('me/events').post(event);
+    await graphClient.api('me/events').post(event);
 
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
@@ -157,7 +157,7 @@ export default class CreateOutlookCalendarEventService {
       phone,
       description,
       address,
-      link: meeting?.url,
+      link: meeting?.url || null,
       state,
       googleId: meeting?.conferenceId || 'none',
       organizerPhoto: user.photo,
