@@ -58,17 +58,13 @@ export default class OutlookUpdateInviteState {
     const inviteUser = await this.invitesRepository.findEventByInvite(user, invite);
     if (!inviteUser) throw new AppError('inviteUser not found, user do not match with the invite', 400);
 
-    const subject = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('subject').get();
-
-    const start = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('start').get();
-
-    const end = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').select('end').get();
+    const events = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
 
     let idEvent = null;
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; subject.value[i] != null; i++) {
-      if ((subject.value[i].subject === invite.name) && (start.value[i].start.dateTime.slice(0, 19) === invite.begin) && (end.value[i].end.dateTime.slice(0, 19) === invite.end)) {
-        idEvent = subject.value[i].id;
+    for (let i = 0; events.value[i] != null; i++) {
+      if ((events.value[i].subject === invite.name) && (events.value[i].start.dateTime.slice(0, 19) === invite.begin) && (events.value[i].end.dateTime.slice(0, 19) === invite.end)) {
+        idEvent = events.value[i].id;
       }
     }
     if (!idEvent) throw new AppError('Users invite not found', 400);
