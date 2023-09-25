@@ -12,5 +12,6 @@ invitesRoutes.get('/listEventsInWeek/:phone', invitesController.listEventsInAWee
 invitesRoutes.post('/listInvitesByUser', invitesController.listInvitesByUser);
 invitesRoutes.post('/updateInviteState', invitesController.UpdateEventState);
 invitesRoutes.post('/updateInvite', invitesController.UpdateEvent);
+invitesRoutes.post('/outlookUpdateInviteState', invitesController.outlookUpdateInviteState);
 
 export default invitesRoutes;

@@ -2,17 +2,16 @@ import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
-import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 
 @injectable()
-export default class CheckUserAvailabilityService {
+export default class OutlookUpdateInviteState {
   constructor(
     @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
 
   ) { }
 
-  public async execute(id: string, idInvite: string): Promise<boolean> {
+  public async execute(id: string, idInvite: string, status: string): Promise<Response> {
     const user = await this.invitesRepository.findById(id);
     if (!user) throw new AppError('User not found', 400);
 
@@ -47,29 +46,35 @@ export default class CheckUserAvailabilityService {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
-    const scheduleInformation = {
-      schedules: [user.email],
-      startTime: {
-        dateTime: invite.begin,
-        timeZone: 'America/Sao_Paulo',
-      },
-      endTime: {
-        dateTime: invite.end,
-        timeZone: 'America/Sao_Paulo',
-      },
-      availabilityViewInterval: 30,
+    const accept = {
+      comment: 'comment-value',
+      sendResponse: true,
     };
 
-    const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
+    const decline = {
+      sendResponse: true,
+    };
 
-    const availability = check.value[0].availabilityView;
+    const inviteUser = await this.invitesRepository.findEventByInvite(user, invite);
+    if (!inviteUser) throw new AppError('inviteUser not found, user do not match with the invite', 400);
 
+    const events = await graphClient.api(`users/${user.email}/calendar/events`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
+
+    let idEvent = null;
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < availability.length; i++) {
-      if (availability[i] !== '0') {
-        return false;
+    for (let i = 0; events.value[i] != null; i++) {
+      if ((events.value[i].subject === invite.name) && (events.value[i].start.dateTime.slice(0, 19) === invite.begin) && (events.value[i].end.dateTime.slice(0, 19) === invite.end)) {
+        idEvent = events.value[i].id;
       }
     }
-    return true;
+    if (!idEvent) throw new AppError('Users invite not found', 400);
+
+    if (status === 'accept') {
+      await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/accept`).post(accept);
+    } else if (status === 'decline') {
+      await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/decline`).post(decline);
+    } else { throw new AppError('Invalid status'); }
+
+    return inviteUser;
   }
 }
