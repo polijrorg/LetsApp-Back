@@ -14,7 +14,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 interface IRequest {
   phone:string;
   begin:string; end:string;
-  attendees:string[];
+  attendees: string[];
   description:string;
   address:string;
   createMeetLink:boolean;
@@ -43,6 +43,10 @@ export default class CreateOutlookCalendarEventService {
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
   }: IRequest): Promise<IResponse> {
+    // eslint-disable-next-line no-var
+    var attendeesEmail = attendees;
+    // const oauth2Client = new google.auth.OAuth2();
+
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
@@ -78,6 +82,15 @@ export default class CreateOutlookCalendarEventService {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < attendeesEmail.length; index++) {
+      const element = attendeesEmail[index];
+      if (!element.includes('@')) {
+        // eslint-disable-next-line no-await-in-loop
+        attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+      }
+    }
+
     const event: Event = {
       subject: name,
       bodyPreview: description,
@@ -93,7 +106,7 @@ export default class CreateOutlookCalendarEventService {
         dateTime: end,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
-      attendees: attendees.map((email) => ({
+      attendees: attendeesEmail.map((email) => ({
         emailAddress: {
           address: email,
         },

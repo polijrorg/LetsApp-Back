@@ -36,6 +36,7 @@ interface IUsersRepository {
   findInvite(id: string): Promise<Invite|null>
   listUserEmailByInvite(id: string): Promise<string[]>
   updateUserType(id: string, type: Type): Promise<User>;
+  findEmailByPhone(phone: string): Promise<string>;
 }
 
 export default IUsersRepository;
