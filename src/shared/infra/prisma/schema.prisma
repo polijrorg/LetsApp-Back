@@ -54,6 +54,22 @@ model InviteUser {
   optional  Boolean
 }
 
+model PseudoUser {
+  id            String         @id @default(uuid())
+  phone         String?        @unique
+  email         String?        @unique
+  PseudoInvites PseudoInvite[]
+
+  @@map("pseudo_users")
+}
+
+model PseudoInvite {
+  id     String       @id @default(uuid())
+  guests PseudoUser[]
+
+  @@map("pseudo_invites")
+}
+
 model Contato {
   id     String  @id @default(uuid())
   name   String

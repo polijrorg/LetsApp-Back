@@ -4,7 +4,9 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import CreateInviteService from '@modules/invites/services/CreateInviteService';
-import { Invite } from '@prisma/client';
+import CreatePseudoInviteService from '@modules/invites/services/CreatePseudoInviteService';
+import UserManagementService from '@modules/users/services/UserManagementService';
+import { Invite, PseudoInvite } from '@prisma/client';
 // import axios from 'axios';
 
 import IUsersRepository from '../repositories/IUsersRepository';
@@ -25,6 +27,11 @@ interface IMeeting {
   conferenceId:string;
 }
 
+interface IResponse {
+  invite:Invite;
+  pseudoInvite: PseudoInvite | null;
+}
+
 @injectable()
 export default class CreateOutlookCalendarEventService {
   constructor(
@@ -35,12 +42,15 @@ export default class CreateOutlookCalendarEventService {
 
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
-  }: IRequest): Promise<Invite> {
+  }: IRequest): Promise<IResponse> {
     // eslint-disable-next-line no-var
     var attendeesEmail = attendees;
     // const oauth2Client = new google.auth.OAuth2();
+
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
+
+    // Application client configuration
 
     const tokenCache = JSON.parse(user.token!);
 
@@ -63,6 +73,8 @@ export default class CreateOutlookCalendarEventService {
 
     const tokens = await cca.acquireTokenSilent(tokenRequest);
     if (!tokens) throw new AppError('Token not found', 400);
+
+    // Graph client configuration
 
     const authProvider = {
       getAccessToken: async () => tokens.accessToken as string,
@@ -101,74 +113,70 @@ export default class CreateOutlookCalendarEventService {
         type: 'required',
       })),
     };
+
+    // Creates an event on the user's calendar and invites the attendees
     await graphClient.api('me/events').post(event);
 
+    // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
       if (createMeetLink) {
-        // try { // will only work with business or school accounts
-        //   const meeting = await graphClient.api('/me/onlineMeetings').post({
-        //     startDateTime: begin,
-        //     endDateTime: end,
-        //     subject: name,
-        //     joinMeetingIdSettings: {
-        //       isPasscodeRequired: false,
-        //     },
-        //   });
-        //   return {
-        //     url: meeting.joinWebUrl,
-        //     conferenceId: meeting.videoTeleconferenceId,
-        //   };
-        // } catch {
-        //   return null;
-        // }
-
-        // without microsoft graph
-        // try {
-        //   const graphEndpoint = 'https://graph.microsoft.com/v1.0/me/onlineMeetings';
-        //   const { accessToken } = tokens;
-
-        //   const meetingRequest = {
-        //     startDateTime: begin,
-        //     endDateTime: end,
-        //   };
-
-        //   const response = await axios.post(graphEndpoint, meetingRequest, {
-        //     headers: {
-        //       Authorization: `Bearer ${accessToken}`,
-        //       'Content-Type': 'application/json',
-        //     },
-        //   });
-
-        //   const meetingData = response.data;
-        //   return meetingData;
-        // } catch (error) {
-        //   console.log('error');
-        //   return null;
-        // }
+        try { // will only work with business or school accounts
+          const meeting = await graphClient.api('/me/onlineMeetings').post({
+            startDateTime: begin,
+            endDateTime: end,
+            subject: name,
+            joinMeetingIdSettings: {
+              isPasscodeRequired: false,
+            },
+          });
+          return {
+            url: meeting.joinWebUrl,
+            conferenceId: meeting.videoTeleconferenceId,
+          };
+        } catch {
+          return null;
+        }
       }
       return null;
     };
 
     const meeting = await getMeetLink();
 
+    // To create the invite we need a valid full-registered-users guest list.
+    // In order to achieve this, we call a service that separates the guests into four lists:
+    const userManagementService = container.resolve(UserManagementService);
+
+    // Guests management
+    const {
+      registeredGuests, unregisteredGuests, registeredOptionalGuests, unregisteredOptionalGuests,
+    } = await userManagementService.execute(attendees, optionalAttendees);
+
+    // Create PseudoInvite on the database
+    const CreatePseudoInviteEvent = container.resolve(CreatePseudoInviteService);
+    const pseudoInvite = await CreatePseudoInviteEvent.execute({
+      unregisteredGuests,
+      unregisteredOptionalGuests,
+    });
+
+    // Creates the invite on the database
     const CreateInviteEvent = container.resolve(CreateInviteService);
     const state = 'accepted';
     const invite = await CreateInviteEvent.execute({
       name,
       begin,
       end,
-      guests: attendees,
-      optionalGuests: optionalAttendees,
+      guests: registeredGuests,
+      optionalGuests: registeredOptionalGuests,
       phone,
       description,
       address,
-      link: meeting?.url,
+      link: meeting?.url || null,
       state,
       googleId: meeting?.conferenceId || 'none',
       organizerPhoto: user.photo,
       organizerName: user.name || 'organizer',
     });
 
-    return invite;
+    return { invite, pseudoInvite };
   }
 }

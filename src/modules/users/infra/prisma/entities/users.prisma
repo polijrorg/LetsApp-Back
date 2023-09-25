@@ -24,17 +24,6 @@ model Invite {
   @@map("invite")
 }
 
-model Contato {
-  id     String  @id @default(uuid())
-  name   String
-  phone  String
-  email  String
-  User   User?   @relation(fields: [userId], references: [id])
-  userId String?
-
-  @@map("contato")
-}
-
 model InviteUser {
   id        String @id @default(uuid())
   User      User   @relation(fields: [userEmail], references: [email])
@@ -47,4 +36,32 @@ model InviteUser {
 enum Type {
   GOOGLE
   OUTLOOK
+}
+
+model PseudoUser {
+  id            String         @id @default(uuid())
+  phone         String?        @unique
+  email         String?        @unique
+  PseudoInvites PseudoInvite[]
+
+  @@map("pseudo_users")
+}
+
+model PseudoInvite {
+  id String @id @default(uuid())
+
+  guests PseudoUser[]
+
+  @@map("pseudo_invites")
+}
+
+model Contato {
+  id     String  @id @default(uuid())
+  name   String
+  phone  String
+  email  String
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@map("contato")
 }
