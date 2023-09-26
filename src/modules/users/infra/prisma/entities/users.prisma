@@ -16,6 +16,15 @@ model User {
   @@map("user")
 }
 
+model InviteUser {
+  id        String @id @default(uuid())
+  User      User   @relation(fields: [userEmail], references: [email])
+  Invite    Invite @relation(fields: [inviteId], references: [id])
+  userEmail String
+  inviteId  String
+  Status    String @default("needsAction")
+}
+
 model Invite {
   id String @id @default(uuid())
 
@@ -24,44 +33,9 @@ model Invite {
   @@map("invite")
 }
 
-model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [idInvite], references: [id])
-  userEmail String
-  idInvite  String
-  Status    String @default("needsAction")
-}
-
 enum Type {
   GOOGLE
   OUTLOOK
-}
-
-model PseudoUser {
-  id               String             @id @default(uuid())
-  phone            String?            @unique
-  email            String?            @unique
-  PseudoInviteUser PseudoInviteUser[] @relation("PseudoInviteUserToPseudoUser")
-
-  @@map("pseudo_users")
-}
-
-model PseudoInviteUser {
-  id             String       @id @default(uuid())
-  pseudoUser     PseudoUser   @relation("PseudoInviteUserToPseudoUser", fields: [pseudoUserId], references: [id])
-  pseudoInvite   PseudoInvite @relation("PseudoInviteUserToPseudoInvite", fields: [pseudoInviteId], references: [id])
-  pseudoUserId   String
-  pseudoInviteId String
-  Status         String       @default("needsAction")
-}
-
-model PseudoInvite {
-  id String @id @default(uuid())
-
-  PseudoInviteUser PseudoInviteUser[] @relation("PseudoInviteUserToPseudoInvite")
-
-  @@map("pseudo_invites")
 }
 
 model Contato {

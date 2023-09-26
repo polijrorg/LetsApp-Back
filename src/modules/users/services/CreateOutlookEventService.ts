@@ -4,10 +4,8 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import CreateInviteService from '@modules/invites/services/CreateInviteService';
-import CreatePseudoInviteService from '@modules/invites/services/CreatePseudoInviteService';
 import UserManagementService from '@modules/users/services/UserManagementService';
-import { Invite, PseudoInvite } from '@prisma/client';
-// import axios from 'axios';
+import { Invite } from '@prisma/client';
 
 import IUsersRepository from '../repositories/IUsersRepository';
 
@@ -27,11 +25,6 @@ interface IMeeting {
   conferenceId:string;
 }
 
-interface IResponse {
-  invite:Invite;
-  pseudoInvite: PseudoInvite | null;
-}
-
 @injectable()
 export default class CreateOutlookCalendarEventService {
   constructor(
@@ -42,7 +35,7 @@ export default class CreateOutlookCalendarEventService {
 
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
-  }: IRequest): Promise<IResponse> {
+  }: IRequest): Promise<Invite> {
     // To create the invite we need a valid full-registered-users guest list.
     // In order to achieve this, we call a service that separates the guests into four lists:
     const userManagementService = container.resolve(UserManagementService);
@@ -52,8 +45,8 @@ export default class CreateOutlookCalendarEventService {
       guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
     } = await userManagementService.execute(attendees, optionalAttendees);
 
+    const attendeesEmail = guests;
     // eslint-disable-next-line no-var
-    var attendeesEmail = guests;
     attendeesEmail.concat(optionalGuests);
     // const oauth2Client = new google.auth.OAuth2();
 
@@ -129,7 +122,7 @@ export default class CreateOutlookCalendarEventService {
     };
 
     // Creates an event on the user's calendar and invites the attendees
-    // await graphClient.api('me/events').post(event);
+    await graphClient.api('me/events').post(event);
 
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
@@ -156,13 +149,6 @@ export default class CreateOutlookCalendarEventService {
 
     const meeting = await getMeetLink();
 
-    // Create PseudoInvite on the database
-    const CreatePseudoInviteEvent = container.resolve(CreatePseudoInviteService);
-    const pseudoInvite = await CreatePseudoInviteEvent.execute({
-      pseudoGuests,
-      pseudoOptionalGuests,
-    });
-
     // Creates the invite on the database
     const CreateInviteEvent = container.resolve(CreateInviteService);
     const state = 'accepted';
@@ -172,6 +158,8 @@ export default class CreateOutlookCalendarEventService {
       end,
       guests,
       optionalGuests,
+      pseudoGuests,
+      pseudoOptionalGuests,
       phone,
       description,
       address,
@@ -182,6 +170,6 @@ export default class CreateOutlookCalendarEventService {
       organizerName: user.name || 'organizer',
     });
 
-    return { invite, pseudoInvite };
+    return invite;
   }
 }

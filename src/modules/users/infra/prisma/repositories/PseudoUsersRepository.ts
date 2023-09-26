@@ -8,11 +8,8 @@ injectable();
 export default class PseudoUsersRepository implements IPseudoUsersRepository {
     private ormPseudoUsersRepository: Prisma.PseudoUserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
-    private ormPseudoInvitesRepository: Prisma.PseudoInviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
-
     constructor() {
       this.ormPseudoUsersRepository = prisma.pseudoUser;
-      this.ormPseudoInvitesRepository = prisma.pseudoInvite;
     }
 
     public async create(data: ICreatePseudoUserDTO): Promise<PseudoUser> {

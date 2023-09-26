@@ -31,11 +31,13 @@ export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
     const {
       phone,
+      pseudoUserId,
     } = req.body;
     const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
       phone,
+      pseudoUserId,
     });
 
     return res.status(201).json(user);

@@ -1,5 +1,4 @@
 import { inject, injectable, container } from 'tsyringe';
-import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
 import CreatePseudoUserService from './CreatePseudoUserService';
 
@@ -17,8 +16,6 @@ export default class UserManagementService {
   constructor(
       @inject('UsersRepository')
       private usersRepository: IUsersRepository,
-      @inject('PseudoUsersRepository')
-      private pseudoUsersRepository: IPseudoUsersRepository,
   ) { }
 
   public async execute(attendees: string[], optionalAttendees: string[]): Promise<IResponse> {
@@ -30,51 +27,71 @@ export default class UserManagementService {
     let phoneRef;
     let emailRef;
 
-    attendees.forEach(async (guest) => {
-      const userAlreadyExists = await this.usersRepository.findByEmail(guest);
-      if (!userAlreadyExists) {
-        try {
-          if (guest.includes('@')) {
-            emailRef = guest;
-            phoneRef = null;
+    const attendeesPromises = attendees.map(async (guest) => {
+      if (guest.includes('@')) {
+        const userAlreadyExists = await this.usersRepository.findByEmail(guest);
+        if (!userAlreadyExists) {
+          emailRef = guest;
+          phoneRef = null;
+          try {
             const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
-            pseudoGuests.push(pseudoGuest.email as string);
-          } else {
-            emailRef = null;
-            phoneRef = guest;
-            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
-            pseudoGuests.push(pseudoGuest.phone as string);
+            pseudoGuests.push(pseudoGuest.id);
+          } catch (error) {
+            console.log(error.message);
           }
-        } catch (error) {
-          console.log(error.message);
+        } else {
+          guests.push(guest);
         }
       } else {
-        guests.push(guest);
+        const userAlreadyExists = await this.usersRepository.findByPhone(guest);
+        if (!userAlreadyExists) {
+          emailRef = null;
+          phoneRef = guest;
+          try {
+            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoGuests.push(pseudoGuest.id);
+          } catch (error) {
+            console.log(error.message);
+          }
+        } else {
+          guests.push(guest);
+        }
       }
     });
 
-    optionalAttendees.forEach(async (optionalGuest) => {
-      const userAlreadyExists = await this.usersRepository.findByEmail(optionalGuest);
-      if (!userAlreadyExists) {
-        try {
-          if (optionalGuest.includes('@')) {
-            emailRef = optionalGuest;
-            phoneRef = null;
-            const pseudoOptionalGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
-            pseudoOptionalGuests.push(pseudoOptionalGuest.email as string);
-          } else {
-            emailRef = null;
-            phoneRef = optionalGuest;
-            const pseudoOptionalGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
-            pseudoOptionalGuests.push(pseudoOptionalGuest.phone as string);
+    const optionalAttendeesPromises = optionalAttendees.map(async (optionalGuest) => {
+      if (optionalGuest.includes('@')) {
+        const userAlreadyExists = await this.usersRepository.findByEmail(optionalGuest);
+        if (!userAlreadyExists) {
+          emailRef = optionalGuest;
+          phoneRef = null;
+          try {
+            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoGuests.push(pseudoGuest.id);
+          } catch (error) {
+            console.log(error.message);
           }
-        } catch (error) {
-          console.log(error.message);
+        } else {
+          guests.push(optionalGuest);
         }
       } else {
-        optionalGuests.push(optionalGuest);
+        const userAlreadyExists = await this.usersRepository.findByPhone(optionalGuest);
+        if (!userAlreadyExists) {
+          emailRef = null;
+          phoneRef = optionalGuest;
+          try {
+            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoGuests.push(pseudoGuest.id);
+          } catch (error) {
+            console.log(error.message);
+          }
+        } else {
+          guests.push(optionalGuest);
+        }
       }
     });
+
+    await Promise.all(attendeesPromises.concat(optionalAttendeesPromises));
 
     return {
       guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,

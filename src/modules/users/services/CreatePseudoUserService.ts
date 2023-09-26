@@ -7,8 +7,8 @@ import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 @injectable()
 export default class CreatePseudoUserService {
   constructor(
-    @inject('InvitesRepository')
-    private pseudoUserRepository: IPseudoUsersRepository,
+    @inject('PseudoUsersRepository')
+    private pseudoUsersRepository: IPseudoUsersRepository,
 
   ) { }
 
@@ -16,23 +16,24 @@ export default class CreatePseudoUserService {
     let pseudoUser: PseudoUser;
 
     if (email) {
-      const pseudoUserAlreadyExistsByEmail = await this.pseudoUserRepository.findByEmail(email);
+      const pseudoUserAlreadyExistsByEmail = await this.pseudoUsersRepository.findByEmail(email);
       if (pseudoUserAlreadyExistsByEmail) {
         throw new AppError('PseudoUser already exists');
       }
 
-      pseudoUser = await this.pseudoUserRepository.create({ email, phone: null });
+      pseudoUser = await this.pseudoUsersRepository.create({ email, phone: null });
       return pseudoUser;
     }
 
     if (!phone) throw new AppError('Phone must be provided');
 
-    const pseudoUserAlreadyExistsByPhone = await this.pseudoUserRepository.findByPhone(phone);
+    const pseudoUserAlreadyExistsByPhone = await this.pseudoUsersRepository.findByPhone(phone);
+
     if (pseudoUserAlreadyExistsByPhone) {
       throw new AppError('PseudoUser already exists');
     }
 
-    pseudoUser = await this.pseudoUserRepository.create({ email: null, phone });
+    pseudoUser = await this.pseudoUsersRepository.create({ email: null, phone });
     return pseudoUser;
   }
 }
