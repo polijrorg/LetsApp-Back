@@ -1,19 +1,22 @@
 import ICreatePseudoUserDTO from '@modules/users/dtos/ICreatePseudoUserDTO';
 import IPseudoUsersRepository from '@modules/users/repositories/IPseudoUsersRepository';
-import { PseudoUser, Prisma } from '@prisma/client';
+import { Prisma, PseudoUser } from '@prisma/client';
 import prisma from '@shared/infra/prisma/client';
 import { injectable } from 'tsyringe';
 
 injectable();
 export default class PseudoUsersRepository implements IPseudoUsersRepository {
-    private ormRepository: Prisma.PseudoUserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+    private ormPseudoUsersRepository: Prisma.PseudoUserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
+    private ormPseudoInvitesRepository: Prisma.PseudoInviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
     constructor() {
-      this.ormRepository = prisma.pseudoUser;
+      this.ormPseudoUsersRepository = prisma.pseudoUser;
+      this.ormPseudoInvitesRepository = prisma.pseudoInvite;
     }
 
     public async create(data: ICreatePseudoUserDTO): Promise<PseudoUser> {
-      const pseudoUser = await this.ormRepository.create({
+      const pseudoUser = await this.ormPseudoUsersRepository.create({
         data,
       });
 
@@ -21,13 +24,13 @@ export default class PseudoUsersRepository implements IPseudoUsersRepository {
     }
 
     public async list(): Promise<PseudoUser[]> {
-      const pseudoUsers = await this.ormRepository.findMany();
+      const pseudoUsers = await this.ormPseudoUsersRepository.findMany();
 
       return pseudoUsers;
     }
 
     public async findByEmail(email: string): Promise<PseudoUser | null> {
-      const pseudoUser = await this.ormRepository.findUnique({
+      const pseudoUser = await this.ormPseudoUsersRepository.findUnique({
         where: {
           email,
         },
@@ -37,7 +40,7 @@ export default class PseudoUsersRepository implements IPseudoUsersRepository {
     }
 
     public async findByPhone(phone: string): Promise<PseudoUser | null> {
-      const pseudoUser = await this.ormRepository.findUnique({
+      const pseudoUser = await this.ormPseudoUsersRepository.findUnique({
         where: {
           phone,
         },
@@ -45,4 +48,35 @@ export default class PseudoUsersRepository implements IPseudoUsersRepository {
 
       return pseudoUser;
     }
+
+    public async findById(id: string): Promise<PseudoUser | null> {
+      const pseudoUser = await this.ormPseudoUsersRepository.findUnique({
+        where: {
+          id,
+        },
+      });
+
+      return pseudoUser;
+    }
+
+    public async delete(id: string): Promise<void> {
+      await this.ormPseudoUsersRepository.delete({
+        where: {
+          id,
+        },
+      });
+    }
+
+  // public async getInvites(pseudoUser: PseudoUser): Promise<PseudoInvite[]> {
+  //   const pseudoInvites = await this.ormPseudoInvitesRepository.findMany({
+  //     where: {
+  //       connection: {
+  //         id,
+  //       },
+  //       }
+  //     },
+  //   });
+
+  //   return pseudoInvites;
+  // }
 }

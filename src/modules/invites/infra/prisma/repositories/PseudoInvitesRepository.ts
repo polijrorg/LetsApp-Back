@@ -17,7 +17,7 @@ export default class PseudoInvitesRepository implements IPseudoInvitesRepository
         data.guests.map((guest) => ({
           PseudoUser: {
             connect: {
-              id: guest.id,
+              id: guest,
             },
           },
         })),
@@ -27,7 +27,7 @@ export default class PseudoInvitesRepository implements IPseudoInvitesRepository
     createData.guests.create.concat(data.optionalGuests.map((optionalGuest) => ({
       PseudoUser: {
         connect: {
-          id: optionalGuest.id,
+          id: optionalGuest,
         },
       },
     })));

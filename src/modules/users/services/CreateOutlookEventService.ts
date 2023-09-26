@@ -43,8 +43,18 @@ export default class CreateOutlookCalendarEventService {
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
   }: IRequest): Promise<IResponse> {
+    // To create the invite we need a valid full-registered-users guest list.
+    // In order to achieve this, we call a service that separates the guests into four lists:
+    const userManagementService = container.resolve(UserManagementService);
+
+    // Guests management
+    const {
+      guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
+    } = await userManagementService.execute(attendees, optionalAttendees);
+
     // eslint-disable-next-line no-var
-    var attendeesEmail = attendees;
+    var attendeesEmail = guests;
+    attendeesEmail.concat(optionalGuests);
     // const oauth2Client = new google.auth.OAuth2();
 
     const user = await this.usersRepository.findByPhone(phone);
@@ -86,8 +96,12 @@ export default class CreateOutlookCalendarEventService {
     for (let index = 0; index < attendeesEmail.length; index++) {
       const element = attendeesEmail[index];
       if (!element.includes('@')) {
-        // eslint-disable-next-line no-await-in-loop
-        attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+        } catch (error) {
+          console.log(error.message);
+        }
       }
     }
 
@@ -115,7 +129,7 @@ export default class CreateOutlookCalendarEventService {
     };
 
     // Creates an event on the user's calendar and invites the attendees
-    await graphClient.api('me/events').post(event);
+    // await graphClient.api('me/events').post(event);
 
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
@@ -142,20 +156,11 @@ export default class CreateOutlookCalendarEventService {
 
     const meeting = await getMeetLink();
 
-    // To create the invite we need a valid full-registered-users guest list.
-    // In order to achieve this, we call a service that separates the guests into four lists:
-    const userManagementService = container.resolve(UserManagementService);
-
-    // Guests management
-    const {
-      registeredGuests, unregisteredGuests, registeredOptionalGuests, unregisteredOptionalGuests,
-    } = await userManagementService.execute(attendees, optionalAttendees);
-
     // Create PseudoInvite on the database
     const CreatePseudoInviteEvent = container.resolve(CreatePseudoInviteService);
     const pseudoInvite = await CreatePseudoInviteEvent.execute({
-      unregisteredGuests,
-      unregisteredOptionalGuests,
+      pseudoGuests,
+      pseudoOptionalGuests,
     });
 
     // Creates the invite on the database
@@ -165,8 +170,8 @@ export default class CreateOutlookCalendarEventService {
       name,
       begin,
       end,
-      guests: registeredGuests,
-      optionalGuests: registeredOptionalGuests,
+      guests,
+      optionalGuests,
       phone,
       description,
       address,

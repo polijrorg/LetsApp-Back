@@ -1,19 +1,16 @@
-import { inject, injectable } from 'tsyringe';
+import { inject, injectable, container } from 'tsyringe';
 import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
-
-interface IUnregisteredGuest {
-  id: string;
-  email?: string;
-  phone?: string;
-}
+import CreatePseudoUserService from './CreatePseudoUserService';
 
 interface IResponse {
-    registeredGuests: string[];
-    unregisteredGuests: IUnregisteredGuest[];
-    registeredOptionalGuests: string[];
-    unregisteredOptionalGuests: IUnregisteredGuest[];
+    guests: string[];
+    pseudoGuests: string[];
+    optionalGuests: string[];
+    pseudoOptionalGuests: string[];
 }
+
+const urlService = container.resolve(CreatePseudoUserService);
 
 @injectable()
 export default class UserManagementService {
@@ -24,41 +21,63 @@ export default class UserManagementService {
       private pseudoUsersRepository: IPseudoUsersRepository,
   ) { }
 
-  public async execute(guests: string[], optionalGuests: string[]): Promise<IResponse> {
-    const registeredGuests: string[] = [];
-    const unregisteredGuests: IUnregisteredGuest[] = [];
-    const registeredOptionalGuests: string[] = [];
-    const unregisteredOptionalGuests: IUnregisteredGuest[] = [];
+  public async execute(attendees: string[], optionalAttendees: string[]): Promise<IResponse> {
+    const guests: string[] = [];
+    const pseudoGuests: string[] = [];
+    const optionalGuests: string[] = [];
+    const pseudoOptionalGuests: string[] = [];
 
-    guests.forEach(async (guest) => {
+    let phoneRef;
+    let emailRef;
+
+    attendees.forEach(async (guest) => {
       const userAlreadyExists = await this.usersRepository.findByEmail(guest);
       if (!userAlreadyExists) {
         try {
-          const pseudoGuest = await this.pseudoUsersRepository.create({ email: guest, phone: null });
-          unregisteredGuests.push({ id: pseudoGuest.id, email: guest });
+          if (guest.includes('@')) {
+            emailRef = guest;
+            phoneRef = null;
+            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoGuests.push(pseudoGuest.email as string);
+          } else {
+            emailRef = null;
+            phoneRef = guest;
+            const pseudoGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoGuests.push(pseudoGuest.phone as string);
+          }
         } catch (error) {
-          console.log('PseudoUser already exists');
+          console.log(error.message);
         }
       } else {
-        registeredGuests.push(guest);
+        guests.push(guest);
       }
     });
 
-    optionalGuests.forEach(async (optionalGuest) => {
+    optionalAttendees.forEach(async (optionalGuest) => {
       const userAlreadyExists = await this.usersRepository.findByEmail(optionalGuest);
       if (!userAlreadyExists) {
         try {
-          const pseudoOptionalGuest = await this.pseudoUsersRepository.create({ email: optionalGuest, phone: null });
-          unregisteredOptionalGuests.push({ id: pseudoOptionalGuest.id, email: optionalGuest });
+          if (optionalGuest.includes('@')) {
+            emailRef = optionalGuest;
+            phoneRef = null;
+            const pseudoOptionalGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoOptionalGuests.push(pseudoOptionalGuest.email as string);
+          } else {
+            emailRef = null;
+            phoneRef = optionalGuest;
+            const pseudoOptionalGuest = await urlService.execute({ email: emailRef, phone: phoneRef });
+            pseudoOptionalGuests.push(pseudoOptionalGuest.phone as string);
+          }
         } catch (error) {
-          console.log('PseudoUser already exists');
+          console.log(error.message);
         }
       } else {
-        registeredOptionalGuests.push(optionalGuest);
+        optionalGuests.push(optionalGuest);
       }
     });
+
     return {
-      registeredGuests, unregisteredGuests, registeredOptionalGuests, unregisteredOptionalGuests,
+      guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
     };
   }
 }

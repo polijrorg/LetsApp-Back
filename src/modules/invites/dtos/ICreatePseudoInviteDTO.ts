@@ -1,12 +1,6 @@
-interface IUnregisteredGuest {
-  id: string;
-  email?: string;
-  phone?: string;
-}
-
 interface ICreatePseudoInviteDTO {
-  guests: IUnregisteredGuest[];
-  optionalGuests:IUnregisteredGuest[];
+  guests: string[];
+  optionalGuests:string[];
 }
 
 export default ICreatePseudoInviteDTO;

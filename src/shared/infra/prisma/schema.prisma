@@ -55,17 +55,26 @@ model InviteUser {
 }
 
 model PseudoUser {
-  id            String         @id @default(uuid())
-  phone         String?        @unique
-  email         String?        @unique
-  PseudoInvites PseudoInvite[]
+  id               String             @id @default(uuid())
+  phone            String?            @unique
+  email            String?            @unique
+  PseudoInviteUser PseudoInviteUser[] @relation("PseudoInviteUserToPseudoUser")
 
   @@map("pseudo_users")
 }
 
+model PseudoInviteUser {
+  id             String       @id @default(uuid())
+  pseudoUser     PseudoUser   @relation("PseudoInviteUserToPseudoUser", fields: [pseudoUserId], references: [id])
+  pseudoInvite   PseudoInvite @relation("PseudoInviteUserToPseudoInvite", fields: [pseudoInviteId], references: [id])
+  pseudoUserId   String
+  pseudoInviteId String
+  Status         String       @default("needsAction")
+}
+
 model PseudoInvite {
-  id     String       @id @default(uuid())
-  guests PseudoUser[]
+  id               String             @id @default(uuid())
+  PseudoInviteUser PseudoInviteUser[] @relation("PseudoInviteUserToPseudoInvite")
 
   @@map("pseudo_invites")
 }

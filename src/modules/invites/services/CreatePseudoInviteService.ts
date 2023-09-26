@@ -6,15 +6,9 @@ import { PseudoInvite } from '@prisma/client';
 
 import IPseudoInvitesRepository from '../repositories/IPseudoInvitesRepository';
 
-interface IUnregisteredGuest {
-  id: string;
-  email?: string;
-  phone?: string;
-}
-
 interface IRequest {
-  unregisteredGuests: IUnregisteredGuest[];
-  unregisteredOptionalGuests: IUnregisteredGuest[];
+  pseudoGuests: string[];
+  pseudoOptionalGuests: string[];
 }
 
 @injectable()
@@ -25,10 +19,10 @@ export default class CreatePseudoInviteService {
 
   ) { }
 
-  public async execute({ unregisteredGuests, unregisteredOptionalGuests }: IRequest): Promise<PseudoInvite> {
+  public async execute({ pseudoGuests, pseudoOptionalGuests }: IRequest): Promise<PseudoInvite> {
     const pseudoInvite = await this.pseudoInvitesRepository.create({
-      guests: unregisteredGuests,
-      optionalGuests: unregisteredOptionalGuests,
+      guests: pseudoGuests,
+      optionalGuests: pseudoOptionalGuests,
     });
 
     return pseudoInvite;
