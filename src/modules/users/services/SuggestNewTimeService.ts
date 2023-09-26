@@ -3,6 +3,7 @@ import moment from 'moment';
 import { container, inject, injectable } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetRecommendedTimeService from './GetRecommendedTimeService';
+import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
 
 interface IRequest{
   inviteId:string,
@@ -18,28 +19,41 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<string[]> {
+  }:IRequest): Promise<Response> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
     const invite = await this.usersRepository.findInvite(inviteId);
     if (!invite) throw new AppError('Invite not found', 400);
-    const time = container.resolve(GetRecommendedTimeService);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
 
-    const times = await time.authenticate(
+    if (user.type === 'GOOGLE') {
+      // const googleTime = container.resolve(GetRecommendedTimeService);
+      // const times = await googleTime.authenticate(
+      //   {
+      //     phone,
+      //     beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
+      //     endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
+      //     beginHour: invite.begin.slice(11, 25),
+      //     endHour: invite.end.slice(11, 25),
+      //     duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
+      //     mandatoryGuests: usersEmails,
+      //     optionalGuests: 'undefined',
+      //   },
+      // );
+      // return times;
+    }
+    const outlookTime = container.resolve(outlookGetRecommendedTimeService);
+    const times = await outlookTime.authenticate(
       {
         phone,
-        beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
-        endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
-        beginHour: invite.begin.slice(11, 25),
-        endHour: invite.end.slice(11, 25),
-        duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
+        begin: `${invite.begin.slice(0, 10)}T00:00:00`,
+        end: `${invite.end.slice(0, 10)}T00:00:00`,
+        duration: 1,
         mandatoryGuests: usersEmails,
         optionalGuests: 'undefined',
       },
     );
-
     return times;
   }
 }
