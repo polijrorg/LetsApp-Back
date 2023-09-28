@@ -8,7 +8,7 @@ model User {
   googleRefreshCode String?
   created_at        DateTime     @default(now())
   updated_at        DateTime     @default(now())
-  token             String?
+  tokens            String?
   type              Type?
   invites           InviteUser[]
   contatos          Contato[]
@@ -36,12 +36,13 @@ model Contato {
 }
 
 model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [idInvite], references: [id])
+  id        String  @id @default(uuid())
+  User      User    @relation(fields: [userEmail], references: [email])
+  Invite    Invite  @relation(fields: [idInvite], references: [id])
+  optional  Boolean
   userEmail String
   idInvite  String
-  Status    String @default("needsAction")
+  Status    String  @default("needsAction")
 }
 
 enum Type {

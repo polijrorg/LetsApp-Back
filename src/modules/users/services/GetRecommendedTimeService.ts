@@ -2,6 +2,7 @@ import { calendar_v3 } from 'googleapis';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment, { Moment } from 'moment-timezone';
+import { UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetCalendarEventsService from './GetCalendarEventsService';
 
@@ -61,19 +62,21 @@ export default class GetCalendarEvents {
 
     const data = simplerS;
 
-    // Custom comparison function
-    function compareDates(a:any, b:any) {
-      const dateTimeA = moment(a[0]);
+    console.log(data);
 
-      const dateTimeB = moment(b[0]);
+    // // Custom comparison function
+    // function compareDates(a:any, b:any) {
+    //   const dateTimeA = moment(a[0]);
 
-      return dateTimeA.diff(dateTimeB);
-    }
+    //   const dateTimeB = moment(b[0]);
 
-    // Sort the array based on the first datetime of each index
+    //   return dateTimeA.diff(dateTimeB);
+    // }
 
-    data.sort(compareDates);
-    console.log();
+    // // Sort the array based on the first datetime of each index
+
+    // data.sort(compareDates);
+
     data.forEach((scheduleSet, index) => {
       try {
         if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
@@ -89,16 +92,17 @@ export default class GetCalendarEvents {
               startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
               startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
               startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
-
+              console.log(startDate1);
               const endDate1 = moment(start);
               endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
               endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
               endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
+              console.log(endDate1);
 
               if (start > startDate1 && end < endDate1) {
                 let aux1 = moment(start);
                 const aux2 = moment(start);
-
+                console.log(aux2 < end);
                 while (aux2 < end) {
                   aux2.add(duration, 'minute');
 

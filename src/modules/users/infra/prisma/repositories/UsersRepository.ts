@@ -117,7 +117,7 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async updateToken(id: string, token: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { token } });
+    const user = await this.ormRepository.update({ where: { id }, data: { tokens: token } });
 
     return user;
   }

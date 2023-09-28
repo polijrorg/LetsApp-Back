@@ -22,6 +22,7 @@ export default class InvitesRepository implements IInvitesRepository {
 
   public async create(data: ICreateInviteDTO): Promise<Invite> {
     const UserEmail = await prisma.user.findUnique({ where: { phone: data.phone } });
+
     const a = {
       ...data,
 
@@ -38,34 +39,28 @@ export default class InvitesRepository implements IInvitesRepository {
       },
     };
 
-    a.guests.create.concat(data.optionalGuests.map((guest) => ({
+    const b = data.optionalGuests.map((guest) => ({
       Status: 'needsAction',
       optional: 1,
       User: { connect: { email: guest } },
     }
-    )));
-    a.guests.create.push({ Status: 'accepted', optional: 0, User: { connect: { email: UserEmail!.email! } } });
-    const invite = await this.ormRepository.create({ data: a });
+    ));
 
-    return invite;
+    a.guests.create.concat(b);
+
+    a.guests.create.push({
+      Status: 'accepted',
+      optional: 0,
+      User:
+        { connect: { email: UserEmail!.email! } },
+    });
+
+    console.log(a.guests.create);
+
+    // const invite = await this.ormRepository.create({ data: a });
+
+    return a.guests.create;
   }
-
-  // public async updateCreatorStatus(data: ICreateInviteDTO): Promise<Invite> {
-  //   const a = {
-  //     ...data,
-
-  //     guests: {
-  //       create: data.guests.map((guest) => ({
-  //         User: { connect: { email: guest } },
-  //       })),
-
-  //     },
-  //   };
-  //   console.log(a.guests);
-  //   const invite = await this.ormRepository.create({ data: a });
-
-  //   return a;
-  // }
 
   public async listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]> {
     const invites = await prisma.inviteUser.findMany({
@@ -191,7 +186,6 @@ export default class InvitesRepository implements IInvitesRepository {
 
     });
     const user = await prisma.user.findUnique({ where: { phone } });
-    console.log(user);
 
     await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id }, data: { Status: 'needsAction' } });
     await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id, userEmail: user!.email! }, data: { Status: 'accepted' } });
