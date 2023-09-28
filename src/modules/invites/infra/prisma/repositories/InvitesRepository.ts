@@ -1,4 +1,5 @@
 import prisma from '@shared/infra/prisma/client';
+import { v4 as uuid } from 'uuid';
 import {
   Invite, InviteUser, Prisma, User, PseudoUser,
 } from '@prisma/client';
@@ -281,10 +282,12 @@ export default class InvitesRepository implements IInvitesRepository {
   }
 
   public async connect(user: User, invite: Invite): Promise<InviteUser> {
+    const id = uuid();
+
     const updatedUser = await this.ormRepository2.update({
       where: { id: user.id },
       data: {
-        email: 'transitionEmail',
+        email: id.concat('@transitionEmail'),
       },
     });
 

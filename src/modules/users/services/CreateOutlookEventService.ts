@@ -127,6 +127,7 @@ export default class CreateOutlookCalendarEventService {
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
       if (createMeetLink) {
+        console.log('creating meeting link');
         try { // will only work with business or school accounts
           const meeting = await graphClient.api('/me/onlineMeetings').post({
             startDateTime: begin,
@@ -138,9 +139,10 @@ export default class CreateOutlookCalendarEventService {
           });
           return {
             url: meeting.joinWebUrl,
-            conferenceId: meeting.videoTeleconferenceId,
+            conferenceId: meeting.id,
           };
-        } catch {
+        } catch (error) {
+          console.log(error.body);
           return null;
         }
       }
