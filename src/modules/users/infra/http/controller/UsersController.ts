@@ -26,6 +26,7 @@ import UpdateEventService from '@modules/users/services/UpdateEventService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
+import outlookGetRecommendedTimeService from '@modules/users/services/outlookGetRecommendedTimeService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -333,5 +334,32 @@ export default class UserController {
     const checks = await check.execute(id, idInvite);
 
     return res.status(201).json(checks);
+  }
+
+  public async outlookGetRecommendedTimes(req: Request, res: Response): Promise<Response> {
+    const time = container.resolve(outlookGetRecommendedTimeService);
+    const {
+      phone,
+      beginDate,
+      endDate,
+      beginHour,
+      endHour,
+      duration,
+      mandatoryGuests,
+    } = req.body;
+
+    const times = await time.authenticate(
+      {
+        phone,
+        beginDate,
+        endDate,
+        beginHour,
+        endHour,
+        duration,
+        mandatoryGuests,
+      },
+    );
+
+    return res.status(201).json(times);
   }
 }

@@ -1,16 +1,21 @@
-import msal from '@azure/msal-node';
-import { inject, injectable } from 'tsyringe';
+import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
-import { Client } from '@microsoft/microsoft-graph-client';
 import IUsersRepository from '../repositories/IUsersRepository';
+import outlookGetScheduleService from './outlookGetScheduleService';
 
+// interface IFreeTime {
+//   date?: Moment|string |null;
+//   start1?: Moment|string|null;
+//   end1?: Moment|string|null;
+// }
 interface IRequest{
     phone:string,
-    begin:string,
-    end:string,
+    beginDate:string,
+    beginHour:string,
+    endDate:string,
+    endHour:string,
     duration:number,
     mandatoryGuests:string[],
-    optionalGuests:string
   }
   @injectable()
 export default class GetCalendarEvents {
@@ -21,68 +26,78 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate({
-    begin, duration, end, mandatoryGuests, phone,
-  }:IRequest): Promise<Response> {
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
+  }:IRequest): Promise<number[]> {
     const user = await this.usersRepository.findByPhone(phone);
 
     if (!user) throw new AppError('User not found', 400);
 
-    const tokenCache = JSON.parse(user.token!);
+    const availabilityView = container.resolve(outlookGetScheduleService);
 
-    const clientConfig = {
-      auth: {
-        clientId: process.env.OUTLOOK_CLIENT_ID as string,
-        clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
-      },
-    };
+    const schedule: string [] = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const element of mandatoryGuests) {
+      // eslint-disable-next-line no-await-in-loop
+      const aux = await availabilityView.authenticate(
+        beginDate, beginHour, duration, endDate, endHour, element,
+      );
+      schedule.push(aux);
+    }
+    function findIndexesWithZero(arr: string[]): number[] {
+      if (arr.length < 3) {
+        return [];
+      }
 
-    const cca = new msal.ConfidentialClientApplication(clientConfig);
-    cca.getTokenCache().deserialize(tokenCache);
+      const indexes: number[] = [];
 
-    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < arr[0].length; i++) {
+        const isZeroInAll = arr.every((str) => str[i] === '0');
 
-    const tokenRequest = {
-      account,
-      scopes: ['https://graph.microsoft.com/.default'],
-    };
+        if (isZeroInAll) {
+          indexes.push(i);
+        }
+      }
 
-    const tokens = await cca.acquireTokenSilent(tokenRequest);
-    if (!tokens) throw new AppError('Token not found', 400);
+      return indexes;
+    }
 
-    const authProvider = {
-      getAccessToken: async () => tokens.accessToken as string,
-    };
-
-    const graphClient = Client.initWithMiddleware({ authProvider });
-
-    const meetingTimeSuggestionResult = {
-      attendees: mandatoryGuests.map((email) => ({
-        emailAddress: {
-          address: email,
-        },
-        type: 'required',
-      })),
-      timeConstraint: {
-        activityDomain: 'work',
-        timeSlots: [
-          {
-            start: {
-              dateTime: begin,
-              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-            end: {
-              dateTime: end,
-              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          },
-        ],
-      },
-      isOrganizerOptional: 'false',
-      meetingDuration: 'PT1H',
-      returnSuggestionReasons: 'true',
-      minimumAttendeePercentage: 100,
-    };
-    const suggestedTime = await graphClient.api('me/findMeetingTimes').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(meetingTimeSuggestionResult);
-    return suggestedTime;
+    const index = findIndexesWithZero(schedule);
+    const recommendedTimes: number[] = [];
+    index.forEach((element) => {
+      const result = ((duration * (element)) / 60);
+      const hour = parseInt(beginHour.split(':')[0], 10);
+      recommendedTimes.push(result + hour);
+    });
+    return recommendedTimes;
   }
 }
+// const meetingTimeSuggestionResult = {
+//   attendees: outlookUsers.map((email) => ({
+//     emailAddress: {
+//       address: email,
+//     },
+//     type: 'required',
+//   })),
+//   timeConstraint: {
+//     activityDomain: 'work',
+//     timeSlots: [
+//       {
+//         start: {
+//           dateTime: `${beginDate.slice(0, 11)}${beginHour}`,
+//           timeZone: 'America/Sao_Paulo',
+//         },
+//         end: {
+//           dateTime: `${endDate.slice(0, 11)}${endHour}`,
+//           timeZone: 'America/Sao_Paulo',
+//         },
+//       },
+//     ],
+//   },
+//   isOrganizerOptional: 'false',
+//   meetingDuration: 'PT1H',
+//   returnSuggestionReasons: 'true',
+//   minimumAttendeePercentage: 100,
+// };
+// const suggestedTime = await graphClient.api('me/findMeetingTimes').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(meetingTimeSuggestionResult);
+// return suggestedTime;

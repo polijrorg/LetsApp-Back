@@ -4,20 +4,19 @@ import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
 import IUsersRepository from '../repositories/IUsersRepository';
 
-@injectable()
-export default class GetOutlookCalendarEvents {
+  @injectable()
+export default class GetCalendarEvents {
   constructor(
-    @inject('UsersRepository')
-    private usersRepository: IUsersRepository,
+      @inject('UsersRepository')
+      private usersRepository: IUsersRepository,
 
   ) { }
 
-  public async authenticate(phone:string): Promise<Response> {
-    const now = new Date();
-    const end = new Date();
-    end.setDate(now.getDate() + 180);
+  public async authenticate(
+    beginDate:string, beginHour:string, duration:number, endDate:string, endHour:string, email:string,
+  ): Promise<string> {
+    const user = await this.usersRepository.findByEmail(email);
 
-    const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
     const tokenCache = JSON.parse(user.token!);
@@ -47,8 +46,21 @@ export default class GetOutlookCalendarEvents {
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
-    const events = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
 
-    return events;
+    const scheduleInformation = {
+      schedules: [email],
+      startTime: {
+        dateTime: `${beginDate.slice(0, 11)}${beginHour}`,
+        timeZone: 'America/Sao_Paulo',
+      },
+      endTime: {
+        dateTime: `${endDate.slice(0, 11)}${endHour}`,
+        timeZone: 'America/Sao_Paulo',
+      },
+      availabilityViewInterval: duration,
+    };
+
+    const checkTimes = await graphClient.api('/me/calendar/getSchedule').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
+    return checkTimes.value[0].availabilityView;
   }
 }

@@ -3,7 +3,6 @@ import moment from 'moment';
 import { container, inject, injectable } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetRecommendedTimeService from './GetRecommendedTimeService';
-import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
 
 interface IRequest{
   inviteId:string,
@@ -27,29 +26,15 @@ export default class SuggestNewTimeService {
     if (!invite) throw new AppError('Invite not found', 400);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
 
-    if (user.type === 'GOOGLE') {
-      // const googleTime = container.resolve(GetRecommendedTimeService);
-      // const times = await googleTime.authenticate(
-      //   {
-      //     phone,
-      //     beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
-      //     endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
-      //     beginHour: invite.begin.slice(11, 25),
-      //     endHour: invite.end.slice(11, 25),
-      //     duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
-      //     mandatoryGuests: usersEmails,
-      //     optionalGuests: 'undefined',
-      //   },
-      // );
-      // return times;
-    }
-    const outlookTime = container.resolve(outlookGetRecommendedTimeService);
-    const times = await outlookTime.authenticate(
+    const googleTime = container.resolve(GetRecommendedTimeService);
+    const times = await googleTime.authenticate(
       {
         phone,
-        begin: `${invite.begin.slice(0, 10)}T00:00:00`,
-        end: `${invite.end.slice(0, 10)}T00:00:00`,
-        duration: 1,
+        beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
+        endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
+        beginHour: invite.begin.slice(11, 25),
+        endHour: invite.end.slice(11, 25),
+        duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
         mandatoryGuests: usersEmails,
         optionalGuests: 'undefined',
       },
