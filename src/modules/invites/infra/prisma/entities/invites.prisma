@@ -1,5 +1,5 @@
 model Invite {
-  id             String       @id @default(uuid())
+  id             String             @id @default(uuid())
   name           String
   begin          String
   end            String
@@ -10,10 +10,31 @@ model Invite {
   state          String
   googleId       String
   guests         InviteUser[]
+  pseudoGuests   PseudoInviteUser[]
   organizerPhoto String?
   organizerName  String
 
   @@map("invite")
+}
+
+model InviteUser {
+  id        String  @id @default(uuid())
+  User      User    @relation(fields: [userEmail], references: [email])
+  Invite    Invite  @relation(fields: [inviteId], references: [id])
+  optional  Boolean
+  userEmail String
+  inviteId  String
+  Status    String  @default("needsAction")
+}
+
+model PseudoInviteUser {
+  id           String     @id @default(uuid())
+  pseudoUser   PseudoUser @relation(fields: [pseudoUserId], references: [id])
+  Invite       Invite     @relation(fields: [inviteId], references: [id])
+  optional     Boolean
+  pseudoUserId String
+  inviteId     String
+  Status       String     @default("pseudoUser")
 }
 
 model User {
@@ -24,29 +45,11 @@ model User {
   @@map("user")
 }
 
-model InviteUser {
-  id        String  @id @default(uuid())
-  User      User    @relation(fields: [userEmail], references: [email])
-  Invite    Invite  @relation(fields: [idInvite], references: [id])
-  optional  Boolean
-  userEmail String
-  idInvite  String
-  Status    String  @default("needsAction")
-}
-
 model PseudoUser {
-  id            String         @id @default(uuid())
-  phone         String?        @unique
-  email         String?        @unique
-  PseudoInvites PseudoInvite[]
+  id      String             @id @default(uuid())
+  phone   String?            @unique
+  invites PseudoInviteUser[]
+  email   String?            @unique
 
   @@map("pseudo_users")
-}
-
-model PseudoInvite {
-  id String @id @default(uuid())
-
-  guests PseudoUser[]
-
-  @@map("pseudo_invites")
 }

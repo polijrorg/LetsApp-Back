@@ -1,35 +1,39 @@
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { PseudoUser } from '@prisma/client';
-
-// import AppError from '@shared/errors/AppError';
-
 import ICreatePseudoUserDTO from '../dtos/ICreatePseudoUserDTO';
 import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 
 @injectable()
 export default class CreatePseudoUserService {
   constructor(
-    @inject('InvitesRepository')
-    private pseudoUserRepository: IPseudoUsersRepository,
+    @inject('PseudoUsersRepository')
+    private pseudoUsersRepository: IPseudoUsersRepository,
 
   ) { }
 
   public async execute({ email, phone }: ICreatePseudoUserDTO): Promise<PseudoUser> {
+    let pseudoUser: PseudoUser;
+
     if (email) {
-      const pseudoUserAlreadyExistsByEmail = await this.pseudoUserRepository.findByEmail(email);
+      const pseudoUserAlreadyExistsByEmail = await this.pseudoUsersRepository.findByEmail(email);
       if (pseudoUserAlreadyExistsByEmail) {
         throw new AppError('PseudoUser already exists');
       }
-    } else if (phone) {
-      const pseudoUserAlreadyExistsByPhone = await this.pseudoUserRepository.findByPhone(phone);
-      if (pseudoUserAlreadyExistsByPhone) {
-        throw new AppError('PseudoUser already exists');
-      }
+
+      pseudoUser = await this.pseudoUsersRepository.create({ email, phone: null });
+      return pseudoUser;
     }
 
-    const pseudoUser = await this.pseudoUserRepository.create({ email, phone });
+    if (!phone) throw new AppError('Phone must be provided');
 
+    const pseudoUserAlreadyExistsByPhone = await this.pseudoUsersRepository.findByPhone(phone);
+
+    if (pseudoUserAlreadyExistsByPhone) {
+      throw new AppError('PseudoUser already exists');
+    }
+
+    pseudoUser = await this.pseudoUsersRepository.create({ email: null, phone });
     return pseudoUser;
   }
 }
