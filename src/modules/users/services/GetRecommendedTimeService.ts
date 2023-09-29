@@ -29,7 +29,7 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone, optionalGuests,
+    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
     moment.tz.setDefault('America/Sao_Paulo');
 
@@ -40,7 +40,7 @@ export default class GetCalendarEvents {
     const googleGetTime = container.resolve(googleGetRecommendedTimeService);
     const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
 
-    // mandatoryGuests.push(user.email!);
+    mandatoryGuests.push(user.email!);
 
     const outlookUsers: string[] = [];
     const googleUsers: string[] = [];
@@ -57,18 +57,18 @@ export default class GetCalendarEvents {
       }
     }
 
-    // const googleRecommendedTimes = await googleGetTime.authenticate(
-    //   googleUsers, phone,
-    // );
+    const googleRecommendedTimes = await googleGetTime.authenticate(
+      googleUsers, phone,
+    );
 
     const outlookRecommendedTimes = await outlookGetTime.authenticate(
       outlookUsers, phone,
     );
 
-    // const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
+    const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
 
     // eslint-disable-next-line no-sequences
-    const simplerS = outlookRecommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+    const simplerS = recommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
@@ -86,11 +86,11 @@ export default class GetCalendarEvents {
     }
 
     // Sort the array based on the first datetime of each index
-    let start: moment.Moment;
-    let end: moment.Moment;
-
     data.sort(compareDates);
     console.log();
+
+    let start: moment.Moment;
+    let end: moment.Moment;
 
     // eslint-disable-next-line no-plusplus
     for (let index = 0; index <= data.length; index++) {

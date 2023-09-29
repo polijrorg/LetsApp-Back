@@ -335,31 +335,4 @@ export default class UserController {
 
     return res.status(201).json(checks);
   }
-
-  public async outlookGetRecommendedTimes(req: Request, res: Response): Promise<Response> {
-    const time = container.resolve(outlookGetRecommendedTimeService);
-    const {
-      phone,
-      beginDate,
-      endDate,
-      beginHour,
-      endHour,
-      duration,
-      mandatoryGuests,
-    } = req.body;
-
-    const times = await time.authenticate(
-      {
-        phone,
-        beginDate,
-        endDate,
-        beginHour,
-        endHour,
-        duration,
-        mandatoryGuests,
-      },
-    );
-
-    return res.status(201).json(times);
-  }
 }

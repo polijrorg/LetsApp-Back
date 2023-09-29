@@ -38,6 +38,5 @@ usersRoutes.post('/updateState', usersController.updateEventState);
 usersRoutes.post('/updateEvent', usersController.updateEvent);
 usersRoutes.post('/suggestNewTime', usersController.SuggestNewTime);
 usersRoutes.post('/checkUserAvailability', usersController.CheckUserAvailability);
-usersRoutes.post('/outlookGetRecommendedTimes', usersController.outlookGetRecommendedTimes);
 
 export default usersRoutes;
