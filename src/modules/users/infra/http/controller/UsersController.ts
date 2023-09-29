@@ -26,7 +26,6 @@ import UpdateEventService from '@modules/users/services/UpdateEventService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
-import outlookGetRecommendedTimeService from '@modules/users/services/outlookGetRecommendedTimeService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {

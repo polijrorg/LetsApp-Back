@@ -40,6 +40,7 @@ export default class GetCalendarEvents {
     const googleGetTime = container.resolve(googleGetRecommendedTimeService);
     const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mandatoryGuests.push(user.email!);
 
     const outlookUsers: string[] = [];
@@ -65,6 +66,7 @@ export default class GetCalendarEvents {
       outlookUsers, phone,
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
 
     // eslint-disable-next-line no-sequences
@@ -77,6 +79,7 @@ export default class GetCalendarEvents {
     const data = simplerS;
 
     // Custom comparison function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function compareDates(a:any, b:any) {
       const dateTimeA = moment(a[0]);
 
@@ -87,7 +90,6 @@ export default class GetCalendarEvents {
 
     // Sort the array based on the first datetime of each index
     data.sort(compareDates);
-    console.log();
 
     let start: moment.Moment;
     let end: moment.Moment;
@@ -134,6 +136,7 @@ export default class GetCalendarEvents {
             }
           }
         }
+      // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
 

@@ -14,6 +14,7 @@ export default class GetCalendarEvents {
 
   public async authenticate(
     outlookUsers: string[], phone: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any[]> {
     const user = await this.usersRepository.findByPhone(phone);
 
@@ -22,6 +23,7 @@ export default class GetCalendarEvents {
     const urlservice = container.resolve(GetOutlookCalendarEventsService);
 
     const usersPhone: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const horarios: any[] = [];
     // eslint-disable-next-line no-plusplus
     for (let index = 0; index < outlookUsers.length; index++) {
