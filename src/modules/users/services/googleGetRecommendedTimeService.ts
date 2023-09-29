@@ -5,20 +5,6 @@ import moment, { Moment } from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetCalendarEventsService from './GetCalendarEventsService';
 
-interface IFreeTime {
-  date?: Moment|string |null;
-  start1?: Moment|string|null;
-  end1?: Moment|string|null;
-}
-interface IRequest{
-  phone:string,
-      beginDate:string,
-      endDate:string,
-      beginHour:string,
-      endHour:string,
-      duration:number,
-      googleUsers:string[],
-}
 @injectable()
 export default class GetCalendarEvents {
   constructor(
@@ -27,9 +13,9 @@ export default class GetCalendarEvents {
 
   ) { }
 
-  public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, googleUsers, phone,
-  }:IRequest): Promise<IFreeTime[]> {
+  public async authenticate(
+    googleUsers: string[], phone: string,
+  ): Promise<any[]> {
     const user = await this.usersRepository.findByPhone(phone);
 
     if (!user) throw new AppError('User not found', 400);
@@ -51,66 +37,67 @@ export default class GetCalendarEvents {
         horarios.push(aux[index]);
       }
     }
-    // eslint-disable-next-line no-sequences
-    const simplerS = horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+    return horarios;
+    // // eslint-disable-next-line no-sequences
+    // const simplerS = horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
-    if (simplerS === undefined) throw new AppError('Uasdasda', 400);
+    // if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
-    const freeTimes: IFreeTime[] = [];
+    // const freeTimes: IFreeTime[] = [];
 
-    const data = simplerS;
+    // const data = simplerS;
 
-    // Custom comparison function
-    function compareDates(a:any, b:any) {
-      const dateTimeA = moment(a[0]);
+    // // Custom comparison function
+    // function compareDates(a:any, b:any) {
+    //   const dateTimeA = moment(a[0]);
 
-      const dateTimeB = moment(b[0]);
+    //   const dateTimeB = moment(b[0]);
 
-      return dateTimeA.diff(dateTimeB);
-    }
+    //   return dateTimeA.diff(dateTimeB);
+    // }
 
-    // Sort the array based on the first datetime of each index
+    // // Sort the array based on the first datetime of each index
 
-    data.sort(compareDates);
-    console.log();
-    data.forEach((scheduleSet, index) => {
-      try {
-        if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
-          if (scheduleSet[1] !== undefined && data[index + 1][0] !== undefined) {
-            const start = moment(scheduleSet[1]);
+    // data.sort(compareDates);
+    // console.log();
+    // data.forEach((scheduleSet, index) => {
+    //   try {
+    //     if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
+    //       if (scheduleSet[1] !== undefined && data[index + 1][0] !== undefined) {
+    //         const start = moment(scheduleSet[1]);
 
-            const end = moment(data[index + 1][0]);
+    //         const end = moment(data[index + 1][0]);
 
-            const diff = end.diff(start) / 60000;
+    //         const diff = end.diff(start) / 60000;
 
-            if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
-              const startDate1 = moment(start);
-              startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
-              startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
-              startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
+    //         if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
+    //           const startDate1 = moment(start);
+    //           startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
+    //           startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
+    //           startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
 
-              const endDate1 = moment(start);
-              endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
-              endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
-              endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
+    //           const endDate1 = moment(start);
+    //           endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
+    //           endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
+    //           endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
 
-              if (start > startDate1 && end < endDate1) {
-                let aux1 = moment(start);
-                const aux2 = moment(start);
+    //           if (start > startDate1 && end < endDate1) {
+    //             let aux1 = moment(start);
+    //             const aux2 = moment(start);
 
-                while (aux2 < end) {
-                  aux2.add(duration, 'minute');
+    //             while (aux2 < end) {
+    //               aux2.add(duration, 'minute');
 
-                  freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
-                  aux1 = moment(aux2);
-                }
-              }
-            }
-          }
-        }
-      } catch (e) { console.log('error', e); }
-    });
+    //               freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
+    //               aux1 = moment(aux2);
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   } catch (e) { console.log('error', e); }
+    // });
 
-    return freeTimes;
+    // return freeTimes;
   }
 }

@@ -1,22 +1,9 @@
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
-import outlookGetScheduleService from './outlookGetScheduleService';
 
-// interface IFreeTime {
-//   date?: Moment|string |null;
-//   start1?: Moment|string|null;
-//   end1?: Moment|string|null;
-// }
-interface IRequest{
-    phone:string,
-    beginDate:string,
-    beginHour:string,
-    endDate:string,
-    endHour:string,
-    duration:number,
-    mandatoryGuests:string[],
-  }
+import GetOutlookCalendarEventsService from './GetOutlookCalendarEventsService';
+
   @injectable()
 export default class GetCalendarEvents {
   constructor(
@@ -25,79 +12,36 @@ export default class GetCalendarEvents {
 
   ) { }
 
-  public async authenticate({
-    beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
-  }:IRequest): Promise<number[]> {
+  public async authenticate(
+    outlookUsers: string[], phone: string,
+  ): Promise<any[]> {
     const user = await this.usersRepository.findByPhone(phone);
 
     if (!user) throw new AppError('User not found', 400);
 
-    const availabilityView = container.resolve(outlookGetScheduleService);
+    const urlservice = container.resolve(GetOutlookCalendarEventsService);
 
-    const schedule: string [] = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const element of mandatoryGuests) {
+    const usersPhone: string[] = [];
+    const horarios: any[] = [];
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < outlookUsers.length; index++) {
+      if (outlookUsers[index].includes('@')) {
+        // eslint-disable-next-line no-await-in-loop
+        const userPhone = await this.usersRepository.findPhoneByEmail(outlookUsers[index]);
+        usersPhone.push(userPhone);
+      } else {
+        usersPhone.push(outlookUsers[index]);
+      }
+    }
+
+    for (let i = 0; i < usersPhone.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      const aux = await availabilityView.authenticate(
-        beginDate, beginHour, duration, endDate, endHour, element,
-      );
-      schedule.push(aux);
-    }
-    function findIndexesWithZero(arr: string[]): number[] {
-      if (arr.length < 3) {
-        return [];
+      const aux = await urlservice.authenticate(usersPhone[i]);
+
+      for (let index = 0; index < aux.value.length; index += 1) {
+        horarios.push(aux.value[index]);
       }
-
-      const indexes: number[] = [];
-
-      // eslint-disable-next-line no-plusplus
-      for (let i = 0; i < arr[0].length; i++) {
-        const isZeroInAll = arr.every((str) => str[i] === '0');
-
-        if (isZeroInAll) {
-          indexes.push(i);
-        }
-      }
-
-      return indexes;
     }
-
-    const index = findIndexesWithZero(schedule);
-    const recommendedTimes: number[] = [];
-    index.forEach((element) => {
-      const result = ((duration * (element)) / 60);
-      const hour = parseInt(beginHour.split(':')[0], 10);
-      recommendedTimes.push(result + hour);
-    });
-    return recommendedTimes;
+    return horarios;
   }
 }
-// const meetingTimeSuggestionResult = {
-//   attendees: outlookUsers.map((email) => ({
-//     emailAddress: {
-//       address: email,
-//     },
-//     type: 'required',
-//   })),
-//   timeConstraint: {
-//     activityDomain: 'work',
-//     timeSlots: [
-//       {
-//         start: {
-//           dateTime: `${beginDate.slice(0, 11)}${beginHour}`,
-//           timeZone: 'America/Sao_Paulo',
-//         },
-//         end: {
-//           dateTime: `${endDate.slice(0, 11)}${endHour}`,
-//           timeZone: 'America/Sao_Paulo',
-//         },
-//       },
-//     ],
-//   },
-//   isOrganizerOptional: 'false',
-//   meetingDuration: 'PT1H',
-//   returnSuggestionReasons: 'true',
-//   minimumAttendeePercentage: 100,
-// };
-// const suggestedTime = await graphClient.api('me/findMeetingTimes').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(meetingTimeSuggestionResult);
-// return suggestedTime;
