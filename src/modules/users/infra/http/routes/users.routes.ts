@@ -38,5 +38,6 @@ usersRoutes.post('/updateState', usersController.updateEventState);
 usersRoutes.post('/updateEvent', usersController.updateEvent);
 usersRoutes.post('/suggestNewTime', usersController.SuggestNewTime);
 usersRoutes.post('/checkUserAvailability', usersController.CheckUserAvailability);
+usersRoutes.post('/resendCode', usersController.resendVerificationCode);
 
 export default usersRoutes;

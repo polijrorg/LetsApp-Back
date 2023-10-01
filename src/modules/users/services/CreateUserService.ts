@@ -51,7 +51,6 @@ export default class CreateUserService {
       await this.invitesRepository.connect(user, pseudoUserInvite);
       return user;
     }
-
     const message = `Letsapp: Olá seu codigo é ${code}`;
     const sendSms = container.resolve(SmsService);
     const status = await sendSms.execute({ phone, message });
