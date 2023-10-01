@@ -343,8 +343,8 @@ export default class UserController {
 
     const { phone } = req.body;
 
-    const code = await send.execute(phone);
+    const user = await send.execute(phone);
 
-    return res.status(201).json('ok');
+    return res.status(201).json(user);
   }
 }
