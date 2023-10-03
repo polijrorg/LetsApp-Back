@@ -12,8 +12,7 @@ export default class GetOutlookCalendarEvents {
 
   ) { }
 
-
-  public async authenticate(phone:string): Promise<any> {
+  public async authenticate(email:string): Promise<any> {
     const now = new Date();
     now.setHours(now.getHours() - (now.getTimezoneOffset() / 60));
     const end = new Date();
