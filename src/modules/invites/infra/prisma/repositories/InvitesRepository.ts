@@ -1,5 +1,8 @@
 import prisma from '@shared/infra/prisma/client';
-import { Invite, Prisma, User } from '@prisma/client';
+import { v4 as uuid } from 'uuid';
+import {
+  Invite, InviteUser, Prisma, User, PseudoUser,
+} from '@prisma/client';
 
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
@@ -15,51 +18,69 @@ export default class InvitesRepository implements IInvitesRepository {
 
   private ormRepository2: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
+  private ormRepository3: Prisma.InviteUserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
+  private ormRepository4: Prisma.PseudoInviteUserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
   constructor() {
     this.ormRepository = prisma.invite;
     this.ormRepository2 = prisma.user;
+    this.ormRepository3 = prisma.inviteUser;
+    this.ormRepository4 = prisma.pseudoInviteUser;
   }
 
-  public async create(data: ICreateInviteDTO): Promise<Invite> {
-    const UserEmail = await prisma.user.findUnique({ where: { phone: data.phone } });
 
-    const a = {
-      ...data,
-
+  public async create({
+    name, begin, end, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto,
+  }: ICreateInviteDTO): Promise<Invite> {
+    const user = await prisma.user.findUnique({ where: { phone } });
+    const createData = {
+      name,
+      begin,
+      end,
+      phone,
+      description,
       guests: {
-
         create:
-        data.guests.map((guest) => ({
+        guests.map((guest) => ({
           Status: 'needsAction',
-          optional: 0,
+          optional: false,
           User: { connect: { email: guest } },
-        }
-        )),
+        })),
+      },
+      pseudoGuests: {
+        create:
+        pseudoGuests.map((pseudoGuest) => ({
+          Status: 'pseudoUser',
+          optional: false,
+          pseudoUser: { connect: { id: pseudoGuest } },
+        })),
 
       },
+      address,
+      state,
+      googleId,
+      organizerPhoto,
+      organizerName,
     };
 
-    const b = data.optionalGuests.map((guest) => ({
+    createData.guests.create.concat(optionalGuests.map((guest) => ({
       Status: 'needsAction',
-      optional: 1,
+      optional: true,
       User: { connect: { email: guest } },
     }
-    ));
+    )));
 
-    a.guests.create.concat(b);
+    createData.pseudoGuests.create.concat(pseudoOptionalGuests.map((guest) => ({
+      Status: 'pseudoUser',
+      optional: true,
+      pseudoUser: { connect: { id: guest } },
+    })));
 
-    a.guests.create.push({
-      Status: 'accepted',
-      optional: 0,
-      User:
-        { connect: { email: UserEmail!.email! } },
-    });
+    createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
+    const invite = await this.ormRepository.create({ data: createData });
 
-    console.log(a.guests.create);
-
-    // const invite = await this.ormRepository.create({ data: a });
-
-    return a.guests.create;
+    return invite;
   }
 
   public async listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]> {
@@ -78,7 +99,7 @@ export default class InvitesRepository implements IInvitesRepository {
       },
     });
 
-    const inviteIds = invites.map((invite) => invite.idInvite);
+    const inviteIds = invites.map((invite) => invite.inviteId);
 
     const invited = await this.ormRepository.findMany({
       where: {
@@ -95,21 +116,21 @@ export default class InvitesRepository implements IInvitesRepository {
       const yes = await prisma.inviteUser.count({
         where: {
           Status: 'accepted',
-          idInvite: element.id,
+          inviteId: element.id,
         },
       });
 
       const no = await prisma.inviteUser.count({
         where: {
           Status: 'declined',
-          idInvite: element.id,
+          inviteId: element.id,
         },
       });
 
       const maybe = await prisma.inviteUser.count({
         where: {
           Status: 'needsAction',
-          idInvite: element.id,
+          inviteId: element.id,
         },
       });
 
@@ -135,7 +156,7 @@ export default class InvitesRepository implements IInvitesRepository {
 
     });
 
-    const inviteIds = invites.map((invite) => invite.idInvite);
+    const inviteIds = invites.map((invite) => invite.inviteId);
 
     const invited = await this.ormRepository.findMany({
       where: {
@@ -161,7 +182,7 @@ export default class InvitesRepository implements IInvitesRepository {
     const inviteUser = await prisma.inviteUser.findFirst({
       where: {
         userEmail: email,
-        idInvite: id,
+        inviteId: id,
       },
 
     });
@@ -187,8 +208,8 @@ export default class InvitesRepository implements IInvitesRepository {
     });
     const user = await prisma.user.findUnique({ where: { phone } });
 
-    await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id }, data: { Status: 'needsAction' } });
-    await prisma.inviteUser.updateMany({ where: { idInvite: inviteUser?.id, userEmail: user!.email! }, data: { Status: 'accepted' } });
+    await prisma.inviteUser.updateMany({ where: { inviteId: inviteUser?.id }, data: { Status: 'needsAction' } });
+    await prisma.inviteUser.updateMany({ where: { inviteId: inviteUser?.id, userEmail: user!.email! }, data: { Status: 'accepted' } });
 
     return invit;
   }
@@ -221,5 +242,48 @@ export default class InvitesRepository implements IInvitesRepository {
     });
 
     return user;
+  }
+
+  public async findEventByInvite(user: User, invite: Invite): Promise<InviteUser | null> {
+    const userInvite = await this.ormRepository3.findFirst({
+      where: { User: user, Invite: invite },
+    });
+
+    return userInvite;
+  }
+
+  public async findInviteByPseudoUser(pseudoUser: PseudoUser): Promise<Invite | null> {
+    const pseudoUserInvite = await this.ormRepository4.findFirst({
+      where: { pseudoUser },
+    });
+
+    const invite = await this.ormRepository.findFirst({
+      where: { id: pseudoUserInvite?.inviteId },
+    });
+
+    return invite;
+  }
+
+  public async connect(user: User, invite: Invite): Promise<InviteUser> {
+    const id = uuid();
+
+    const updatedUser = await this.ormRepository2.update({
+      where: { id: user.id },
+      data: {
+        email: id.concat('@transitionEmail'),
+      },
+    });
+
+    const userInvite = await this.ormRepository3.create({
+      data: {
+        // if doenst work, try to change to user.id to user.email
+        User: { connect: { email: updatedUser.email! } },
+        Invite: { connect: { id: invite.id } },
+        optional: false,
+        Status: 'needsAction',
+      },
+    });
+
+    return userInvite;
   }
 }

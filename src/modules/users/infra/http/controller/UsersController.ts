@@ -31,11 +31,13 @@ export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
     const {
       phone,
+      pseudoUserId,
     } = req.body;
     const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
       phone,
+      pseudoUserId,
     });
 
     return res.status(201).json(user);
@@ -211,10 +213,14 @@ export default class UserController {
       end,
       attendees,
       description,
+      address,
+      name,
+      createMeetLink,
+      optionalAttendees,
     } = req.body;
 
     await urlservice.authenticate({
-      phone, begin, end, attendees, description,
+      phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
     });
     return res.status(201).json('ok');
   }

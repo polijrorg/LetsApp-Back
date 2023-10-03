@@ -122,12 +122,6 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateMicrosoftRefreshCode(id: string, microsoftRefreshCode: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { microsoftRefreshCode } });
-
-    return user;
-  }
-
   public async create(data: ICreateUserDTO): Promise<User> {
     const user = await this.ormRepository.create({ data });
 
@@ -160,7 +154,7 @@ export default class UsersRepository implements IUsersRepository {
   public async listUserEmailByInvite(id: string): Promise<string[]> {
     const users = await prisma.inviteUser.findMany({
       where: {
-        idInvite: id,
+        inviteId: id,
       },
       select: { userEmail: true },
 
@@ -176,9 +170,10 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateMicrosoftExpiresIn(id: string, microsoftExpiresIn: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { microsoftExpiresIn } });
+  public async findEmailByPhone(phone: string): Promise<string> {
+    const user = await this.findByPhone(phone);
+    if (!user || !user.email) throw new Error('Attendee user not found');
 
-    return user;
+    return user.email;
   }
 }
