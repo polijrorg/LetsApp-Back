@@ -58,5 +58,6 @@ jobs:
             source ~/.nvm/nvm.sh
             npm --help
             cd ~/LetsApp-Back
+            yarn
             yarn prisma migrate deploy
             pm2 restart server
