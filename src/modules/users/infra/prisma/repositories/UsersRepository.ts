@@ -139,26 +139,14 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async updateToken(id: string, token: string): Promise<User> {
+  public async updateToken(id: string, tokens: string): Promise<User> {
     const user = await this.ormRepository.update({
       where: { id },
-      data: { tokens: token },
+      data: { tokens },
     });
 
     return user;
   }
-
-  // public async updateMicrosoftRefreshCode(
-  //   id: string,
-  //   microsoftRefreshCode: string,
-  // ): Promise<User> {
-  //   const user = await this.ormRepository.update({
-  //     where: { id },
-  //     data: { microsoftRefreshCode },
-  //   });
-
-  //   return user;
-  // }
 
   public async create(data: ICreateUserDTO): Promise<User> {
     const user = await this.ormRepository.create({ data });

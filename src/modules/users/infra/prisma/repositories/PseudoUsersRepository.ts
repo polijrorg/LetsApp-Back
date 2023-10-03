@@ -63,17 +63,4 @@ export default class PseudoUsersRepository implements IPseudoUsersRepository {
         },
       });
     }
-
-  // public async getInvites(pseudoUser: PseudoUser): Promise<PseudoInvite[]> {
-  //   const pseudoInvites = await this.ormPseudoInvitesRepository.findMany({
-  //     where: {
-  //       connection: {
-  //         id,
-  //       },
-  //       }
-  //     },
-  //   });
-
-  //   return pseudoInvites;
-  // }
 }
