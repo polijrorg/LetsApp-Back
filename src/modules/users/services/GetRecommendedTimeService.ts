@@ -3,7 +3,7 @@ import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment, { Moment } from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
-import GetCalendarEventsService from './GetCalendarEventsService';
+import GetCalendarEventsService from './GetGoogleCalendarEventsService';
 
 interface IFreeTime {
   date?: Moment|string |null;

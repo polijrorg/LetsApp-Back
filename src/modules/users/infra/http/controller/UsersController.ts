@@ -1,20 +1,30 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
+// user services
 import CreateUserService from '@modules/users/services/CreateUserService';
 import VerifyUserService from '@modules/users/services/VerifyUserService';
 import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 import DeleteUserService from '@modules/users/services/DeleteUserService';
 import ListUsersService from '@modules/users/services/ListUsersService';
-// import GoogleAuthService from '@modules/users/services/GoogleAuthService';
+
+// url services
 import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
 import OutlookAuthUrlService from '@modules/users/services/OutlookAuthUrlService';
+
+// tokens services
 import GetGoogleTokensService from '@modules/users/services/GetGoogleTokensService';
 import GetOutlookTokensService from '@modules/users/services/GetOutlookTokensService';
+
+// create event services
 import CreateGoogleEventService from '@modules/users/services/CreateGoogleEventService';
 import CreateOutlookEventService from '@modules/users/services/CreateOutlookEventService';
+
+// get events services
+import GetGoogleCalendarEventsService from '@modules/users/services/GetGoogleCalendarEventsService';
 import GetOutlookCalendarEventsService from '@modules/users/services/GetOutlookCalendarEventsService';
+
 import GetRecommendedTimeService from '@modules/users/services/GetRecommendedTimeService';
 import AddContactService from '@modules/users/services/AddContactService';
 import UpdateEventStateService from '@modules/users/services/UpdateEventStateService';
@@ -80,6 +90,8 @@ export default class UserController {
       phone, code,
     });
 
+    user.tokens = 'secured';
+
     return res.status(201).json(user);
   }
 
@@ -133,6 +145,12 @@ export default class UserController {
     const listUsers = container.resolve(ListUsersService);
 
     const users = await listUsers.execute();
+
+    users.map((user) => {
+      // eslint-disable-next-line no-param-reassign
+      user.tokens = 'secured';
+      return user;
+    });
 
     return res.status(201).json(users);
   }
@@ -247,11 +265,19 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
-  public async getEvents(req: Request, res: Response): Promise<Response> {
-    const urlservice = container.resolve(GetOutlookCalendarEventsService);
-    const { phone } = req.body;
+  public async getGoogleEvents(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(GetGoogleCalendarEventsService);
+    const { email } = req.body;
 
-    const Url = await urlservice.authenticate(phone);
+    const Url = await urlservice.authenticate(email);
+    return res.status(201).json(Url);
+  }
+
+  public async getOutlookEvents(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(GetOutlookCalendarEventsService);
+    const { email } = req.body;
+
+    const Url = await urlservice.authenticate(email);
     return res.status(201).json(Url);
   }
 
@@ -260,6 +286,7 @@ export default class UserController {
     const { phone } = req.params;
 
     const user = await findUser.execute(phone);
+    user.user.tokens = 'secured';
     return res.status(201).json(user);
   }
 
@@ -268,6 +295,7 @@ export default class UserController {
     const { email } = req.params;
 
     const user = await findUser.execute(email);
+    user.user.tokens = 'secured';
     return res.status(201).json(user);
   }
 
@@ -277,10 +305,13 @@ export default class UserController {
       userPhone, phone, name, email,
     } = req.body;
 
-    const Url = await createContact.execute({
+    const user = await createContact.execute({
       userPhone, phone, name, email,
     });
-    return res.status(201).json(Url);
+
+    user.tokens = 'secured';
+
+    return res.status(201).json(user);
   }
 
   public async getRecommendedTime(req: Request, res: Response): Promise<Response> {

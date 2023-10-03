@@ -12,12 +12,12 @@ export default class GetOutlookCalendarEvents {
 
   ) { }
 
-  public async authenticate(phone:string): Promise<void> {
+  public async authenticate(email:string): Promise<void> {
     const now = new Date();
     const end = new Date();
     end.setDate(now.getDate() + 180);
 
-    const user = await this.usersRepository.findByPhone(phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     const tokenCache = JSON.parse(user.tokens!);

@@ -5,7 +5,7 @@ import { calendar_v3, google } from 'googleapis';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
-export default class GetCalendarEvents {
+export default class GetGoogleCalendarEvents {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
