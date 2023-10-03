@@ -29,7 +29,6 @@ export default class InvitesRepository implements IInvitesRepository {
     this.ormRepository4 = prisma.pseudoInviteUser;
   }
 
-
   public async create({
     name, begin, end, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto,
   }: ICreateInviteDTO): Promise<Invite> {
@@ -78,7 +77,7 @@ export default class InvitesRepository implements IInvitesRepository {
     })));
 
     createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
-    const invite = await this.ormRepository.create({ data: createData });
+    const invite = await this.ormRepository.create({ data: createData, include: { pseudoGuests: true } });
 
     return invite;
   }

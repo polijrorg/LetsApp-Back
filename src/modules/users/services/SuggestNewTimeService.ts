@@ -25,7 +25,7 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<Response> {
+  }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
@@ -46,6 +46,7 @@ export default class SuggestNewTimeService {
         optionalGuests: 'undefined',
       },
     );
+
     return times;
   }
 }
