@@ -16,10 +16,24 @@ export default class CreateInviteService {
   ) { }
 
   public async execute({
-    address, begin, description, end, googleId, guests, link, name, phone, state, organizerPhoto, organizerName,
+    address, begin, description, end, googleId, guests, pseudoGuests, optionalGuests, pseudoOptionalGuests, link, name, phone, state, organizerPhoto, organizerName,
   }: ICreateInviteDTO): Promise<Invite> {
     const invite = await this.invitesRepository.create({
-      address, begin, description, end, googleId, guests, link, name, phone, state, organizerPhoto, organizerName,
+      address,
+      begin,
+      description,
+      end,
+      googleId,
+      guests,
+      pseudoGuests,
+      optionalGuests,
+      pseudoOptionalGuests,
+      link,
+      name,
+      phone,
+      state,
+      organizerPhoto,
+      organizerName,
     });
 
     return invite;

@@ -9,7 +9,7 @@ generator client {
 }
 
 model Invite {
-  id             String       @id @default(uuid())
+  id             String             @id @default(uuid())
   guests         InviteUser[]
   name           String
   begin          String
@@ -20,39 +20,58 @@ model Invite {
   link           String?
   state          String
   googleId       String
+  pseudoGuests   PseudoInviteUser[]
   organizerPhoto String?
   organizerName  String
 
   @@map("invite")
 }
 
+model InviteUser {
+  id        String  @id @default(uuid())
+  User      User    @relation(fields: [userEmail], references: [email])
+  Invite    Invite  @relation(fields: [inviteId], references: [id])
+  userEmail String
+  inviteId  String
+  Status    String  @default("needsAction")
+  optional  Boolean
+}
+
+model PseudoInviteUser {
+  id           String     @id @default(uuid())
+  pseudoUser   PseudoUser @relation(fields: [pseudoUserId], references: [id])
+  Invite       Invite     @relation(fields: [inviteId], references: [id])
+  optional     Boolean
+  pseudoUserId String
+  inviteId     String
+  Status       String     @default("pseudoUser")
+}
+
 model User {
-  id                   String       @id @default(uuid())
-  name                 String?
-  phone                String       @unique
-  email                String?      @unique
-  photo                String?
-  code                 Int?
-  googleRefreshCode    String?
-  microsoftRefreshCode String?
-  created_at           DateTime     @default(now())
-  updated_at           DateTime     @default(now())
-  token                String?
-  type                 Type?
-  invites              InviteUser[]
-  contatos             Contato[]
-  microsoftExpiresIn   String?
+  id                String       @id @default(uuid())
+  name              String?
+  phone             String       @unique
+  email             String?      @unique
+  photo             String?
+  code              Int?
+  googleRefreshCode String?
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @default(now())
+  tokens            String?
+  type              Type?
+  invites           InviteUser[]
+  contatos          Contato[]
 
   @@map("user")
 }
 
-model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [idInvite], references: [id])
-  userEmail String
-  idInvite  String
-  Status    String @default("needsAction")
+model PseudoUser {
+  id      String             @id @default(uuid())
+  phone   String?            @unique
+  invites PseudoInviteUser[]
+  email   String?            @unique
+
+  @@map("pseudo_users")
 }
 
 model Contato {

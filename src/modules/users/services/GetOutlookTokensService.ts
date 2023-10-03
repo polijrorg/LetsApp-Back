@@ -29,12 +29,7 @@ export default class GetOutlookTokensService {
     const tokens = await cca.acquireTokenByCode(tokenRequest);
     if (!tokens.accessToken) throw new AppError('Token not found', 400);
 
-    const expirationDate = tokens.expiresOn as Date;
-    const microsoftExpiresIn = expirationDate.toString();
-
-    const tokenCache = cca.getTokenCache().serialize();
-    const refreshCodeObject = (JSON.parse(tokenCache)).RefreshToken;
-    const microsoftRefreshCode = refreshCodeObject[Object.keys(refreshCodeObject)[0]].secret;
+    const tokenCache = JSON.stringify(cca.getTokenCache().serialize());
 
     const authProvider = {
       getAccessToken: async () => tokens.accessToken,
@@ -46,10 +41,7 @@ export default class GetOutlookTokensService {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
     await this.usersRepository.updateEmail(user.id, userInfo.mail);
-    this.usersRepository.updateToken(user.id, tokens.accessToken);
-
-    this.usersRepository.updateMicrosoftRefreshCode(user.id, microsoftRefreshCode);
-    this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn);
+    this.usersRepository.updateToken(user.id, tokenCache);
 
     this.usersRepository.updateUserType(user.id, 'OUTLOOK');
   }

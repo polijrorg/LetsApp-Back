@@ -12,13 +12,18 @@ export default class GetOutlookCalendarEvents {
 
   ) { }
 
-  public async authenticate(phone:string): Promise<void> {
+  public async authenticate(email:string): Promise<any> {
     const now = new Date();
+    now.setHours(now.getHours() - (now.getTimezoneOffset() / 60));
     const end = new Date();
-    end.setDate(now.getDate() + 180);
+    end.setDate(now.getDate() - (now.getTimezoneOffset() / 60) + 180);
 
-    const user = await this.usersRepository.findByPhone(phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
+
+    if (!user.tokens) throw new AppError('Token not found', 400);
+
+    const tokenCache = JSON.parse(user.tokens);
 
     const clientConfig = {
       auth: {
@@ -27,37 +32,25 @@ export default class GetOutlookCalendarEvents {
       },
     };
 
-    const refreshTokenRequest = {
-      scopes: ['https://graph.microsoft.com/.default'],
-      refreshToken: user.microsoftRefreshCode as string,
-    };
-
     const cca = new msal.ConfidentialClientApplication(clientConfig);
+    cca.getTokenCache().deserialize(tokenCache);
 
-    const expirationDate = new Date(user.microsoftExpiresIn as string);
+    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
 
-    const getAccessToken = async (): Promise<{ accessToken: string | null } | msal.AuthenticationResult | null> => {
-      if (now > expirationDate) {
-        const tokens = await cca.acquireTokenByRefreshToken(refreshTokenRequest);
-        const microsoftExpiresIn = tokens?.expiresOn as Date;
-        await this.usersRepository.updateToken(user.id, tokens?.accessToken as string);
-        await this.usersRepository.updateMicrosoftExpiresIn(user.id, microsoftExpiresIn.toString());
-        return tokens;
-      }
-      const tokens = {
-        accessToken: user.token,
-      };
-      return tokens;
+    const tokenRequest = {
+      account,
+      scopes: ['https://graph.microsoft.com/.default'],
     };
 
-    const token = await getAccessToken();
+    const tokens = await cca.acquireTokenSilent(tokenRequest);
+    if (!tokens) throw new AppError('Token not found', 400);
 
     const authProvider = {
-      getAccessToken: async () => token?.accessToken as string,
+      getAccessToken: async () => tokens.accessToken as string,
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
-    const events = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).get();
+    const events = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
 
     return events;
   }

@@ -25,8 +25,12 @@ export default class UsersRepository implements IUsersRepository {
     Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
   >;
 
+  private ormContactsRepository: Prisma.ContatoDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
   constructor() {
     this.ormRepository = prisma.user;
+
+    this.ormContactsRepository = prisma.contato;
   }
 
   public async updateName(id: string, name: string): Promise<User> {
@@ -78,7 +82,7 @@ export default class UsersRepository implements IUsersRepository {
 
   public async findToken(): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
-      where: { token: '1' },
+      where: { tokens: '1' },
     });
 
     return user;
@@ -87,6 +91,7 @@ export default class UsersRepository implements IUsersRepository {
   public async findById(id: string): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
       where: { id },
+      include: { contatos: true },
     });
 
     return user;
@@ -186,7 +191,7 @@ export default class UsersRepository implements IUsersRepository {
   public async listUserEmailByInvite(id: string): Promise<string[]> {
     const users = await prisma.inviteUser.findMany({
       where: {
-        idInvite: id,
+        inviteId: id,
       },
       select: { userEmail: true },
     });
@@ -204,6 +209,37 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
+  public async findEmailByPhone(phone: string): Promise<string> {
+    const user = await this.findByPhone(phone);
+    if (!user || !user.email) throw new Error('Attendee user not found');
+
+    return user.email;
+  }
+
+  public async findPhoneByEmail(email: string): Promise<string> {
+    const user = await this.findByEmail(email);
+    if (!user || !user.email) throw new Error('Attendee user not found');
+
+    return user.phone;
+  }
+
+  public async findTypeByEmail(email: string): Promise<string | null> {
+    const user = await this.findByEmail(email);
+    if (!user || !user.email) throw new Error('Attendee user not found');
+
+    return user.type;
+  }
+
+  public async findByPhoneWithContacts(phone: string): Promise<(User & { contatos: Contato[] }) | null> {
+    const user = await this.ormRepository.findUnique({
+      where: { phone },
+      include: { contatos: true },
+        
+        });
+
+    return user;
+  }
+
   public async updateMicrosoftExpiresIn(
     id: string,
     microsoftExpiresIn: string,
@@ -214,5 +250,21 @@ export default class UsersRepository implements IUsersRepository {
     });
 
     return user;
+  }
+
+  public async findContactByPhone(phone:string, userId:string): Promise<Contato|null> {
+    const contact = await this.ormContactsRepository.findFirst({
+      where: { phone, userId },
+    });
+
+    return contact;
+  }
+
+  public async findContactByEmail(email:string, userId:string): Promise<Contato|null> {
+    const contact = await this.ormContactsRepository.findFirst({
+      where: { email, userId },
+    });
+
+    return contact;
   }
 }

@@ -1,5 +1,5 @@
 import AppError from '@shared/errors/AppError';
-import moment from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import { container, inject, injectable } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetRecommendedTimeService from './GetRecommendedTimeService';
@@ -8,6 +8,13 @@ interface IRequest{
   inviteId:string,
   phone:string
 }
+
+interface IFreeTime {
+  date?: Moment|string |null;
+  start1?: Moment|string|null;
+  end1?: Moment|string|null;
+}
+
 @injectable()
 export default class SuggestNewTimeService {
   constructor(
@@ -18,17 +25,16 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<string[]> {
+  }:IRequest): Promise<Response> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
     const invite = await this.usersRepository.findInvite(inviteId);
     if (!invite) throw new AppError('Invite not found', 400);
-    const time = container.resolve(GetRecommendedTimeService);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
-    console.log(usersEmails);
 
-    const times = await time.authenticate(
+    const googleTime = container.resolve(GetRecommendedTimeService);
+    const times = await googleTime.authenticate(
       {
         phone,
         beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
@@ -40,7 +46,6 @@ export default class SuggestNewTimeService {
         optionalGuests: 'undefined',
       },
     );
-
     return times;
   }
 }
