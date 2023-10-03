@@ -8,8 +8,9 @@ import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
   name: string;
-  phone:string;
-  photoFile: Express.Multer.File| null;
+  phone: string;
+  photoFile: Express.Multer.File | null;
+  hasPhoto: boolean;
 }
 
 @injectable()
@@ -17,17 +18,15 @@ export default class UploadUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
-
   ) {}
 
   public async execute({
     name,
     phone,
     photoFile,
+    hasPhoto,
   }: IRequest): Promise<User> {
-    const userFound = await this.usersRepository.findByPhone(
-      phone,
-    );
+    const userFound = await this.usersRepository.findByPhone(phone);
     if (!userFound) throw new AppError('User not found', 400);
 
     let photo = '';
@@ -35,10 +34,16 @@ export default class UploadUserService {
       photo = photoFile.location;
     }
 
-    const user = this.usersRepository.updatePhotoAndName(userFound?.id, {
-      name,
-      photo,
-    });
+    let user: User;
+
+    if (hasPhoto) {
+      user = this.usersRepository.updatePhotoAndName(userFound?.id, {
+        name,
+        photo,
+      });
+    } else {
+      user = this.usersRepository.updateName(userFound?.id, name);
+    }
 
     return user;
   }

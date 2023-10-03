@@ -64,6 +64,7 @@ export default class UserController {
       name,
       phone,
       photoFile: photo as Express.Multer.File| null,
+      hasPhoto: !!photo,
     });
 
     return res.status(201).json(user);
