@@ -142,23 +142,23 @@ export default class UsersRepository implements IUsersRepository {
   public async updateToken(id: string, token: string): Promise<User> {
     const user = await this.ormRepository.update({
       where: { id },
-      data: { token },
+      data: { tokens: token },
     });
 
     return user;
   }
 
-  public async updateMicrosoftRefreshCode(
-    id: string,
-    microsoftRefreshCode: string,
-  ): Promise<User> {
-    const user = await this.ormRepository.update({
-      where: { id },
-      data: { microsoftRefreshCode },
-    });
+  // public async updateMicrosoftRefreshCode(
+  //   id: string,
+  //   microsoftRefreshCode: string,
+  // ): Promise<User> {
+  //   const user = await this.ormRepository.update({
+  //     where: { id },
+  //     data: { microsoftRefreshCode },
+  //   });
 
-    return user;
-  }
+  //   return user;
+  // }
 
   public async create(data: ICreateUserDTO): Promise<User> {
     const user = await this.ormRepository.create({ data });
@@ -234,23 +234,23 @@ export default class UsersRepository implements IUsersRepository {
     const user = await this.ormRepository.findUnique({
       where: { phone },
       include: { contatos: true },
-        
-        });
 
-    return user;
-  }
-
-  public async updateMicrosoftExpiresIn(
-    id: string,
-    microsoftExpiresIn: string,
-  ): Promise<User> {
-    const user = await this.ormRepository.update({
-      where: { id },
-      data: { microsoftExpiresIn },
     });
 
     return user;
   }
+
+  // public async updateMicrosoftExpiresIn(
+  //   id: string,
+  //   microsoftExpiresIn: string,
+  // ): Promise<User> {
+  //   const user = await this.ormRepository.update({
+  //     where: { id },
+  //     data: { microsoftExpiresIn },
+  //   });
+
+  //   return user;
+  // }
 
   public async findContactByPhone(phone:string, userId:string): Promise<Contato|null> {
     const contact = await this.ormContactsRepository.findFirst({
