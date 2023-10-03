@@ -6,22 +6,24 @@ import {
 import ICreateUserDTO from '@modules/users/dtos/ICreateUserDTO';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 
-interface IUpload{
-  name:string,
-  photo:string
+interface IUpload {
+  name: string;
+  photo: string;
 }
-interface IContact{
-
-  email:string,
-  phone:string,
-  name:string,
-  userId:string|null
+interface IContact {
+  email: string;
+  phone: string;
+  name: string;
+  userId: string | null;
 }
-interface IUserContact{
-  user:User|null,
-  contacts:Contato[]}
+interface IUserContact {
+  user: User | null;
+  contacts: Contato[];
+}
 export default class UsersRepository implements IUsersRepository {
-  private ormRepository: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+  private ormRepository: Prisma.UserDelegate<
+    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
+  >;
 
   private ormContactsRepository: Prisma.ContatoDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
@@ -29,6 +31,15 @@ export default class UsersRepository implements IUsersRepository {
     this.ormRepository = prisma.user;
 
     this.ormContactsRepository = prisma.contato;
+  }
+
+  public async updateName(id: string, name: string): Promise<User> {
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { name },
+    });
+
+    return user;
   }
 
   public async findByEmailWithRelations(email: string): Promise<User | null> {
@@ -47,12 +58,16 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async findContactsByPhone(phone: string): Promise<IUserContact | null> {
+  public async findContactsByPhone(
+    phone: string,
+  ): Promise<IUserContact | null> {
     const user = await this.ormRepository.findUnique({
       where: { phone },
     });
 
-    const contacts = await prisma.contato.findMany({ where: { userId: user?.id } });
+    const contacts = await prisma.contato.findMany({
+      where: { userId: user?.id },
+    });
 
     return { user, contacts };
   }
@@ -88,7 +103,7 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async addContact(userPhone:string, data: IContact): Promise<User> {
+  public async addContact(userPhone: string, data: IContact): Promise<User> {
     const user = await this.ormRepository.findUnique({
       where: { phone: userPhone },
     });
@@ -116,13 +131,31 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async updateEmail(id: string, email: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { email } });
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { email },
+    });
 
     return user;
   }
 
   public async updateToken(id: string, token: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { tokens: token } });
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { token },
+    });
+
+    return user;
+  }
+
+  public async updateMicrosoftRefreshCode(
+    id: string,
+    microsoftRefreshCode: string,
+  ): Promise<User> {
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { microsoftRefreshCode },
+    });
 
     return user;
   }
@@ -133,7 +166,7 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async delete(phone:string): Promise<User> {
+  public async delete(phone: string): Promise<User> {
     const user = await this.ormRepository.delete({ where: { phone } });
 
     return user;
@@ -145,12 +178,11 @@ export default class UsersRepository implements IUsersRepository {
     return users;
   }
 
-  public async findInvite(id: string): Promise<Invite|null> {
+  public async findInvite(id: string): Promise<Invite | null> {
     const users = await prisma.invite.findUnique({
       where: {
         id,
       },
-
     });
 
     return users;
@@ -162,7 +194,6 @@ export default class UsersRepository implements IUsersRepository {
         inviteId: id,
       },
       select: { userEmail: true },
-
     });
     const userEmail = users.map((invite) => invite.userEmail);
 
@@ -170,7 +201,10 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async updateUserType(id: string, type: Type): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { type } });
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { type },
+    });
 
     return user;
   }
@@ -200,6 +234,19 @@ export default class UsersRepository implements IUsersRepository {
     const user = await this.ormRepository.findUnique({
       where: { phone },
       include: { contatos: true },
+        
+        });
+
+    return user;
+  }
+
+  public async updateMicrosoftExpiresIn(
+    id: string,
+    microsoftExpiresIn: string,
+  ): Promise<User> {
+    const user = await this.ormRepository.update({
+      where: { id },
+      data: { microsoftExpiresIn },
     });
 
     return user;

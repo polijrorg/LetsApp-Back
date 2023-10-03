@@ -26,6 +26,7 @@ interface IUsersRepository {
   findToken(): Promise<User | null>;
   findByPhone(phone: string): Promise<User | null>;
   updatePhotoAndName(id: string, data: IUpload): Promise<User>;
+  updateName(id: string, name: string): Promise<User>;
   updateEmail(id: string, email: string): Promise<User>;
   findContactsByPhone(phone: string): Promise<IUserContact | null>
   updateToken(id: string, token: string): Promise<User>;
