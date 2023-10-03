@@ -76,6 +76,7 @@ export default class UsersRepository implements IUsersRepository {
   public async findById(id: string): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
       where: { id },
+      include: { contatos: true },
     });
 
     return user;
@@ -194,7 +195,7 @@ export default class UsersRepository implements IUsersRepository {
 
     return user.type;
   }
-  
+
   public async findByPhoneWithContacts(phone: string): Promise<(User & { contatos: Contato[] }) | null> {
     const user = await this.ormRepository.findUnique({
       where: { phone },

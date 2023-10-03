@@ -59,22 +59,56 @@ export default class GetRecommendedTimesService {
     }
 
     const googleRecommendedTimes = await googleGetTime.authenticate(
-      googleUsers, phone,
+      googleUsers,
     );
 
     const outlookRecommendedTimes = await outlookGetTime.authenticate(
-      outlookUsers, phone,
+      outlookUsers,
     );
+
+    const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
+      const freeTimes: IFreeTime[] = [];
+      const diff = end.diff(start) / 60000;
+
+      if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
+        const startDate1 = moment(start);
+        startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
+        startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
+        startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
+
+        const endDate1 = moment(start);
+        endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
+        endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
+        endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
+
+        if (start >= startDate1 && end <= endDate1) {
+          let aux1 = moment(start);
+          const aux2 = moment(start);
+          while (aux2 < end) {
+            freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
+            aux1 = moment(aux2);
+            aux2.add(duration, 'minute');
+          }
+        }
+      }
+      return freeTimes;
+    };
+
+    if (googleRecommendedTimes.length === 0 || outlookRecommendedTimes.length === 0) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+      const freeTimes = getFreeTimes(start, end);
+      return freeTimes;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
 
+    const freeTimes: IFreeTime[] = [];
     // eslint-disable-next-line no-sequences
     const simplerS = recommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
-
-    const freeTimes: IFreeTime[] = [];
 
     const data = simplerS;
 
@@ -111,30 +145,7 @@ export default class GetRecommendedTimesService {
             end = moment(data[index][0]);
           }
 
-          const diff = end.diff(start) / 60000;
-
-          if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
-            const startDate1 = moment(start);
-            startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
-            startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
-            startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
-
-            const endDate1 = moment(start);
-            endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
-            endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
-            endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
-
-            if (start >= startDate1 && end <= endDate1) {
-              let aux1 = moment(start);
-              const aux2 = moment(start);
-
-              while (aux2 < end) {
-                aux2.add(duration, 'minute');
-                freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
-                aux1 = moment(aux2);
-              }
-            }
-          }
+          freeTimes.concat(getFreeTimes(start, end));
         }
       // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }

@@ -1,5 +1,4 @@
 import { container, inject, injectable } from 'tsyringe';
-import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 import GetOutlookCalendarEventsService from './GetOutlookCalendarEventsService';
@@ -13,32 +12,29 @@ export default class GetCalendarEvents {
   ) { }
 
   public async authenticate(
-    outlookUsers: string[], phone: string,
+    outlookUsers: string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any[]> {
-    const user = await this.usersRepository.findByPhone(phone);
-
-    if (!user) throw new AppError('User not found', 400);
-
     const urlservice = container.resolve(GetOutlookCalendarEventsService);
 
-    const usersPhone: string[] = [];
+    const usersEmail: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const horarios: any[] = [];
     // eslint-disable-next-line no-plusplus
-    for (let index = 0; index < outlookUsers.length; index++) {
-      if (outlookUsers[index].includes('@')) {
-        // eslint-disable-next-line no-await-in-loop
-        const userPhone = await this.usersRepository.findPhoneByEmail(outlookUsers[index]);
-        usersPhone.push(userPhone);
+    const promises = outlookUsers.map(async (outlookUser) => {
+      if (outlookUser.includes('@')) {
+        usersEmail.push(outlookUser);
       } else {
-        usersPhone.push(outlookUsers[index]);
+        const email = await this.usersRepository.findEmailByPhone(outlookUser);
+        usersEmail.push(email);
       }
-    }
+    });
 
-    for (let i = 0; i < usersPhone.length; i += 1) {
+    await Promise.all(promises);
+
+    for (let i = 0; i < usersEmail.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      const aux = await urlservice.authenticate(usersPhone[i]);
+      const aux = await urlservice.authenticate(usersEmail[i]);
 
       for (let index = 0; index < aux.value.length; index += 1) {
         horarios.push(aux.value[index]);
