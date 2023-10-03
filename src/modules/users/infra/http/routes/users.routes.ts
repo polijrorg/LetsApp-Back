@@ -13,12 +13,14 @@ const upload = multer(UploadFunction('user'));
 
 const usersController = new UsersController();
 
+// users
 usersRoutes.post('/register', usersController.create);
 usersRoutes.post('/verify', usersController.verifyCode);
 usersRoutes.post('/upload', upload.single('photo'), userRegisterSchema, usersController.upload);
 usersRoutes.post('/updateEmail', usersController.updateEmail);
 usersRoutes.delete('/deleteUser', usersController.deleteUser);
 usersRoutes.get('/listUsers', usersController.listUsers);
+usersRoutes.get('/listPseudoUsers', usersController.listPseudoUsers);
 
 // tokens
 usersRoutes.get('/google', usersController.getGoogleTokens);

@@ -8,6 +8,7 @@ import UploadUserService from '@modules/users/services/UploadUserService';
 import AddEmailToUserService from '@modules/users/services/AddEmailToUserService';
 import DeleteUserService from '@modules/users/services/DeleteUserService';
 import ListUsersService from '@modules/users/services/ListUsersService';
+import ListPseudoUsersService from '@modules/users/services/ListPseudoUsersService';
 
 // url services
 import GoogleAuthUrlService from '@modules/users/services/GoogleAuthUrlService';
@@ -369,5 +370,13 @@ export default class UserController {
     const checks = await check.execute(id, idInvite);
 
     return res.status(201).json(checks);
+  }
+
+  public async listPseudoUsers(req: Request, res: Response): Promise<Response> {
+    const listPseudoUsers = container.resolve(ListPseudoUsersService);
+
+    const pseudoUsers = await listPseudoUsers.execute();
+
+    return res.status(201).json(pseudoUsers);
   }
 }
