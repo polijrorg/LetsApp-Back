@@ -37,6 +37,8 @@ interface IUsersRepository {
   listUserEmailByInvite(id: string): Promise<string[]>
   updateUserType(id: string, type: Type): Promise<User>;
   findEmailByPhone(phone: string): Promise<string>;
+  findPhoneByEmail(email: string): Promise<string>;
+  findTypeByEmail(email: string): Promise<string | null>;
   findByPhoneWithContacts(phone: string): Promise<(User & { contatos: Contato[] }) | null>;
   findContactByPhone(phone:string, userId:string): Promise<Contato|null>;
   findContactByEmail(email:string, userId:string): Promise<Contato|null>;

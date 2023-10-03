@@ -25,16 +25,16 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<IFreeTime[]> {
+  }:IRequest): Promise<Response> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
     const invite = await this.usersRepository.findInvite(inviteId);
     if (!invite) throw new AppError('Invite not found', 400);
-    const time = container.resolve(GetRecommendedTimeService);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
 
-    const times = await time.authenticate(
+    const googleTime = container.resolve(GetRecommendedTimeService);
+    const times = await googleTime.authenticate(
       {
         phone,
         beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
@@ -46,7 +46,6 @@ export default class SuggestNewTimeService {
         optionalGuests: 'undefined',
       },
     );
-
     return times;
   }
 }

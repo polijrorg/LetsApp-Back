@@ -1,9 +1,9 @@
-import { calendar_v3 } from 'googleapis';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment, { Moment } from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
-import GetCalendarEventsService from './GetGoogleCalendarEventsService';
+import googleGetRecommendedTimeService from './googleGetRecommendedTimeService';
+import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
 
 interface IFreeTime {
   date?: Moment|string |null;
@@ -33,29 +33,46 @@ export default class GetCalendarEvents {
   public async authenticate({
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
   }:IRequest): Promise<IFreeTime[]> {
+    moment.tz.setDefault('America/Sao_Paulo');
+
     const user = await this.usersRepository.findByPhone(phone);
 
     if (!user) throw new AppError('User not found', 400);
 
-    const urlservice = container.resolve(GetCalendarEventsService);
+    const googleGetTime = container.resolve(googleGetRecommendedTimeService);
+    const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
 
-    const schedule = await urlservice.authenticate(user.email!);
-    moment.tz.setDefault('America/Sao_Paulo');
-    const horarios:calendar_v3.Schema$Event[] = [];
-    schedule.forEach((element) => {
-      horarios.push(element);
-    });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    mandatoryGuests.push(user.email!);
 
-    for (let i = 0; i < mandatoryGuests.length; i += 1) {
+    const outlookUsers: string[] = [];
+    const googleUsers: string[] = [];
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const element of mandatoryGuests) {
       // eslint-disable-next-line no-await-in-loop
-      const aux = await urlservice.authenticate(mandatoryGuests[i]);
+      const userType = await this.usersRepository.findTypeByEmail(element);
 
-      for (let index = 0; index < aux.length; index += 1) {
-        horarios.push(aux[index]);
+      if (userType === 'GOOGLE') {
+        googleUsers.push(element);
+      } else if (userType === 'OUTLOOK') {
+        outlookUsers.push(element);
       }
     }
+
+    const googleRecommendedTimes = await googleGetTime.authenticate(
+      googleUsers, phone,
+    );
+
+    const outlookRecommendedTimes = await outlookGetTime.authenticate(
+      outlookUsers, phone,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
+
     // eslint-disable-next-line no-sequences
-    const simplerS = horarios.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+    const simplerS = recommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
@@ -63,7 +80,10 @@ export default class GetCalendarEvents {
 
     const data = simplerS;
 
-    console.log(data);
+    // Custom comparison function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function compareDates(a:any, b:any) {
+      const dateTimeA = moment(a[0]);
 
     // // Custom comparison function
     // function compareDates(a:any, b:any) {
@@ -74,48 +94,57 @@ export default class GetCalendarEvents {
     //   return dateTimeA.diff(dateTimeB);
     // }
 
-    // // Sort the array based on the first datetime of each index
+    // Sort the array based on the first datetime of each index
+    data.sort(compareDates);
 
-    // data.sort(compareDates);
+    let start: moment.Moment;
+    let end: moment.Moment;
 
-    data.forEach((scheduleSet, index) => {
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index <= data.length; index++) {
       try {
-        if ((index + 1) < (data.length - 1) && (data[index + 1] !== undefined || scheduleSet !== undefined)) {
-          if (scheduleSet[1] !== undefined && data[index + 1][0] !== undefined) {
-            const start = moment(scheduleSet[1]);
+        if (index <= data.length) {
+          if (index !== 0) {
+            start = moment(data[index - 1][1]);
+          } else {
+            start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+          }
+          if (index === 0) {
+            end = moment(data[index][0]);
+          } else if (index > (data.length - 1)) {
+            end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+          } else {
+            end = moment(data[index][0]);
+          }
 
-            const end = moment(data[index + 1][0]);
+          const diff = end.diff(start) / 60000;
 
-            const diff = end.diff(start) / 60000;
+          if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
+            const startDate1 = moment(start);
+            startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
+            startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
+            startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
 
-            if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
-              const startDate1 = moment(start);
-              startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
-              startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
-              startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
-              console.log(startDate1);
-              const endDate1 = moment(start);
-              endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
-              endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
-              endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
-              console.log(endDate1);
+            const endDate1 = moment(start);
+            endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
+            endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
+            endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
 
-              if (start > startDate1 && end < endDate1) {
-                let aux1 = moment(start);
-                const aux2 = moment(start);
-                console.log(aux2 < end);
-                while (aux2 < end) {
-                  aux2.add(duration, 'minute');
+            if (start >= startDate1 && end <= endDate1) {
+              let aux1 = moment(start);
+              const aux2 = moment(start);
 
-                  freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
-                  aux1 = moment(aux2);
-                }
+              while (aux2 < end) {
+                aux2.add(duration, 'minute');
+                freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
+                aux1 = moment(aux2);
               }
             }
           }
         }
+      // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
-    });
+    }
 
     return freeTimes;
   }
