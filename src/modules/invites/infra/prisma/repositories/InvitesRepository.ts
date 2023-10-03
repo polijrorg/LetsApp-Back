@@ -77,7 +77,7 @@ export default class InvitesRepository implements IInvitesRepository {
     })));
 
     createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
-    const invite = await this.ormRepository.create({ data: createData });
+    const invite = await this.ormRepository.create({ data: createData, include: { pseudoGuests: true } });
 
     return invite;
   }
