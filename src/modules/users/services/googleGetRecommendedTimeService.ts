@@ -3,7 +3,7 @@ import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
-import GetCalendarEventsService from './GetCalendarEventsService';
+import GetCalendarEventsService from './GetGoogleCalendarEventsService';
 
 @injectable()
 export default class GetCalendarEvents {
