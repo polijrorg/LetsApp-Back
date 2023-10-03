@@ -20,7 +20,7 @@ export default class GetOutlookCalendarEvents {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    const tokenCache = JSON.parse(user.token!);
+    const tokenCache = JSON.parse(user.tokens!);
 
     const clientConfig = {
       auth: {

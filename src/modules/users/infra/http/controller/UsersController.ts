@@ -194,11 +194,13 @@ export default class UserController {
   public async createEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateEventService);
     const {
-      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAtendees,
+      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAttendees,
     } = req.body;
 
+    console.log(phone, begin, end, attendees, description, address, name, createMeetLink, optionalAttendees);
+
     const Url = await urlservice.authenticate({
-      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAtendees,
+      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAttendees,
     });
     return res.status(201).json(Url);
   }

@@ -28,7 +28,7 @@ interface IUsersRepository {
   updatePhotoAndName(id: string, data: IUpload): Promise<User>;
   updateEmail(id: string, email: string): Promise<User>;
   findContactsByPhone(phone: string): Promise<IUserContact | null>
-  updateToken(id: string, tokens: string): Promise<User>;
+  updateToken(id: string, token: string): Promise<User>;
   create(data: ICreateUserDTO): Promise<User>;
   addContact(userPhone:string, data: IContact): Promise<User>;
   delete(phone:string): Promise<User>;

@@ -8,7 +8,7 @@ model User {
   googleRefreshCode String?
   created_at        DateTime     @default(now())
   updated_at        DateTime     @default(now())
-  token             String?
+  tokens            String?
   type              Type?
   invites           InviteUser[]
   contatos          Contato[]
@@ -23,6 +23,7 @@ model InviteUser {
   userEmail String
   inviteId  String
   Status    String @default("needsAction")
+  optional  Boolean
 }
 
 model Invite {

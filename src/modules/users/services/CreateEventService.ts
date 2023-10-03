@@ -13,7 +13,7 @@ interface IRequest {
     address:string;
     createMeetLink:boolean;
     name:string;
-    optionalAtendees:string[];
+    optionalAttendees:string[];
 
 }
 @injectable()
@@ -25,7 +25,7 @@ export default class CreateEventService {
   ) { }
 
   public async authenticate({
-    address, attendees, begin, createMeetLink, description, end, phone, name, optionalAtendees,
+    address, attendees, begin, createMeetLink, description, end, phone, name, optionalAttendees,
   }:IRequest): Promise<Invite> {
     // const oauth2Client = new google.auth.OAuth2();
     const eventAttendees = attendees.map((email) => ({
@@ -38,7 +38,7 @@ export default class CreateEventService {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    oAuth2Client.setCredentials({ access_token: user.token });
+    oAuth2Client.setCredentials({ access_token: user.tokens });
 
     const calendar = google.calendar({
       version: 'v3',
@@ -85,7 +85,7 @@ export default class CreateEventService {
 
       });
     }
-
+console.log("hi")
     const CreateInviteEvent = container.resolve(CreateInviteService);
     const state = 'accepted';
     const invite = await CreateInviteEvent.execute({
@@ -93,7 +93,7 @@ export default class CreateEventService {
       begin,
       end,
       guests: attendees,
-      optionalGuests: optionalAtendees,
+      optionalGuests: optionalAttendees,
       phone,
       description,
       address,
