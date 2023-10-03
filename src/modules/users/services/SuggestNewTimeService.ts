@@ -1,5 +1,5 @@
 import AppError from '@shared/errors/AppError';
-import moment from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import { container, inject, injectable } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetRecommendedTimeService from './GetRecommendedTimeService';
@@ -8,6 +8,13 @@ interface IRequest{
   inviteId:string,
   phone:string
 }
+
+interface IFreeTime {
+  date?: Moment|string |null;
+  start1?: Moment|string|null;
+  end1?: Moment|string|null;
+}
+
 @injectable()
 export default class SuggestNewTimeService {
   constructor(
@@ -18,7 +25,7 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<string[]> {
+  }:IRequest): Promise<IFreeTime[]> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 

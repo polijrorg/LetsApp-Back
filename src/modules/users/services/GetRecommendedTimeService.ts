@@ -2,7 +2,6 @@ import { calendar_v3 } from 'googleapis';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment, { Moment } from 'moment-timezone';
-import { UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
 import IUsersRepository from '../repositories/IUsersRepository';
 import GetCalendarEventsService from './GetCalendarEventsService';
 
@@ -11,6 +10,7 @@ interface IFreeTime {
   start1?: Moment|string|null;
   end1?: Moment|string|null;
 }
+
 interface IRequest{
   phone:string,
       beginDate:string,
@@ -21,6 +21,7 @@ interface IRequest{
       mandatoryGuests:string[],
       optionalGuests:string
 }
+
 @injectable()
 export default class GetCalendarEvents {
   constructor(
