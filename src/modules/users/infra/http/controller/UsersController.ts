@@ -138,6 +138,8 @@ export default class UserController {
       phone,
     });
 
+    user.tokens = 'secured';
+
     return res.status(201).json(user);
   }
 
