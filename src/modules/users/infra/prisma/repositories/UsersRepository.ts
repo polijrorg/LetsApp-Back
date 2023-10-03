@@ -50,9 +50,10 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
-  public async findByPhone(phone: string): Promise<User | null> {
+  public async findByPhone(phone: string): Promise<(User & { contatos: Contato[] }) | null> {
     const user = await this.ormRepository.findUnique({
       where: { phone },
+      include: { contatos: true },
     });
 
     return user;
