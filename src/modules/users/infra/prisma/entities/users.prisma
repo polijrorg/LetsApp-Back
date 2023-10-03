@@ -8,12 +8,22 @@ model User {
   googleRefreshCode String?
   created_at        DateTime     @default(now())
   updated_at        DateTime     @default(now())
-  token             String?
+  tokens            String?
   type              Type?
   invites           InviteUser[]
   contatos          Contato[]
 
   @@map("user")
+}
+
+model InviteUser {
+  id        String @id @default(uuid())
+  User      User   @relation(fields: [userEmail], references: [email])
+  Invite    Invite @relation(fields: [inviteId], references: [id])
+  userEmail String
+  inviteId  String
+  Status    String @default("needsAction")
+  optional  Boolean
 }
 
 model Invite {
@@ -24,35 +34,9 @@ model Invite {
   @@map("invite")
 }
 
-model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [idInvite], references: [id])
-  userEmail String
-  idInvite  String
-  Status    String @default("needsAction")
-}
-
 enum Type {
   GOOGLE
   OUTLOOK
-}
-
-model PseudoUser {
-  id            String         @id @default(uuid())
-  phone         String?        @unique
-  email         String?        @unique
-  PseudoInvites PseudoInvite[]
-
-  @@map("pseudo_users")
-}
-
-model PseudoInvite {
-  id String @id @default(uuid())
-
-  guests PseudoUser[]
-
-  @@map("pseudo_invites")
 }
 
 model Contato {

@@ -6,10 +6,12 @@ import { User } from '@prisma/client';
 
 import AppError from '@shared/errors/AppError';
 import IUsersRepository from '../repositories/IUsersRepository';
+import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
+import IInvitesRepository from '../../invites/repositories/IInvitesRepository';
 import SmsService from './SmsService';
 
 interface IRequest {
-
+  pseudoUserId?: string;
   phone:string;
 }
 
@@ -19,19 +21,39 @@ export default class CreateUserService {
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
 
+    @inject('PseudoUsersRepository')
+    private pseudoUsersRepository: IPseudoUsersRepository,
+
+    @inject('InvitesRepository')
+    private invitesRepository: IInvitesRepository,
+
   ) { }
 
-  public async execute({ phone }: IRequest): Promise<User> {
+  public async execute({ phone, pseudoUserId }: IRequest): Promise<User> {
     if (phone === '') throw new AppError('Phone is empty', 400);
+
     const oldUser = await this.usersRepository.findByPhone(phone);
     if (oldUser) { return oldUser; }
+
     let code = Math.floor(Math.random() * 999999);
     while (code < 100000) {
       code *= 10;
     }
 
+    if (pseudoUserId) {
+      const pseudoUser = await this.pseudoUsersRepository.findById(pseudoUserId);
+      if (!pseudoUser) throw new AppError('PseudoUser not found', 400);
+
+      const user = await this.usersRepository.create({ phone, code });
+      const pseudoUserInvite = await this.invitesRepository.findInviteByPseudoUser(pseudoUser);
+
+      if (!pseudoUserInvite) throw new AppError('PseudoUserInvite not found', 400);
+      await this.invitesRepository.connect(user, pseudoUserInvite);
+      return user;
+    }
+
     const message = `Letsapp: Olá seu codigo é ${code}`;
-    const sendSms = await container.resolve(SmsService);
+    const sendSms = container.resolve(SmsService);
     const status = await sendSms.execute({ phone, message });
     if (status === 'Error') throw new AppError('SMS not sent', 400);
 

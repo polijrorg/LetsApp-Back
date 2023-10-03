@@ -4,10 +4,8 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import CreateInviteService from '@modules/invites/services/CreateInviteService';
-import CreatePseudoInviteService from '@modules/invites/services/CreatePseudoInviteService';
 import UserManagementService from '@modules/users/services/UserManagementService';
-import { Invite, PseudoInvite } from '@prisma/client';
-// import axios from 'axios';
+import { Invite } from '@prisma/client';
 
 import IUsersRepository from '../repositories/IUsersRepository';
 
@@ -27,11 +25,6 @@ interface IMeeting {
   conferenceId:string;
 }
 
-interface IResponse {
-  invite:Invite;
-  pseudoInvite: PseudoInvite | null;
-}
-
 @injectable()
 export default class CreateOutlookCalendarEventService {
   constructor(
@@ -42,17 +35,23 @@ export default class CreateOutlookCalendarEventService {
 
   public async authenticate({
     phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
-  }: IRequest): Promise<IResponse> {
-    // eslint-disable-next-line no-var
-    var attendeesEmail = attendees;
-    // const oauth2Client = new google.auth.OAuth2();
+  }: IRequest): Promise<Invite> {
+    // To create the invite we need a valid full-registered-users guest list.
+    // In order to achieve this, we call a service that separates the guests into four lists:
+    const userManagementService = container.resolve(UserManagementService);
+
+    // Guests management
+    const {
+      guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
+    } = await userManagementService.execute(attendees, optionalAttendees);
+
+    const attendeesEmail = guests;
+    attendeesEmail.concat(optionalGuests);
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    // Application client configuration
-
-    const tokenCache = JSON.parse(user.token!);
+    const tokenCache = JSON.parse(user.tokens!);
 
     const clientConfig = {
       auth: {
@@ -86,8 +85,12 @@ export default class CreateOutlookCalendarEventService {
     for (let index = 0; index < attendeesEmail.length; index++) {
       const element = attendeesEmail[index];
       if (!element.includes('@')) {
-        // eslint-disable-next-line no-await-in-loop
-        attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+        } catch (error) {
+          console.log(error.message);
+        }
       }
     }
 
@@ -120,6 +123,7 @@ export default class CreateOutlookCalendarEventService {
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
       if (createMeetLink) {
+        console.log('creating meeting link');
         try { // will only work with business or school accounts
           const meeting = await graphClient.api('/me/onlineMeetings').post({
             startDateTime: begin,
@@ -131,9 +135,10 @@ export default class CreateOutlookCalendarEventService {
           });
           return {
             url: meeting.joinWebUrl,
-            conferenceId: meeting.videoTeleconferenceId,
+            conferenceId: meeting.id,
           };
-        } catch {
+        } catch (error) {
+          console.log(error.body);
           return null;
         }
       }
@@ -142,22 +147,6 @@ export default class CreateOutlookCalendarEventService {
 
     const meeting = await getMeetLink();
 
-    // To create the invite we need a valid full-registered-users guest list.
-    // In order to achieve this, we call a service that separates the guests into four lists:
-    const userManagementService = container.resolve(UserManagementService);
-
-    // Guests management
-    const {
-      registeredGuests, unregisteredGuests, registeredOptionalGuests, unregisteredOptionalGuests,
-    } = await userManagementService.execute(attendees, optionalAttendees);
-
-    // Create PseudoInvite on the database
-    const CreatePseudoInviteEvent = container.resolve(CreatePseudoInviteService);
-    const pseudoInvite = await CreatePseudoInviteEvent.execute({
-      unregisteredGuests,
-      unregisteredOptionalGuests,
-    });
-
     // Creates the invite on the database
     const CreateInviteEvent = container.resolve(CreateInviteService);
     const state = 'accepted';
@@ -165,8 +154,10 @@ export default class CreateOutlookCalendarEventService {
       name,
       begin,
       end,
-      guests: registeredGuests,
-      optionalGuests: registeredOptionalGuests,
+      guests,
+      optionalGuests,
+      pseudoGuests,
+      pseudoOptionalGuests,
       phone,
       description,
       address,
@@ -177,6 +168,6 @@ export default class CreateOutlookCalendarEventService {
       organizerName: user.name || 'organizer',
     });
 
-    return { invite, pseudoInvite };
+    return invite;
   }
 }

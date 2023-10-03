@@ -3,8 +3,12 @@ name:string;
 begin:string;
 end:string;
 phone:string;
+// guests management
 guests: string[];
 optionalGuests:string[];
+pseudoGuests: string[];
+pseudoOptionalGuests:string[];
+// guests management
 description:string;
 address:string;
 link:string|undefined|null;

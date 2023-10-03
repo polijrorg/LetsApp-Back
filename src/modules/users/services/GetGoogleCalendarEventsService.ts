@@ -5,7 +5,7 @@ import { calendar_v3, google } from 'googleapis';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
-export default class GetCalendarEvents {
+export default class GetGoogleCalendarEvents {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
@@ -20,7 +20,7 @@ export default class GetCalendarEvents {
     const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
-    oAuth2Client.setCredentials({ access_token: user?.token });
+    oAuth2Client.setCredentials({ access_token: user?.tokens });
     const calendar = google.calendar({
       version: 'v3',
       auth: oAuth2Client,

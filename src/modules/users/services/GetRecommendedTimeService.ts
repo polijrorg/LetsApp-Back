@@ -10,6 +10,7 @@ interface IFreeTime {
   start1?: Moment|string|null;
   end1?: Moment|string|null;
 }
+
 interface IRequest{
   phone:string,
       beginDate:string,
@@ -20,6 +21,7 @@ interface IRequest{
       mandatoryGuests:string[],
       optionalGuests:string
 }
+
 @injectable()
 export default class GetCalendarEvents {
   constructor(
@@ -83,10 +85,14 @@ export default class GetCalendarEvents {
     function compareDates(a:any, b:any) {
       const dateTimeA = moment(a[0]);
 
-      const dateTimeB = moment(b[0]);
+    // // Custom comparison function
+    // function compareDates(a:any, b:any) {
+    //   const dateTimeA = moment(a[0]);
 
-      return dateTimeA.diff(dateTimeB);
-    }
+    //   const dateTimeB = moment(b[0]);
+
+    //   return dateTimeA.diff(dateTimeB);
+    // }
 
     // Sort the array based on the first datetime of each index
     data.sort(compareDates);

@@ -23,8 +23,12 @@ interface IUserContact{
 export default class UsersRepository implements IUsersRepository {
   private ormRepository: Prisma.UserDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
 
+  private ormContactsRepository: Prisma.ContatoDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
+
   constructor() {
     this.ormRepository = prisma.user;
+
+    this.ormContactsRepository = prisma.contato;
   }
 
   public async findByEmailWithRelations(email: string): Promise<User | null> {
@@ -63,7 +67,7 @@ export default class UsersRepository implements IUsersRepository {
 
   public async findToken(): Promise<User | null> {
     const user = await this.ormRepository.findFirst({
-      where: { token: '1' },
+      where: { tokens: '1' },
     });
 
     return user;
@@ -117,7 +121,7 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async updateToken(id: string, token: string): Promise<User> {
-    const user = await this.ormRepository.update({ where: { id }, data: { token } });
+    const user = await this.ormRepository.update({ where: { id }, data: { tokens: token } });
 
     return user;
   }
@@ -154,7 +158,7 @@ export default class UsersRepository implements IUsersRepository {
   public async listUserEmailByInvite(id: string): Promise<string[]> {
     const users = await prisma.inviteUser.findMany({
       where: {
-        idInvite: id,
+        inviteId: id,
       },
       select: { userEmail: true },
 
@@ -189,5 +193,30 @@ export default class UsersRepository implements IUsersRepository {
     if (!user || !user.email) throw new Error('Attendee user not found');
 
     return user.type;
+  }
+  
+  public async findByPhoneWithContacts(phone: string): Promise<(User & { contatos: Contato[] }) | null> {
+    const user = await this.ormRepository.findUnique({
+      where: { phone },
+      include: { contatos: true },
+    });
+
+    return user;
+  }
+
+  public async findContactByPhone(phone:string, userId:string): Promise<Contato|null> {
+    const contact = await this.ormContactsRepository.findFirst({
+      where: { phone, userId },
+    });
+
+    return contact;
+  }
+
+  public async findContactByEmail(email:string, userId:string): Promise<Contato|null> {
+    const contact = await this.ormContactsRepository.findFirst({
+      where: { email, userId },
+    });
+
+    return contact;
   }
 }

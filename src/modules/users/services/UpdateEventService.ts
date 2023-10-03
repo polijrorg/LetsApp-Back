@@ -1,7 +1,8 @@
 import { google } from 'googleapis';
-import { inject, injectable } from 'tsyringe';
+import { inject, injectable, container } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Invite } from '@prisma/client';
+import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
@@ -9,8 +10,13 @@ interface IRequest {
   phone:string,
   begin:string,
   end:string
-
 }
+
+interface IResponse {
+  invite: Invite;
+  calendarEvent: any;
+}
+
 @injectable()
 export default class UpdateEventService {
   constructor(
@@ -21,10 +27,10 @@ export default class UpdateEventService {
 
   public async authenticate({
     begin, end, phone, eventId,
-  }:IRequest): Promise<Invite> {
+  }:IRequest): Promise<IResponse> {
     // const oauth2Client = new google.auth.OAuth2();
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.CLIENT_URI);
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
@@ -51,14 +57,22 @@ export default class UpdateEventService {
 
     };
 
-    const back = await calendar.events.patch({
+    const calendarEvent = await calendar.events.patch({
       eventId,
       calendarId: 'primary',
       requestBody: event,
       sendUpdates: 'all',
-
     });
 
-    return back;
+    const urlService = await container.resolve(UpdateInviteService);
+
+    const invite = await urlService.execute({
+      eventId,
+      phone,
+      begin,
+      end,
+    });
+
+    return { invite, calendarEvent };
   }
 }
