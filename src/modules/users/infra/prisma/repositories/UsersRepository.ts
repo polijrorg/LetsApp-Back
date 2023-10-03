@@ -228,6 +228,18 @@ export default class UsersRepository implements IUsersRepository {
     return user;
   }
 
+  // public async updateMicrosoftExpiresIn(
+  //   id: string,
+  //   microsoftExpiresIn: string,
+  // ): Promise<User> {
+  //   const user = await this.ormRepository.update({
+  //     where: { id },
+  //     data: { microsoftExpiresIn },
+  //   });
+
+  //   return user;
+  // }
+
   public async findContactByPhone(phone:string, userId:string): Promise<Contato|null> {
     const contact = await this.ormContactsRepository.findFirst({
       where: { phone, userId },
