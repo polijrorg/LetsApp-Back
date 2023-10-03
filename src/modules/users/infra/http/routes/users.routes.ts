@@ -25,7 +25,7 @@ usersRoutes.get('/outlook', usersController.getOutlookTokens);
 usersRoutes.post('/getGoogleAuthUrl/:phone', usersController.getGoogleAuthUrl);
 usersRoutes.post('/getOutlookAuthUrl/:phone', usersController.getOutlookAuthUrl);
 // usersRoutes.get('/getTokens', usersController.getTokens);
-usersRoutes.post('/createEvent', usersController.createEvent);
+usersRoutes.post('/createGoogleEvent', usersController.createGoogleEvent);
 usersRoutes.post('/createOutlookEvent', usersController.createOutlookEvent);
 usersRoutes.post('/getRecommededTimes', usersController.getRecommendedTime);
 usersRoutes.get('/getEvents', usersController.getEvents);

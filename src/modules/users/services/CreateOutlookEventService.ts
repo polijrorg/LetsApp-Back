@@ -46,9 +46,7 @@ export default class CreateOutlookCalendarEventService {
     } = await userManagementService.execute(attendees, optionalAttendees);
 
     const attendeesEmail = guests;
-    // eslint-disable-next-line no-var
     attendeesEmail.concat(optionalGuests);
-    // const oauth2Client = new google.auth.OAuth2();
 
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
