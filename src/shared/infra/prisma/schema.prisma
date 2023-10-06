@@ -48,19 +48,18 @@ model PseudoInviteUser {
 }
 
 model User {
-  id                String       @id @default(uuid())
-  name              String?
-  phone             String       @unique
-  email             String?      @unique
-  photo             String?
-  code              Int?
-  googleRefreshCode String?
-  created_at        DateTime     @default(now())
-  updated_at        DateTime     @default(now())
-  tokens            String?
-  type              Type?
-  invites           InviteUser[]
-  contatos          Contato[]
+  id         String       @id @default(uuid())
+  name       String?
+  phone      String       @unique
+  email      String?      @unique
+  photo      String?
+  code       Int?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now())
+  tokens     String?
+  type       Type?
+  invites    InviteUser[]
+  contatos   Contato[]
 
   @@map("user")
 }

@@ -1,28 +1,27 @@
 model User {
-  id                String       @id @default(uuid())
-  name              String?
-  phone             String       @unique
-  email             String?      @unique
-  photo             String?
-  code              Int?
-  googleRefreshCode String?
-  created_at        DateTime     @default(now())
-  updated_at        DateTime     @default(now())
-  tokens            String?
-  type              Type?
-  invites           InviteUser[]
-  contatos          Contato[]
+  id         String       @id @default(uuid())
+  name       String?
+  phone      String       @unique
+  email      String?      @unique
+  photo      String?
+  code       Int?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now())
+  tokens     String?
+  type       Type?
+  invites    InviteUser[]
+  contatos   Contato[]
 
   @@map("user")
 }
 
 model InviteUser {
-  id        String @id @default(uuid())
-  User      User   @relation(fields: [userEmail], references: [email])
-  Invite    Invite @relation(fields: [inviteId], references: [id])
+  id        String  @id @default(uuid())
+  User      User    @relation(fields: [userEmail], references: [email])
+  Invite    Invite  @relation(fields: [inviteId], references: [id])
   userEmail String
   inviteId  String
-  Status    String @default("needsAction")
+  Status    String  @default("needsAction")
   optional  Boolean
 }
 

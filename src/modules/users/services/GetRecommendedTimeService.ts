@@ -58,13 +58,9 @@ export default class GetRecommendedTimesService {
       }
     }
 
-    const googleRecommendedTimes = await googleGetTime.authenticate(
-      googleUsers,
-    );
+    const googleRecommendedTimes = await googleGetTime.authenticate(googleUsers);
 
-    const outlookRecommendedTimes = await outlookGetTime.authenticate(
-      outlookUsers,
-    );
+    const outlookRecommendedTimes = await outlookGetTime.authenticate(outlookUsers);
 
     const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
       const freeTimes: IFreeTime[] = [];
@@ -94,7 +90,7 @@ export default class GetRecommendedTimesService {
       return freeTimes;
     };
 
-    if (googleRecommendedTimes.length === 0 || outlookRecommendedTimes.length === 0) {
+    if (googleRecommendedTimes.length === 0 && outlookRecommendedTimes.length === 0) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
       const freeTimes = getFreeTimes(start, end);
@@ -107,6 +103,8 @@ export default class GetRecommendedTimesService {
     const freeTimes: IFreeTime[] = [];
     // eslint-disable-next-line no-sequences
     const simplerS = recommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+
+    console.log(simplerS);
 
     if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
@@ -131,22 +129,23 @@ export default class GetRecommendedTimesService {
     // eslint-disable-next-line no-plusplus
     for (let index = 0; index <= data.length; index++) {
       try {
-        if (index <= data.length) {
-          if (index !== 0) {
-            start = moment(data[index - 1][1]);
-          } else {
-            start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
-          }
-          if (index === 0) {
-            end = moment(data[index][0]);
-          } else if (index > (data.length - 1)) {
-            end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
-          } else {
-            end = moment(data[index][0]);
-          }
-
-          freeTimes.concat(getFreeTimes(start, end));
+        if (index !== 0) {
+          console.log('if data !==0 ', data[index - 1][1]);
+          start = moment(data[index - 1][1]);
+        } else {
+          start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
         }
+        if (index === 0) {
+          end = moment(data[index][0]);
+        } else if (index > (data.length - 1)) {
+          end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+        } else {
+          end = moment(data[index][0]);
+        }
+
+        const loopTimes = getFreeTimes(start, end);
+        freeTimes.concat(loopTimes);
+
       // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
