@@ -115,6 +115,7 @@ export default class GetRecommendedTimesService {
     if ((googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) || isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
       return freeTimes;
