@@ -19,14 +19,24 @@ export default class GetCalendarEvents {
 
     const horarios:calendar_v3.Schema$Event[] = [];
 
-    for (let i = 0; i < googleUsers.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      const aux = await urlservice.authenticate(googleUsers[i]);
-
+    const promises = googleUsers.map(async (user) => {
+      const aux = await urlservice.authenticate(user);
       for (let index = 0; index < aux.length; index += 1) {
         horarios.push(aux[index]);
       }
-    }
+    });
+
+    await Promise.all(promises);
+
+    // for (let i = 0; i < googleUsers.length; i += 1) {
+    //   // eslint-disable-next-line no-await-in-loop
+    //   const aux = await urlservice.authenticate(googleUsers[i]);
+
+    //   for (let index = 0; index < aux.length; index += 1) {
+    //     horarios.push(aux[index]);
+    //   }
+    // }
+    console.log(horarios);
 
     return horarios;
   }
