@@ -21,6 +21,7 @@ usersRoutes.post('/updateEmail', usersController.updateEmail);
 usersRoutes.delete('/deleteUser', usersController.deleteUser);
 usersRoutes.get('/listUsers', usersController.listUsers);
 usersRoutes.get('/listPseudoUsers', usersController.listPseudoUsers);
+usersRoutes.post('/resendCode', usersController.resendVerificationCode);
 
 // tokens
 usersRoutes.get('/google', usersController.getGoogleTokens);

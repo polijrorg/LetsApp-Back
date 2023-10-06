@@ -37,12 +37,12 @@ export default class UploadUserService {
     let user: User;
 
     if (hasPhoto) {
-      user = this.usersRepository.updatePhotoAndName(userFound?.id, {
+      user = await this.usersRepository.updatePhotoAndName(userFound?.id, {
         name,
         photo,
       });
     } else {
-      user = this.usersRepository.updateName(userFound?.id, name);
+      user = await this.usersRepository.updateName(userFound?.id, name);
     }
 
     return user;

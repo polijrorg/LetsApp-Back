@@ -37,6 +37,7 @@ import UpdateEventService from '@modules/users/services/UpdateEventService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
+import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -378,5 +379,15 @@ export default class UserController {
     const pseudoUsers = await listPseudoUsers.execute();
 
     return res.status(201).json(pseudoUsers);
+  }
+
+  public async resendVerificationCode(req: Request, res: Response): Promise<Response> {
+    const send = container.resolve(resendVerificationCodeService);
+
+    const { phone } = req.body;
+
+    const user = await send.execute(phone);
+
+    return res.status(201).json(user);
   }
 }
