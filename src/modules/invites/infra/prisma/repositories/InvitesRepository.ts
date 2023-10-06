@@ -1,7 +1,7 @@
 import prisma from '@shared/infra/prisma/client';
 import { v4 as uuid } from 'uuid';
 import {
-  Invite, InviteUser, Prisma, User, PseudoUser,
+  Invite, InviteUser, Prisma, User, PseudoUser, PseudoInviteUser,
 } from '@prisma/client';
 
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
@@ -284,5 +284,22 @@ export default class InvitesRepository implements IInvitesRepository {
     });
 
     return userInvite;
+  }
+
+  public async findInvitesByOrganizerName(organizerName: string): Promise<(Invite & { pseudoGuests: PseudoInviteUser[] })[] | null> {
+    const invites = await this.ormRepository.findMany({
+      where: { organizerName },
+      include: { pseudoGuests: true },
+    });
+
+    return invites;
+  }
+
+  public async delete(id: string): Promise<Invite | null> {
+    const invite = await this.ormRepository.delete({
+      where: { id },
+    });
+
+    return invite;
   }
 }
