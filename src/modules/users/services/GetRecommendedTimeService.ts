@@ -80,7 +80,8 @@ export default class GetRecommendedTimesService {
         if (start >= startDate1 && end <= endDate1) {
           let aux1 = moment(start);
           const aux2 = moment(start);
-          while (aux2 < end) {
+          aux2.add(duration, 'minute');
+          while (aux2 <= end) {
             freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
             aux1 = moment(aux2);
             aux2.add(duration, 'minute');
@@ -130,7 +131,7 @@ export default class GetRecommendedTimesService {
     for (let index = 0; index <= data.length; index++) {
       try {
         if (index !== 0) {
-          console.log('if data !==0 ', data[index - 1][1]);
+          // console.log('if data !==0 ', data[index - 1][1]);
           start = moment(data[index - 1][1]);
         } else {
           start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
