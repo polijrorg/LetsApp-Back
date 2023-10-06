@@ -131,6 +131,7 @@ export default class GetRecommendedTimesService {
       try {
         if (index !== 0) {
           console.log('if data !==0 ', data[index - 1][1]);
+          // for deploy
           start = moment(data[index - 1][1]);
         } else {
           start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
