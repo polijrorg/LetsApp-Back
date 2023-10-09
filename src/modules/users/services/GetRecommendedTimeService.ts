@@ -86,8 +86,8 @@ export default class GetRecommendedTimesService {
         console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
 
         while (eventEnd <= end && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
-          console.log('eventStart', eventStart, 'eventEnd', eventEnd);
-          console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
+          // console.log('eventStart', eventStart, 'eventEnd', eventEnd);
+          // console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
           freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
           eventStart = moment(eventEnd);
           eventEnd.add(duration, 'minute');
@@ -152,11 +152,29 @@ export default class GetRecommendedTimesService {
           end = moment(data[index][0]);
         }
 
-        const loopTimes = getFreeTimes(start, end);
+        if (start.date() < end.date()) {
+          if (end.date() - start.date() !== 1) {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            while (start.date() < end.date() - 1) {
+              start.add(1, 'days');
+              const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+              loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+            }
+            const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+          } else {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+        } else {
+          const loopTimes = getFreeTimes(start, end);
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+        }
 
-        loopTimes.map((loopTime) => freeTimes.push(loopTime));
-
-      // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
 
