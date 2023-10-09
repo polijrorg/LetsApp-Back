@@ -83,11 +83,7 @@ export default class GetRecommendedTimesService {
         lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
         // 23-10-07T22:00:00.000Z
 
-        console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
-
         while (eventEnd <= end && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
-          // console.log('eventStart', eventStart, 'eventEnd', eventEnd);
-          // console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
           freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
           eventStart = moment(eventEnd);
           eventEnd.add(duration, 'minute');
