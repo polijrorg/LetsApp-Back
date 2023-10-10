@@ -6,9 +6,9 @@ import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 // import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
-  yes: number;
-  no: number;
-  maybe: number;
+  yes: {amount: number, ateendees:InviteUser[]};
+  no: {amount: number, ateendees:User};
+  maybe: {amount: number, ateendees:User};
 }
 interface IInvitesRepository {
 

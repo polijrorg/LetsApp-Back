@@ -9,9 +9,9 @@ import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
-  yes: number;
-  no: number;
-  maybe: number;
+  yes: {amount: number, ateendees:InviteUser[]};
+  no: {amount: number, ateendees:User};
+  maybe: {amount: number, ateendees:User};
 }
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
@@ -168,32 +168,77 @@ export default class InvitesRepository implements IInvitesRepository {
     const invitedWithConfirmation: IInviteWithConfirmation[] = [];
 
     await Promise.all(invited.map(async (element) => {
-      const yes = await prisma.inviteUser.count({
+      const yesAmount = await prisma.inviteUser.count({
         where: {
           Status: 'accepted',
           inviteId: element.id,
         },
       });
+      const yesAttendees = await prisma.inviteUser.findMany({
+        where: {
+          Status: 'accepted',
+          inviteId: element.id,
+        },
+      });
+      const yesAteendees1:User[] = [];
+      yesAttendees.map(async (ateendee) => {
+        const y = await this.ormRepository2.findUnique({
+          where: {
+            email: ateendee.userEmail,
+          },
+        });
+        yesAteendees1.push(y!);
+      });
 
-      const no = await prisma.inviteUser.count({
+      const noAmount = await prisma.inviteUser.count({
         where: {
           Status: 'declined',
           inviteId: element.id,
         },
       });
+      const noAttendees = await prisma.inviteUser.findMany({
+        where: {
+          Status: 'declined',
+          inviteId: element.id,
+        },
+      });
+      const noAteendees1:User[] = [];
+      noAttendees.map(async (ateendee) => {
+        const n = await this.ormRepository2.findUnique({
+          where: {
+            email: ateendee.userEmail,
+          },
+        });
+        noAteendees1.push(n!);
+      });
 
-      const maybe = await prisma.inviteUser.count({
+      const maybeAmount = await prisma.inviteUser.count({
         where: {
           Status: 'needsAction',
           inviteId: element.id,
         },
       });
+      const maybeAttendees = await prisma.inviteUser.findMany({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+      });
+      const maybeAteendees1:User[] = [];
+      maybeAttendees.map(async (ateendee) => {
+        const m = await this.ormRepository2.findUnique({
+          where: {
+            email: ateendee.userEmail,
+          },
+        });
+        maybeAteendees1.push(m!);
+      });
 
       const temp: IInviteWithConfirmation = {
         element,
-        yes,
-        no,
-        maybe,
+        yes: { yesAmount, yesAteendees1 },
+        no: { noAmount, noAteendees1 },
+        maybe: { maybeAmount, maybeAteendees1 },
       };
 
       invitedWithConfirmation.push(temp);
