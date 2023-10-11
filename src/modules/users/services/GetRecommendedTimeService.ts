@@ -107,12 +107,7 @@ export default class GetRecommendedTimesService {
 
     const data = simplerS;
 
-    const intervalStart = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
-    const intervalEnd = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
-    const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
-    const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
-
-    if ((googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) || isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
+    if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
@@ -120,7 +115,19 @@ export default class GetRecommendedTimesService {
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
       return freeTimes;
     }
+    const intervalStart = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+    const intervalEnd = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+    const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
+    const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
 
+    if (isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+      const loopTimes = getFreeTimes(start, end);
+      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      return freeTimes;
+    }
     // Custom comparison function
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function compareDates(a:any, b:any) {
