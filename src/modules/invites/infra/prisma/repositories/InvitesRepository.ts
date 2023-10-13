@@ -9,9 +9,9 @@ import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
-  yes: {amount: number, ateendees:InviteUser[]};
-  no: {amount: number, ateendees:User};
-  maybe: {amount: number, ateendees:User};
+  yes: {amount: number, ateendees:User[]};
+  no: {amount: number, ateendees:User[]};
+  maybe: {amount: number, ateendees:User[]};
 }
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
@@ -236,9 +236,9 @@ export default class InvitesRepository implements IInvitesRepository {
 
       const temp: IInviteWithConfirmation = {
         element,
-        yes: { yesAmount, yesAteendees1 },
-        no: { noAmount, noAteendees1 },
-        maybe: { maybeAmount, maybeAteendees1 },
+        yes: { amount: yesAmount, ateendees: yesAteendees1 },
+        no: { amount: noAmount, ateendees: noAteendees1 },
+        maybe: { amount: maybeAmount, ateendees: maybeAteendees1 },
       };
 
       invitedWithConfirmation.push(temp);
