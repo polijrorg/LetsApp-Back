@@ -62,32 +62,60 @@ export default class GetRecommendedTimesService {
 
     const outlookBusyTimes = await outlookGetTime.authenticate(outlookUsers);
 
+    const roundUp = (start: moment.Moment) => {
+      if ((start.minute() > 30) || (start.minute() === 30 && start.second() !== 0)) {
+        const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'hour').startOf('hour') : start.startOf('hour');
+        return roundUpBegin;
+      } if (start.minute() < 30) {
+        const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'minute').startOf('minute') : start.startOf('minute');
+        while (roundUpBegin.minute() !== 30) {
+          roundUpBegin.add(1, 'minute');
+        }
+        return roundUpBegin;
+      }
+      return start;
+    };
+
+    const roundDown = (end: moment.Moment) => {
+      if ((end.minute() > 30) || (end.minute() === 30 && end.second() !== 0)) {
+        const roundDownEnd = end.minute(30).second(0);
+        return roundDownEnd;
+      } if (end.minute() < 30) {
+        const roundDownEnd = end.minute(0).second(0);
+        return roundDownEnd;
+      }
+      return end;
+    };
+
     const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
       const freeTimes: IFreeTime[] = [];
       const diff = end.diff(start) / 60000;
 
-      if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
-        let eventStart = moment(start);
-        const eventEnd = moment(start);
+      const roundedStart = roundUp(start);
+      const roundedEnd = roundDown(end);
+
+      if (diff > 0 && roundedStart > moment(beginDate) && roundedEnd < moment(endDate).add(1, 'days') && duration <= diff) {
+        let eventStart = moment(roundedStart);
+        const eventEnd = moment(roundedStart);
         eventEnd.add(duration, 'minute');
 
-        const earlyHourLimit = moment(start); // 23-10-07T15:00:00.000Z
+        const earlyHourLimit = moment(roundedStart); // 23-10-07T15:00:00.000Z
         earlyHourLimit.set('hour', parseInt(beginHour.slice(0, 2), 10));
         earlyHourLimit.set('minute', parseInt(beginHour.slice(3, 5), 10));
         earlyHourLimit.set('seconds', parseInt(beginHour.slice(6, 8), 10));
         // 23-10-07T15:00:00.000Z
 
-        const lateHourLimit = moment(start); // 23-10-07T17:00:00.000Z
+        const lateHourLimit = moment(roundedStart); // 23-10-07T17:00:00.000Z
         lateHourLimit.set('hour', parseInt(endHour.slice(0, 2), 10));
         lateHourLimit.set('minute', parseInt(endHour.slice(3, 5), 10));
         lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
         // 23-10-07T22:00:00.000Z
 
-        console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
+        // console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
 
-        while (eventEnd <= end && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
-          console.log('eventStart', eventStart, 'eventEnd', eventEnd);
-          console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
+        while (eventEnd <= roundedEnd && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
+          // console.log('eventStart', eventStart, 'eventEnd', eventEnd);
+          // console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
           freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
           eventStart = moment(eventEnd);
           eventEnd.add(duration, 'minute');
@@ -107,12 +135,7 @@ export default class GetRecommendedTimesService {
 
     const data = simplerS;
 
-    const intervalStart = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
-    const intervalEnd = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
-    const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
-    const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
-
-    if ((googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) || isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
+    if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
@@ -120,7 +143,25 @@ export default class GetRecommendedTimesService {
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
       return freeTimes;
     }
+    const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
 
+    const intervalStart = roundUp(intervalStart1);
+
+    const intervalEnd1 = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+    const intervalEnd = roundDown(intervalEnd1);
+
+    const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
+    const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
+
+    if (isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+      const loopTimes = getFreeTimes(start, end);
+      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      return freeTimes;
+    }
     // Custom comparison function
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function compareDates(a:any, b:any) {
@@ -152,11 +193,29 @@ export default class GetRecommendedTimesService {
           end = moment(data[index][0]);
         }
 
-        const loopTimes = getFreeTimes(start, end);
+        if (start.date() < end.date()) {
+          if (end.date() - start.date() !== 1) {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            while (start.date() < end.date() - 1) {
+              start.add(1, 'days');
+              const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+              loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+            }
+            const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+          } else {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+        } else {
+          const loopTimes = getFreeTimes(start, end);
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+        }
 
-        loopTimes.map((loopTime) => freeTimes.push(loopTime));
-
-      // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
 

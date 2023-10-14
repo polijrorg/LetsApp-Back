@@ -217,11 +217,11 @@ export default class UserController {
   public async createGoogleEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateGoogleEventService);
     const {
-      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAttendees,
+      phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     } = req.body;
 
     const Url = await urlservice.authenticate({
-      phone, begin, end, attendees, description, address, name, createMeetLink, optionalAttendees,
+      phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     });
     return res.status(201).json(Url);
   }
@@ -232,6 +232,8 @@ export default class UserController {
       phone,
       begin,
       end,
+      beginSearch,
+      endSearch,
       attendees,
       description,
       address,
@@ -241,7 +243,7 @@ export default class UserController {
     } = req.body;
 
     await urlservice.authenticate({
-      phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
+      phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
     });
     return res.status(201).json('ok');
   }
