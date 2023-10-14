@@ -181,6 +181,7 @@ export default class GetRecommendedTimesService {
     for (let index = 0; index <= data.length; index++) {
       try {
         if (index !== 0) {
+
           start = moment(data[index - 1][1]);
         } else {
           start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);

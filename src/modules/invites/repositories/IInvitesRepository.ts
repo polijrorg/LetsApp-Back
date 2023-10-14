@@ -15,7 +15,7 @@ interface IInvitesRepository {
   create(data: ICreateInviteDTO): Promise<Invite>;
   listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]>
   listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]>
-  listEventsByUser(email: string): Promise<Invite[]>
+  listEventsByUser(email: string): Promise<IInviteWithConfirmation[]>
   UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null>
   UpdatedInviteById(eventId:string, begin:string, end:string, phone:string): Promise<Invite|null>
   findInviteById(idInvite:string): Promise<Invite|null>;
