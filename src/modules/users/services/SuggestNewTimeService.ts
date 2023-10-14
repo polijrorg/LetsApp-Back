@@ -11,8 +11,8 @@ interface IRequest{
 
 interface IFreeTime {
   date?: Moment|string |null;
-  start1?: Moment|string|null;
-  end1?: Moment|string|null;
+  start?: Moment|string|null;
+  end?: Moment|string|null;
 }
 
 @injectable()
@@ -33,8 +33,25 @@ export default class SuggestNewTimeService {
     if (!invite) throw new AppError('Invite not found', 400);
     const usersEmails = await this.usersRepository.listUserEmailByInvite(inviteId);
 
-    const googleTime = container.resolve(GetRecommendedTimeService);
-    const times = await googleTime.authenticate(
+    const possibleTimes = container.resolve(GetRecommendedTimeService);
+
+    if (invite.beginSearch !== null && invite.endSearch !== null) {
+      const times = await possibleTimes.authenticate(
+        {
+          phone,
+          beginDate: `${invite.beginSearch.slice(0, 10)}T00:00:00-03:00`,
+          endDate: `${invite.endSearch.slice(0, 10)}T00:00:00-03:00`,
+          beginHour: invite.beginSearch.slice(11, 25),
+          endHour: invite.endSearch.slice(11, 25),
+          duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
+          mandatoryGuests: usersEmails,
+          optionalGuests: 'undefined',
+        },
+      );
+
+      return times;
+    }
+    const times = await possibleTimes.authenticate(
       {
         phone,
         beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,

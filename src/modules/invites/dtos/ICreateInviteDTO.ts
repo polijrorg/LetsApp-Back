@@ -2,6 +2,8 @@ interface ICreateInviteDTO {
 name:string;
 begin:string;
 end:string;
+beginSearch:string;
+endSearch:string;
 phone:string;
 // guests management
 guests: string[];
