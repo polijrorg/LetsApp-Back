@@ -36,7 +36,7 @@ export default class GetCalendarEvents {
     //     horarios.push(aux[index]);
     //   }
     // }
-    console.log(horarios);
+    // console.log(horarios);
 
     return horarios;
   }
