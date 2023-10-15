@@ -12,6 +12,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 interface IRequest {
   phone:string;
   begin:string; end:string;
+  beginSearch:string; endSearch:string;
   attendees: string[];
   description:string;
   address:string;
@@ -34,7 +35,7 @@ export default class CreateOutlookCalendarEventService {
   ) { }
 
   public async authenticate({
-    phone, begin, end, attendees, description, address, name, optionalAttendees, createMeetLink,
+    phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
   }: IRequest): Promise<Invite> {
     // To create the invite we need a valid full-registered-users guest list.
     // In order to achieve this, we call a service that separates the guests into four lists:
@@ -154,6 +155,8 @@ export default class CreateOutlookCalendarEventService {
       name,
       begin,
       end,
+      beginSearch,
+      endSearch,
       guests,
       optionalGuests,
       pseudoGuests,
