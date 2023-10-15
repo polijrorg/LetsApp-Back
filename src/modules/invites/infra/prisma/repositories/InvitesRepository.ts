@@ -30,7 +30,7 @@ export default class InvitesRepository implements IInvitesRepository {
   }
 
   public async create({
-    name, begin, end, beginSearch, endSearch, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto, link
+    name, begin, end, beginSearch, endSearch, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto, link,
   }: ICreateInviteDTO): Promise<Invite> {
     const user = await prisma.user.findUnique({ where: { phone } });
     const createData = {
