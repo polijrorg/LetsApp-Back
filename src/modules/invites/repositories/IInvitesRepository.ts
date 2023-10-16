@@ -1,5 +1,5 @@
 import {
-  Invite, User, InviteUser, PseudoUser,
+  Invite, User, InviteUser, PseudoUser, PseudoInviteUser,
 } from '@prisma/client';
 
 import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
@@ -23,6 +23,8 @@ interface IInvitesRepository {
   findEventByInvite(user: User, invite: Invite): Promise<InviteUser|null>
   findInviteByPseudoUser(pseudoUser: PseudoUser): Promise<Invite|null>
   connect(user: User, invite: Invite): Promise<InviteUser>
+  findInvitesByOrganizerName(eventId:string): Promise<(Invite & { pseudoGuests: PseudoInviteUser[] })[] | null>;
+  delete(id:string): Promise<Invite|null>;
 }
 
 export default IInvitesRepository;

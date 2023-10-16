@@ -243,10 +243,11 @@ export default class UserController {
       optionalAttendees,
     } = req.body;
 
-    await urlservice.authenticate({
+
+    const invite = await urlservice.authenticate({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
-    });
-    return res.status(201).json('ok');
+
+    return res.status(201).json(invite);
   }
 
   public async updateEventState(req: Request, res: Response): Promise<Response> {
