@@ -38,6 +38,7 @@ import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAva
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
+import ListContactsService from '@modules/users/services/ListContactsService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -391,5 +392,14 @@ export default class UserController {
     const user = await send.execute(phone);
 
     return res.status(201).json(user);
+  }
+
+  public async listContacts(req: Request, res: Response): Promise<Response> {
+    const { phone } = req.params;
+    const urlService = container.resolve(ListContactsService);
+
+    const user = await urlService.execute(phone);
+
+    return res.status(200).json({ ...user, tokens: 'secured' });
   }
 }
