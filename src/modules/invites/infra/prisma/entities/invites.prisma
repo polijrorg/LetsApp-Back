@@ -3,6 +3,8 @@ model Invite {
   name           String
   begin          String
   end            String
+  beginSearch    String?
+  endSearch      String?
   description    String
   phone          String
   address        String

@@ -9,6 +9,7 @@ import UserManagementService from './UserManagementService';
 interface IRequest {
     phone:string;
     begin:string; end:string;
+    beginSearch:string; endSearch:string;
     attendees:string[];
     description:string;
     address:string;
@@ -26,7 +27,7 @@ export default class CreateGoogleEventService {
   ) { }
 
   public async authenticate({
-    address, attendees, begin, createMeetLink, description, end, phone, name, optionalAttendees,
+    address, attendees, begin, createMeetLink, description, end, beginSearch, endSearch, phone, name, optionalAttendees,
   }:IRequest): Promise<Invite> {
     // To create the invite we need a valid full-registered-users guest list.
     // In order to achieve this, we call a service that separates the guests into four lists:
@@ -111,6 +112,8 @@ export default class CreateGoogleEventService {
       name,
       begin,
       end,
+      beginSearch,
+      endSearch,
       guests,
       optionalGuests,
       pseudoGuests,
