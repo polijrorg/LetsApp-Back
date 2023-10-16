@@ -39,7 +39,6 @@ import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsServi
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
 import ListContactsService from '@modules/users/services/ListContactsService';
-import ListContactsService from '@modules/users/services/ListContactsService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -219,11 +218,11 @@ export default class UserController {
   public async createGoogleEvent(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(CreateGoogleEventService);
     const {
-      phone, begin, end, beginSearch, endSearch, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
+      phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     } = req.body;
 
     const Url = await urlservice.authenticate({
-      phone, begin, end, beginSearch, endSearch, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
+      phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     });
     return res.status(201).json(Url);
   }
@@ -236,8 +235,6 @@ export default class UserController {
       end,
       beginSearch,
       endSearch,
-      beginSearch,
-      endSearch,
       attendees,
       description,
       address,
@@ -245,7 +242,6 @@ export default class UserController {
       createMeetLink,
       optionalAttendees,
     } = req.body;
-
 
     const invite = await urlservice.authenticate({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
@@ -397,15 +393,6 @@ export default class UserController {
     const user = await send.execute(phone);
 
     return res.status(201).json(user);
-  }
-
-  public async listContacts(req: Request, res: Response): Promise<Response> {
-    const { phone } = req.params;
-    const urlService = container.resolve(ListContactsService);
-
-    const user = await urlService.execute(phone);
-
-    return res.status(200).json({ ...user, tokens: 'secured' });
   }
 
   public async listContacts(req: Request, res: Response): Promise<Response> {
