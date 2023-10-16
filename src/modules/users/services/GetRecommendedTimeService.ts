@@ -4,11 +4,12 @@ import moment, { Moment } from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
 import googleGetRecommendedTimeService from './googleGetRecommendedTimeService';
 import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
+import UserManagementService from './UserManagementService';
 
 interface IFreeTime {
   date?: Moment|string |null;
-  start1?: Moment|string|null;
-  end1?: Moment|string|null;
+  start?: Moment|string|null;
+  end?: Moment|string|null;
 }
 interface IRequest{
   phone:string,
@@ -39,6 +40,7 @@ export default class GetRecommendedTimesService {
 
     const googleGetTime = container.resolve(googleGetRecommendedTimeService);
     const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
+    const managementService = container.resolve(UserManagementService);
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mandatoryGuests.push(user.email!);
@@ -46,8 +48,10 @@ export default class GetRecommendedTimesService {
     const outlookUsers: string[] = [];
     const googleUsers: string[] = [];
 
+    const { guests } = await managementService.execute(mandatoryGuests, []);
+
     // eslint-disable-next-line no-restricted-syntax
-    for (const element of mandatoryGuests) {
+    for (const element of guests) {
       // eslint-disable-next-line no-await-in-loop
       const userType = await this.usersRepository.findTypeByEmail(element);
 
@@ -58,63 +62,114 @@ export default class GetRecommendedTimesService {
       }
     }
 
-    const googleRecommendedTimes = await googleGetTime.authenticate(googleUsers);
+    const googleBusyTimes = await googleGetTime.authenticate(googleUsers);
 
-    const outlookRecommendedTimes = await outlookGetTime.authenticate(outlookUsers);
+    const outlookBusyTimes = await outlookGetTime.authenticate(outlookUsers);
+
+    const roundUp = (start: moment.Moment) => {
+      if ((start.minute() > 30) || (start.minute() === 30 && start.second() !== 0)) {
+        const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'hour').startOf('hour') : start.startOf('hour');
+        return roundUpBegin;
+      } if (start.minute() < 30) {
+        const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'minute').startOf('minute') : start.startOf('minute');
+        while (roundUpBegin.minute() !== 30) {
+          roundUpBegin.add(1, 'minute');
+        }
+        return roundUpBegin;
+      }
+      return start;
+    };
+
+    const roundDown = (end: moment.Moment) => {
+      if ((end.minute() > 30) || (end.minute() === 30 && end.second() !== 0)) {
+        const roundDownEnd = end.minute(30).second(0);
+        return roundDownEnd;
+      } if (end.minute() < 30) {
+        const roundDownEnd = end.minute(0).second(0);
+        return roundDownEnd;
+      }
+      return end;
+    };
 
     const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
       const freeTimes: IFreeTime[] = [];
       const diff = end.diff(start) / 60000;
 
-      if (diff > 0 && start > moment(beginDate) && end < moment(endDate).add(1, 'days') && duration <= diff) {
-        const startDate1 = moment(start);
-        startDate1.set('hour', parseInt(beginHour.slice(0, 2), 10));
-        startDate1.set('minute', parseInt(beginHour.slice(3, 5), 10));
-        startDate1.set('seconds', parseInt(beginHour.slice(6, 8), 10));
+      const roundedStart = roundUp(start);
+      const roundedEnd = roundDown(end);
 
-        const endDate1 = moment(start);
-        endDate1.set('hour', parseInt(endHour.slice(0, 2), 10));
-        endDate1.set('minute', parseInt(endHour.slice(3, 5), 10));
-        endDate1.set('seconds', parseInt(endHour.slice(6, 8), 10));
+      if (diff > 0 && roundedStart > moment(beginDate) && roundedEnd < moment(endDate).add(1, 'days') && duration <= diff) {
+        let eventStart = moment(roundedStart);
+        const eventEnd = moment(roundedStart);
+        eventEnd.add(duration, 'minute');
 
-        if (start >= startDate1 && end <= endDate1) {
-          let aux1 = moment(start);
-          const aux2 = moment(start);
-          while (aux2 < end) {
-            freeTimes.push({ start1: aux1.tz('America/Sao_Paulo').format(), end1: aux2.tz('America/Sao_Paulo').format() });
-            aux1 = moment(aux2);
-            aux2.add(duration, 'minute');
-          }
+        const earlyHourLimit = moment(roundedStart); // 23-10-07T15:00:00.000Z
+        earlyHourLimit.set('hour', parseInt(beginHour.slice(0, 2), 10));
+        earlyHourLimit.set('minute', parseInt(beginHour.slice(3, 5), 10));
+        earlyHourLimit.set('seconds', parseInt(beginHour.slice(6, 8), 10));
+        // 23-10-07T15:00:00.000Z
+
+        const lateHourLimit = moment(roundedStart); // 23-10-07T17:00:00.000Z
+        lateHourLimit.set('hour', parseInt(endHour.slice(0, 2), 10));
+        lateHourLimit.set('minute', parseInt(endHour.slice(3, 5), 10));
+        lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
+        // 23-10-07T22:00:00.000Z
+
+        // console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
+
+        while (eventEnd <= roundedEnd && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
+          // console.log('eventStart', eventStart, 'eventEnd', eventEnd);
+          // console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
+          freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
+          eventStart = moment(eventEnd);
+          eventEnd.add(duration, 'minute');
         }
       }
       return freeTimes;
     };
 
-    if (googleRecommendedTimes.length === 0 && outlookRecommendedTimes.length === 0) {
-      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
-      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
-      const freeTimes = getFreeTimes(start, end);
-      return freeTimes;
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recommendedTimes: any[] = googleRecommendedTimes.concat(outlookRecommendedTimes);
+    const busyTimes: any[] = googleBusyTimes.concat(outlookBusyTimes);
 
     const freeTimes: IFreeTime[] = [];
     // eslint-disable-next-line no-sequences
-    const simplerS = recommendedTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
+    const simplerS = busyTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
-    console.log(simplerS);
-
-    if (simplerS === undefined) throw new AppError('Uasdasda', 400);
+    // if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
     const data = simplerS;
 
+    if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+      const loopTimes = getFreeTimes(start, end);
+      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      return freeTimes;
+    }
+    const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+
+    const intervalStart = roundUp(intervalStart1);
+
+    const intervalEnd1 = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+    const intervalEnd = roundDown(intervalEnd1);
+
+    const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
+    const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
+
+    if (isIntervalBeforeEventStart || isIntervalAfterEventEnd) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+      const loopTimes = getFreeTimes(start, end);
+      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      return freeTimes;
+    }
     // Custom comparison function
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function compareDates(a:any, b:any) {
       const dateTimeA = moment(a[0]);
-
       const dateTimeB = moment(b[0]);
 
       return dateTimeA.diff(dateTimeB);
@@ -130,7 +185,6 @@ export default class GetRecommendedTimesService {
     for (let index = 0; index <= data.length; index++) {
       try {
         if (index !== 0) {
-          console.log('if data !==0 ', data[index - 1][1]);
           start = moment(data[index - 1][1]);
         } else {
           start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
@@ -143,10 +197,29 @@ export default class GetRecommendedTimesService {
           end = moment(data[index][0]);
         }
 
-        const loopTimes = getFreeTimes(start, end);
-        freeTimes.concat(loopTimes);
+        if (start.date() < end.date()) {
+          if (end.date() - start.date() !== 1) {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            while (start.date() < end.date() - 1) {
+              start.add(1, 'days');
+              const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+              loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+            }
+            const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+          } else {
+            const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes.map((loopTime) => freeTimes.push(loopTime));
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+        } else {
+          const loopTimes = getFreeTimes(start, end);
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+        }
 
-      // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
 

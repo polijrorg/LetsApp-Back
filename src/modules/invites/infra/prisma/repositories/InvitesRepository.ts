@@ -30,13 +30,15 @@ export default class InvitesRepository implements IInvitesRepository {
   }
 
   public async create({
-    name, begin, end, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto,
+    name, begin, end, beginSearch, endSearch, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto,
   }: ICreateInviteDTO): Promise<Invite> {
     const user = await prisma.user.findUnique({ where: { phone } });
     const createData = {
       name,
       begin,
       end,
+      beginSearch,
+      endSearch,
       phone,
       description,
       guests: {
@@ -146,7 +148,7 @@ export default class InvitesRepository implements IInvitesRepository {
     return invitedWithConfirmation;
   }
 
-  public async listEventsByUser(email: string): Promise<Invite[]> {
+  public async listEventsByUser(email: string): Promise<IInviteWithConfirmation[]> {
     const invites = await prisma.inviteUser.findMany({
       where: {
         userEmail: email,
@@ -163,11 +165,43 @@ export default class InvitesRepository implements IInvitesRepository {
       },
       orderBy: {
         begin: 'asc',
-
       },
     });
+    const invitedWithConfirmation: IInviteWithConfirmation[] = [];
 
-    return invited;
+    await Promise.all(invited.map(async (element) => {
+      const yes = await prisma.inviteUser.count({
+        where: {
+          Status: 'accepted',
+          inviteId: element.id,
+        },
+      });
+
+      const no = await prisma.inviteUser.count({
+        where: {
+          Status: 'declined',
+          inviteId: element.id,
+        },
+      });
+
+      const maybe = await prisma.inviteUser.count({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+      });
+
+      const temp: IInviteWithConfirmation = {
+        element,
+        yes,
+        no,
+        maybe,
+      };
+
+      invitedWithConfirmation.push(temp);
+    }));
+
+    return invitedWithConfirmation;
   }
 
   public async UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null> {
