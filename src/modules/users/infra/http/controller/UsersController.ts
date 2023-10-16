@@ -243,9 +243,9 @@ export default class UserController {
       optionalAttendees,
     } = req.body;
 
-
     const invite = await urlservice.authenticate({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
+    });
 
     return res.status(201).json(invite);
   }
