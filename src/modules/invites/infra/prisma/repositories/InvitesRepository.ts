@@ -9,9 +9,9 @@ import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
-  yes: {amount: number, ateendees:User[]};
-  no: {amount: number, ateendees:User[]};
-  maybe: {amount: number, ateendees:User[]};
+  yes: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
+  no: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
+  maybe: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
 }
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
@@ -223,6 +223,21 @@ export default class InvitesRepository implements IInvitesRepository {
           Status: 'needsAction',
           inviteId: element.id,
         },
+      });
+      const maybeAttendeesPseudo = await this.ormRepository3.findMany({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+      });
+      const maybeAteendeesPseudo1 : PseudoUser[] = [];
+      maybeAttendeesPseudo.map(async (ateendee) => {
+        const m = await prisma.pseudoUser.findUnique({
+          where:{OR:[
+            email: ateendee.userEmail,phone: ateendee.,]
+          },
+        });
+        maybeAteendeesPseudo1.push(m!);
       });
       const maybeAteendees1:User[] = [];
       maybeAttendees.map(async (ateendee) => {
