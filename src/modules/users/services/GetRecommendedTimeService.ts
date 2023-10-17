@@ -63,6 +63,7 @@ export default class GetRecommendedTimesService {
     const outlookBusyTimes = await outlookGetTime.authenticate(outlookUsers);
 
     const roundUp = (start: moment.Moment) => {
+      if (start.minute() === 0 && start.second() === 0) return start;
       if ((start.minute() > 30) || (start.minute() === 30 && start.second() !== 0)) {
         const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'hour').startOf('hour') : start.startOf('hour');
         return roundUpBegin;
@@ -88,6 +89,9 @@ export default class GetRecommendedTimesService {
     };
 
     const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
+      console.log(start);
+      console.log(end);
+      console.log();
       const freeTimes: IFreeTime[] = [];
       const diff = end.diff(start) / 60000;
 
@@ -111,11 +115,7 @@ export default class GetRecommendedTimesService {
         lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
         // 23-10-07T22:00:00.000Z
 
-        // console.log('start', start, 'earlyHourLimit', earlyHourLimit, 'end', end, 'lateHourLimit', lateHourLimit);
-
         while (eventEnd <= roundedEnd && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
-          // console.log('eventStart', eventStart, 'eventEnd', eventEnd);
-          // console.log('earlyHourLimit', earlyHourLimit, 'lateHourLimit', lateHourLimit);
           freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
           eventStart = moment(eventEnd);
           eventEnd.add(duration, 'minute');
@@ -133,7 +133,16 @@ export default class GetRecommendedTimesService {
 
     // if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
-    const data = simplerS;
+    const dataAllTimes = simplerS;
+
+    // Custom comparison function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function compareDates(a:any, b:any) {
+      const dateTimeA = moment(a[0]);
+      const dateTimeB = moment(b[0]);
+
+      return dateTimeA.diff(dateTimeB);
+    }
 
     if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
@@ -151,6 +160,20 @@ export default class GetRecommendedTimesService {
 
     const intervalEnd = roundDown(intervalEnd1);
 
+    // Sort the array based on the first datetime of each index
+    dataAllTimes.sort(compareDates);
+    console.log(dataAllTimes);
+
+    const data: moment.Moment[][] = [];
+
+    // Delete times that are tottaly out of the interval
+    // eslint-disable-next-line array-callback-return
+    dataAllTimes.map((event) => {
+      if ((event[0] < intervalStart && event[1] > intervalStart) || (event[0] > intervalStart && event[1] < intervalEnd) || (event[0] < intervalEnd && event[1] > intervalEnd)) {
+        data.push(event);
+      }
+    });
+
     const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
     const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
 
@@ -162,17 +185,6 @@ export default class GetRecommendedTimesService {
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
       return freeTimes;
     }
-    // Custom comparison function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function compareDates(a:any, b:any) {
-      const dateTimeA = moment(a[0]);
-      const dateTimeB = moment(b[0]);
-
-      return dateTimeA.diff(dateTimeB);
-    }
-
-    // Sort the array based on the first datetime of each index
-    data.sort(compareDates);
 
     let start: moment.Moment;
     let end: moment.Moment;
@@ -181,7 +193,6 @@ export default class GetRecommendedTimesService {
     for (let index = 0; index <= data.length; index++) {
       try {
         if (index !== 0) {
-
           start = moment(data[index - 1][1]);
         } else {
           start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);

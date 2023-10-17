@@ -38,6 +38,7 @@ import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAva
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
+import outlookUpdateEventService from '@modules/users/services/outlookUpdateEventService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -268,6 +269,18 @@ export default class UserController {
 
     const Url = await urlservice.authenticate({
       phone, begin, end, eventId,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async updateOutlookEvent(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(outlookUpdateEventService);
+    const {
+      phone, begin, end, idInvite,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, begin, end, idInvite,
     });
     return res.status(201).json(Url);
   }

@@ -51,19 +51,20 @@ export default class SuggestNewTimeService {
 
       return times;
     }
-    const times = await possibleTimes.authenticate(
-      {
-        phone,
-        beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
-        endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
-        beginHour: invite.begin.slice(11, 25),
-        endHour: invite.end.slice(11, 25),
-        duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
-        mandatoryGuests: usersEmails,
-        optionalGuests: 'undefined',
-      },
-    );
+    throw new AppError('Cannot find invites time search interval', 400);
+    //   const times = await possibleTimes.authenticate(
+    //     {
+    //       phone,
+    //       beginDate: `${invite.begin.slice(0, 10)}T00:00:00-03:00`,
+    //       endDate: `${invite.end.slice(0, 10)}T00:00:00-03:00`,
+    //       beginHour: invite.begin.slice(11, 25),
+    //       endHour: invite.end.slice(11, 25),
+    //       duration: moment(invite.end).diff(moment(invite.begin)) / 60000,
+    //       mandatoryGuests: usersEmails,
+    //       optionalGuests: 'undefined',
+    //     },
+    //   );
 
-    return times;
+  //   return times;
   }
 }

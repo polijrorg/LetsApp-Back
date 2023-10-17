@@ -1,9 +1,16 @@
 import msal from '@azure/msal-node';
-import { inject, injectable } from 'tsyringe';
+import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
+
+interface IRequest {
+  idInvite:string,
+  phone:string,
+  begin:string,
+  end:string
+}
 
 @injectable()
 export default class outlookUpdateEvent {
@@ -11,16 +18,18 @@ export default class outlookUpdateEvent {
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
 
-    @inject('InivtesRepository')
+    @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
 
   ) { }
 
-  public async authenticate(phone:string, idInvite: string): Promise<Response> {
+  public async authenticate({
+    phone, idInvite, begin, end,
+  }: IRequest): Promise<Response> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    const invite = await this.invitesRepository.findInviteById(idInvite);
+    const invite = await this.usersRepository.findInvite(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
 
     if (!user.tokens) throw new AppError('Token not found', 400);
@@ -65,22 +74,28 @@ export default class outlookUpdateEvent {
     if (!idEvent) throw new AppError('Users invite not found', 400);
 
     const event = {
-      originalStartTimeZone: 'originalStartTimeZone-value',
-      originalEndTimeZone: 'originalEndTimeZone-value',
-      responseStatus: {
-        response: '',
-        time: 'datetime-value',
-      },
+      // attendees: [{
+      //   emailAddress: {
+      //     address: 'nicholasogatateste3112@outlook.com',
+      //   },
+      // }],
+      subject: invite.name,
+      bodyPreview: invite.description,
+      start: { dateTime: `${begin}.0000000`, timeZone: 'America/Sao_Paulo' },
+      end: { dateTime: `${end}.0000000`, timeZone: 'America/Sao_Paulo' },
       recurrence: null,
-      reminderMinutesBeforeStart: 99,
-      isOnlineMeeting: true,
-      onlineMeetingProvider: 'teamsForBusiness',
-      isReminderOn: true,
+      isOnlineMeeting: false,
       hideAttendees: false,
-      categories: ['Red category'],
     };
 
-    const updatedEvent = await graphClient.api(`/me/events/${idEvent}`).update(event);
+    const updatedEvent = await graphClient.api(`/me/events/${idEvent}`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').update(event);
+
+    await this.invitesRepository.UpdatedInviteById(
+      invite.id,
+      begin,
+      end,
+      phone,
+    );
 
     return updatedEvent;
   }
