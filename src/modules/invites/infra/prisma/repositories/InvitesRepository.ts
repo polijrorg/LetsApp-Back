@@ -189,7 +189,22 @@ export default class InvitesRepository implements IInvitesRepository {
         });
         yesAteendees1.push(y!);
       });
+      const yesAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
 
+      });
+      const yesAteendeesPseudo1:PseudoUser[] = [];
+      yesAttendeesPseudo.map(async (ateendee) => {
+        const m = await prisma.pseudoUser.findUnique({
+          where: {
+            id: ateendee.pseudoUserId,
+          },
+        });
+        yesAteendeesPseudo1.push(m!);
+      });
       const noAmount = await prisma.inviteUser.count({
         where: {
           Status: 'declined',
@@ -211,6 +226,22 @@ export default class InvitesRepository implements IInvitesRepository {
         });
         noAteendees1.push(n!);
       });
+      const noAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+
+      });
+      const noAteendeesPseudo1:PseudoUser[] = [];
+      noAttendeesPseudo.map(async (ateendee) => {
+        const m = await prisma.pseudoUser.findUnique({
+          where: {
+            id: ateendee.pseudoUserId,
+          },
+        });
+        noAteendeesPseudo1.push(m!);
+      });
 
       const maybeAmount = await prisma.inviteUser.count({
         where: {
@@ -224,21 +255,7 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
-      const maybeAttendeesPseudo = await this.ormRepository3.findMany({
-        where: {
-          Status: 'needsAction',
-          inviteId: element.id,
-        },
-      });
-      const maybeAteendeesPseudo1 : PseudoUser[] = [];
-      maybeAttendeesPseudo.map(async (ateendee) => {
-        const m = await prisma.pseudoUser.findUnique({
-          where:{OR:[
-            email: ateendee.userEmail,phone: ateendee.,]
-          },
-        });
-        maybeAteendeesPseudo1.push(m!);
-      });
+
       const maybeAteendees1:User[] = [];
       maybeAttendees.map(async (ateendee) => {
         const m = await this.ormRepository2.findUnique({
@@ -249,11 +266,28 @@ export default class InvitesRepository implements IInvitesRepository {
         maybeAteendees1.push(m!);
       });
 
+      const maybeAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+
+      });
+      const maybeAteendeesPseudo1:PseudoUser[] = [];
+      maybeAttendeesPseudo.map(async (ateendee) => {
+        const m = await prisma.pseudoUser.findUnique({
+          where: {
+            id: ateendee.pseudoUserId,
+          },
+        });
+        maybeAteendeesPseudo1.push(m!);
+      });
+
       const temp: IInviteWithConfirmation = {
         element,
-        yes: { amount: yesAmount, ateendees: yesAteendees1 },
-        no: { amount: noAmount, ateendees: noAteendees1 },
-        maybe: { amount: maybeAmount, ateendees: maybeAteendees1 },
+        yes: { amount: yesAmount, ateendees: yesAteendees1, pseudoAttendes: yesAteendeesPseudo1 },
+        no: { amount: noAmount, ateendees: noAteendees1, pseudoAttendes: noAteendeesPseudo1 },
+        maybe: { amount: maybeAmount, ateendees: maybeAteendees1, pseudoAttendes: maybeAteendeesPseudo1 },
       };
 
       invitedWithConfirmation.push(temp);
@@ -330,6 +364,14 @@ export default class InvitesRepository implements IInvitesRepository {
   public async findById(id: string): Promise<User | null> {
     const user = await this.ormRepository2.findFirst({
       where: { id },
+    });
+
+    return user;
+  }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    const user = await this.ormRepository2.findFirst({
+      where: { email },
     });
 
     return user;
