@@ -174,6 +174,12 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
+      const yesPseudoAmount = await prisma.pseudoInviteUser.count({
+        where: {
+          Status: 'accepted',
+          inviteId: element.id,
+        },
+      });
       const yesAttendees = await prisma.inviteUser.findMany({
         where: {
           Status: 'accepted',
@@ -206,6 +212,12 @@ export default class InvitesRepository implements IInvitesRepository {
         yesAteendeesPseudo1.push(m!);
       });
       const noAmount = await prisma.inviteUser.count({
+        where: {
+          Status: 'declined',
+          inviteId: element.id,
+        },
+      });
+      const noPseudoAmount = await prisma.pseudoInviteUser.count({
         where: {
           Status: 'declined',
           inviteId: element.id,
@@ -249,6 +261,12 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
+      const maybePseudoAmount = await prisma.pseudoInviteUser.count({
+        where: {
+          Status: 'needsAction',
+          inviteId: element.id,
+        },
+      });
       const maybeAttendees = await prisma.inviteUser.findMany({
         where: {
           Status: 'needsAction',
@@ -285,9 +303,9 @@ export default class InvitesRepository implements IInvitesRepository {
 
       const temp: IInviteWithConfirmation = {
         element,
-        yes: { amount: yesAmount, ateendees: yesAteendees1, pseudoAttendes: yesAteendeesPseudo1 },
-        no: { amount: noAmount, ateendees: noAteendees1, pseudoAttendes: noAteendeesPseudo1 },
-        maybe: { amount: maybeAmount, ateendees: maybeAteendees1, pseudoAttendes: maybeAteendeesPseudo1 },
+        yes: { amount: (yesAmount + yesPseudoAmount), ateendees: yesAteendees1, pseudoAttendes: yesAteendeesPseudo1 },
+        no: { amount: (noAmount + noPseudoAmount), ateendees: noAteendees1, pseudoAttendes: noAteendeesPseudo1 },
+        maybe: { amount: (maybeAmount + maybePseudoAmount), ateendees: maybeAteendees1, pseudoAttendes: maybeAteendeesPseudo1 },
       };
 
       invitedWithConfirmation.push(temp);
