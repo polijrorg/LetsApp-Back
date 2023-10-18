@@ -89,9 +89,6 @@ export default class GetRecommendedTimesService {
     };
 
     const getFreeTimes = (start: moment.Moment, end: moment.Moment) => {
-      console.log(start);
-      console.log(end);
-      console.log();
       const freeTimes: IFreeTime[] = [];
       const diff = end.diff(start) / 60000;
 
@@ -162,14 +159,13 @@ export default class GetRecommendedTimesService {
 
     // Sort the array based on the first datetime of each index
     dataAllTimes.sort(compareDates);
-    console.log(dataAllTimes);
 
     const data: moment.Moment[][] = [];
 
     // Delete times that are tottaly out of the interval
     // eslint-disable-next-line array-callback-return
     dataAllTimes.map((event) => {
-      if ((event[0] < intervalStart && event[1] > intervalStart) || (event[0] > intervalStart && event[1] < intervalEnd) || (event[0] < intervalEnd && event[1] > intervalEnd)) {
+      if ((event[0] <= intervalStart && event[1] > intervalStart) || (event[0] >= intervalStart && event[1] <= intervalEnd) || (event[0] < intervalEnd && event[1] >= intervalEnd)) {
         data.push(event);
       }
     });

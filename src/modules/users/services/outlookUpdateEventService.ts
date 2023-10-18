@@ -26,11 +26,11 @@ export default class outlookUpdateEvent {
   public async authenticate({
     phone, idInvite, begin, end,
   }: IRequest): Promise<Response> {
-    const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found', 400);
-
     const invite = await this.usersRepository.findInvite(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
+
+    const user = await this.usersRepository.findByPhone(invite.phone);
+    if (!user) throw new AppError('User not found', 400);
 
     if (!user.tokens) throw new AppError('Token not found', 400);
 
@@ -74,11 +74,6 @@ export default class outlookUpdateEvent {
     if (!idEvent) throw new AppError('Users invite not found', 400);
 
     const event = {
-      // attendees: [{
-      //   emailAddress: {
-      //     address: 'nicholasogatateste3112@outlook.com',
-      //   },
-      // }],
       subject: invite.name,
       bodyPreview: invite.description,
       start: { dateTime: `${begin}.0000000`, timeZone: 'America/Sao_Paulo' },
