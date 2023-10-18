@@ -99,8 +99,7 @@ export default class CreateOutlookCalendarEventService {
       subject: name,
       body: { content: description },
       location: {
-        address:
-        { street: address },
+        displayName: address,
       },
       start: {
         dateTime: begin,
