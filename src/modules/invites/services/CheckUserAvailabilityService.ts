@@ -3,6 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
+import { google } from 'googleapis';
 
 @injectable()
 export default class CheckUserAvailabilityService {
@@ -18,58 +19,96 @@ export default class CheckUserAvailabilityService {
 
     const invite = await this.invitesRepository.findInviteById(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
+    // const tokenCache = JSON.parse(user.tokens!);
+    console.log(user.tokens!);
+    // console.log(JSON.parse(user.tokens!));
 
-    const tokenCache = JSON.parse(user.token!);
+    if (user.type === 'OUTLOOK') {
+      const clientConfig = {
+        auth: {
+          clientId: process.env.OUTLOOK_CLIENT_ID as string,
+          clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        },
+      };
 
-    const clientConfig = {
-      auth: {
-        clientId: process.env.OUTLOOK_CLIENT_ID as string,
-        clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
-      },
-    };
+      const cca = new msal.ConfidentialClientApplication(clientConfig);
+      cca.getTokenCache().deserialize(tokenCache);
 
-    const cca = new msal.ConfidentialClientApplication(clientConfig);
-    cca.getTokenCache().deserialize(tokenCache);
+      const account = JSON.parse(cca.getTokenCache().serialize()).Account;
 
-    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
+      const tokenRequest = {
+        account,
+        scopes: ['https://graph.microsoft.com/.default'],
+      };
 
-    const tokenRequest = {
-      account,
-      scopes: ['https://graph.microsoft.com/.default'],
-    };
+      const tokens = await cca.acquireTokenSilent(tokenRequest);
+      if (!tokens) throw new AppError('Token not found', 400);
 
-    const tokens = await cca.acquireTokenSilent(tokenRequest);
-    if (!tokens) throw new AppError('Token not found', 400);
+      const authProvider = {
+        getAccessToken: async () => tokens.accessToken as string,
+      };
 
-    const authProvider = {
-      getAccessToken: async () => tokens.accessToken as string,
-    };
+      const graphClient = Client.initWithMiddleware({ authProvider });
 
-    const graphClient = Client.initWithMiddleware({ authProvider });
+      const scheduleInformation = {
+        schedules: [user.email],
+        startTime: {
+          dateTime: invite.begin,
+          timeZone: 'America/Sao_Paulo',
+        },
+        endTime: {
+          dateTime: invite.end,
+          timeZone: 'America/Sao_Paulo',
+        },
+        availabilityViewInterval: 30,
+      };
 
-    const scheduleInformation = {
-      schedules: [user.email],
-      startTime: {
-        dateTime: invite.begin,
-        timeZone: 'America/Sao_Paulo',
-      },
-      endTime: {
-        dateTime: invite.end,
-        timeZone: 'America/Sao_Paulo',
-      },
-      availabilityViewInterval: 30,
-    };
+      const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
 
-    const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
+      const availability = check.value[0].availabilityView;
 
-    const availability = check.value[0].availabilityView;
-
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < availability.length; i++) {
-      if (availability[i] !== '0') {
-        return false;
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < availability.length; i++) {
+        if (availability[i] !== '0') {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
+
+    oAuth2Client.setCredentials({ access_token: user.tokens });
+
+    const calendar = google.calendar({
+      version: 'v3',
+      auth: oAuth2Client,
+
+    });
+    const requestParams = {
+      timeMin: '2023-10-05T18:00:00-03:00',
+      timeMax: '2023-10-05T19:00:00-03:00',
+      items: [
+        {
+          id: 'primary', // 'primary' representa o próprio calendário do usuário
+        },
+      ],
+    };
+
+    try {
+      const response = await calendar.freebusy.query(requestParams);
+      const primaryCalendar = response.data.calendars.primary;
+
+      // Check if the user is busy during the specified time
+      if (primaryCalendar.busy.length > 0) {
+        return false; // User is busy
+      }
+
+      return true; // User is available
+    } catch (error) {
+      console.error('Error:', error);
+      throw new AppError('Error checking availability', 500);
+    }
+  // Lida com outros tipos de conta, como Outlook
+  // ...
   }
 }

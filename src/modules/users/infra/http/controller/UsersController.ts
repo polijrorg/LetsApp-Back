@@ -371,7 +371,7 @@ export default class UserController {
   public async CheckUserAvailability(req: Request, res: Response): Promise<Response> {
     const check = container.resolve(CheckUserAvailabilityService);
     const { id, idInvite } = req.body;
-
+    console.log(id, idInvite); console.log('5665');
     const checks = await check.execute(id, idInvite);
 
     return res.status(201).json(checks);
