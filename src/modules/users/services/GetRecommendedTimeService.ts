@@ -165,7 +165,7 @@ export default class GetRecommendedTimesService {
     // Delete times that are tottaly out of the interval
     // eslint-disable-next-line array-callback-return
     dataAllTimes.map((event) => {
-      if ((event[0] < intervalStart && event[1] > intervalStart) || (event[0] > intervalStart && event[1] < intervalEnd) || (event[0] < intervalEnd && event[1] > intervalEnd)) {
+      if ((event[0] <= intervalStart && event[1] > intervalStart) || (event[0] >= intervalStart && event[1] <= intervalEnd) || (event[0] < intervalEnd && event[1] >= intervalEnd)) {
         data.push(event);
       }
     });
