@@ -166,8 +166,8 @@ export default class InvitesRepository implements IInvitesRepository {
       },
     });
     const invitedWithConfirmation: IInviteWithConfirmation[] = [];
-
     await Promise.all(invited.map(async (element) => {
+      const maybeAteendeesPseudo1: PseudoUser[] = [];
       const yesAmount = await prisma.inviteUser.count({
         where: {
           Status: 'accepted',
@@ -195,34 +195,14 @@ export default class InvitesRepository implements IInvitesRepository {
         });
         yesAteendees1.push(y!);
       });
-      const yesAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
-        where: {
-          Status: 'needsAction',
-          inviteId: element.id,
-        },
 
-      });
-      const yesAteendeesPseudo1:PseudoUser[] = [];
-      yesAttendeesPseudo.map(async (ateendee) => {
-        const m = await prisma.pseudoUser.findUnique({
-          where: {
-            id: ateendee.pseudoUserId,
-          },
-        });
-        yesAteendeesPseudo1.push(m!);
-      });
       const noAmount = await prisma.inviteUser.count({
         where: {
           Status: 'declined',
           inviteId: element.id,
         },
       });
-      const noPseudoAmount = await prisma.pseudoInviteUser.count({
-        where: {
-          Status: 'declined',
-          inviteId: element.id,
-        },
-      });
+
       const noAttendees = await prisma.inviteUser.findMany({
         where: {
           Status: 'declined',
@@ -238,22 +218,6 @@ export default class InvitesRepository implements IInvitesRepository {
         });
         noAteendees1.push(n!);
       });
-      const noAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
-        where: {
-          Status: 'needsAction',
-          inviteId: element.id,
-        },
-
-      });
-      const noAteendeesPseudo1:PseudoUser[] = [];
-      noAttendeesPseudo.map(async (ateendee) => {
-        const m = await prisma.pseudoUser.findUnique({
-          where: {
-            id: ateendee.pseudoUserId,
-          },
-        });
-        noAteendeesPseudo1.push(m!);
-      });
 
       const maybeAmount = await prisma.inviteUser.count({
         where: {
@@ -261,12 +225,25 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
-      const maybePseudoAmount = await prisma.pseudoInviteUser.count({
+      const maybeAteendees1: User[] = [];
+
+      const maybeAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
         where: {
-          Status: 'needsAction',
           inviteId: element.id,
         },
       });
+
+      await Promise.all(
+        maybeAttendeesPseudo.map(async (ateendee) => {
+          const n = await prisma.pseudoUser.findUnique({
+            where: {
+              id: ateendee.pseudoUserId,
+            },
+          });
+          maybeAteendeesPseudo1.push(n!);
+        }),
+      );
+
       const maybeAttendees = await prisma.inviteUser.findMany({
         where: {
           Status: 'needsAction',
@@ -274,7 +251,6 @@ export default class InvitesRepository implements IInvitesRepository {
         },
       });
 
-      const maybeAteendees1:User[] = [];
       maybeAttendees.map(async (ateendee) => {
         const m = await this.ormRepository2.findUnique({
           where: {
@@ -284,28 +260,12 @@ export default class InvitesRepository implements IInvitesRepository {
         maybeAteendees1.push(m!);
       });
 
-      const maybeAttendeesPseudo = await prisma.pseudoInviteUser.findMany({
-        where: {
-          Status: 'needsAction',
-          inviteId: element.id,
-        },
-
-      });
-      const maybeAteendeesPseudo1:PseudoUser[] = [];
-      maybeAttendeesPseudo.map(async (ateendee) => {
-        const m = await prisma.pseudoUser.findUnique({
-          where: {
-            id: ateendee.pseudoUserId,
-          },
-        });
-        maybeAteendeesPseudo1.push(m!);
-      });
-
+      const maybePsc = (maybeAmount + maybeAteendeesPseudo1.length);
       const temp: IInviteWithConfirmation = {
         element,
-        yes: { amount: (yesAmount + yesPseudoAmount), ateendees: yesAteendees1, pseudoAttendes: yesAteendeesPseudo1 },
-        no: { amount: (noAmount + noPseudoAmount), ateendees: noAteendees1, pseudoAttendes: noAteendeesPseudo1 },
-        maybe: { amount: (maybeAmount + maybePseudoAmount), ateendees: maybeAteendees1, pseudoAttendes: maybeAteendeesPseudo1 },
+        yes: { amount: yesAmount, ateendees: yesAteendees1, pseudoAttendes: [] },
+        no: { amount: noAmount, ateendees: noAteendees1, pseudoAttendes: [] },
+        maybe: { amount: maybePsc, ateendees: maybeAteendees1, pseudoAttendes: maybeAteendeesPseudo1 },
       };
 
       invitedWithConfirmation.push(temp);
