@@ -52,7 +52,7 @@ export default class GetRecommendedTimesService {
 
     // fix
     // eslint-disable-next-line no-restricted-syntax
-    for (const element of mandatoryGuests) {
+    for (const element of guests) {
       // eslint-disable-next-line no-await-in-loop
       const userType = await this.usersRepository.findTypeByEmail(element);
 
