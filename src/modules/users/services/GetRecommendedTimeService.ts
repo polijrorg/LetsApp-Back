@@ -50,6 +50,7 @@ export default class GetRecommendedTimesService {
 
     const { guests } = await managementService.execute(mandatoryGuests, []);
 
+    // fix
     // eslint-disable-next-line no-restricted-syntax
     for (const element of guests) {
       // eslint-disable-next-line no-await-in-loop
