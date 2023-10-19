@@ -97,10 +97,9 @@ export default class CreateOutlookCalendarEventService {
 
     const event: Event = {
       subject: name,
-      bodyPreview: description,
+      body: { content: description },
       location: {
-        address:
-        { street: address },
+        displayName: address,
       },
       start: {
         dateTime: begin,

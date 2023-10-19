@@ -5,23 +5,32 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
 
+interface IRequest {
+  idInvite:string,
+  email:string,
+  begin:string,
+  end:string
+}
+
 @injectable()
 export default class outlookUpdateEvent {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
 
-    @inject('InivtesRepository')
+    @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
 
   ) { }
 
-  public async authenticate(phone:string, idInvite: string): Promise<Response> {
-    const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found', 400);
-
-    const invite = await this.invitesRepository.findInviteById(idInvite);
+  public async authenticate({
+    email, idInvite, begin, end,
+  }: IRequest): Promise<Response> {
+    const invite = await this.usersRepository.findInvite(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
+
+    const user = await this.usersRepository.findByEmail(email);
+    if (!user) throw new AppError('User not found', 400);
 
     if (!user.tokens) throw new AppError('Token not found', 400);
 
@@ -65,22 +74,16 @@ export default class outlookUpdateEvent {
     if (!idEvent) throw new AppError('Users invite not found', 400);
 
     const event = {
-      originalStartTimeZone: 'originalStartTimeZone-value',
-      originalEndTimeZone: 'originalEndTimeZone-value',
-      responseStatus: {
-        response: '',
-        time: 'datetime-value',
-      },
+      subject: invite.name,
+      bodyPreview: invite.description,
+      start: { dateTime: `${begin}.0000000`, timeZone: 'America/Sao_Paulo' },
+      end: { dateTime: `${end}.0000000`, timeZone: 'America/Sao_Paulo' },
       recurrence: null,
-      reminderMinutesBeforeStart: 99,
-      isOnlineMeeting: true,
-      onlineMeetingProvider: 'teamsForBusiness',
-      isReminderOn: true,
+      isOnlineMeeting: false,
       hideAttendees: false,
-      categories: ['Red category'],
     };
 
-    const updatedEvent = await graphClient.api(`/me/events/${idEvent}`).update(event);
+    const updatedEvent = await graphClient.api(`/me/events/${idEvent}`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').update(event);
 
     return updatedEvent;
   }

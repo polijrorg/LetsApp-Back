@@ -31,7 +31,7 @@ export default class GetRecommendedTimesService {
 
   public async authenticate({
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
-  }:IRequest): Promise<IFreeTime[]> {
+  }:IRequest): Promise<{ freeTimes: IFreeTime[], anyMissingAuthentication: boolean }> {
     moment.tz.setDefault('America/Sao_Paulo');
 
     const user = await this.usersRepository.findByPhone(phone);
@@ -52,7 +52,7 @@ export default class GetRecommendedTimesService {
 
     // fix
     // eslint-disable-next-line no-restricted-syntax
-    for (const element of guests) {
+    for (const element of mandatoryGuests) {
       // eslint-disable-next-line no-await-in-loop
       const userType = await this.usersRepository.findTypeByEmail(element);
 
@@ -63,11 +63,16 @@ export default class GetRecommendedTimesService {
       }
     }
 
-    const googleBusyTimes = await googleGetTime.authenticate(googleUsers);
+    const { horariosGoogle, anyMissingGoogleAuthentication } = await googleGetTime.authenticate(googleUsers);
+    const googleBusyTimes = horariosGoogle;
 
-    const outlookBusyTimes = await outlookGetTime.authenticate(outlookUsers);
+    const { horariosOutlook, anyMissingOutlookAuthentication } = await outlookGetTime.authenticate(outlookUsers);
+    const outlookBusyTimes = horariosOutlook;
+
+    const anyMissingAuthentication = anyMissingGoogleAuthentication || anyMissingOutlookAuthentication;
 
     const roundUp = (start: moment.Moment) => {
+      if (start.minute() === 0 && start.second() === 0) return start;
       if ((start.minute() > 30) || (start.minute() === 30 && start.second() !== 0)) {
         const roundUpBegin = start.minute() || start.second() || start.millisecond() ? start.add(1, 'hour').startOf('hour') : start.startOf('hour');
         return roundUpBegin;
@@ -132,7 +137,16 @@ export default class GetRecommendedTimesService {
 
     // if (simplerS === undefined) throw new AppError('Uasdasda', 400);
 
-    const data = simplerS;
+    const dataAllTimes = simplerS;
+
+    // Custom comparison function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function compareDates(a:any, b:any) {
+      const dateTimeA = moment(a[0]);
+      const dateTimeB = moment(b[0]);
+
+      return dateTimeA.diff(dateTimeB);
+    }
 
     if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
@@ -140,7 +154,7 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return freeTimes;
+      return { freeTimes, anyMissingAuthentication };
     }
     const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
 
@@ -149,6 +163,19 @@ export default class GetRecommendedTimesService {
     const intervalEnd1 = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
     const intervalEnd = roundDown(intervalEnd1);
+
+    // Sort the array based on the first datetime of each index
+    dataAllTimes.sort(compareDates);
+
+    const data: moment.Moment[][] = [];
+
+    // Delete times that are tottaly out of the interval
+    // eslint-disable-next-line array-callback-return
+    dataAllTimes.map((event) => {
+      if ((event[0] <= intervalStart && event[1] > intervalStart) || (event[0] >= intervalStart && event[1] <= intervalEnd) || (event[0] < intervalEnd && event[1] >= intervalEnd)) {
+        data.push(event);
+      }
+    });
 
     const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
     const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
@@ -159,19 +186,8 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return freeTimes;
+      return { freeTimes, anyMissingAuthentication };
     }
-    // Custom comparison function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function compareDates(a:any, b:any) {
-      const dateTimeA = moment(a[0]);
-      const dateTimeB = moment(b[0]);
-
-      return dateTimeA.diff(dateTimeB);
-    }
-
-    // Sort the array based on the first datetime of each index
-    data.sort(compareDates);
 
     let start: moment.Moment;
     let end: moment.Moment;
@@ -218,6 +234,6 @@ export default class GetRecommendedTimesService {
       } catch (e) { console.log('error', e); }
     }
 
-    return freeTimes;
+    return { freeTimes, anyMissingAuthentication };
   }
 }
