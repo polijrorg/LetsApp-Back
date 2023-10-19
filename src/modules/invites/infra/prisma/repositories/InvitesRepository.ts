@@ -174,12 +174,7 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
-      const yesPseudoAmount = await prisma.pseudoInviteUser.count({
-        where: {
-          Status: 'accepted',
-          inviteId: element.id,
-        },
-      });
+
       const yesAttendees = await prisma.inviteUser.findMany({
         where: {
           Status: 'accepted',
