@@ -104,17 +104,15 @@ export default class GetRecommendedTimesService {
         const eventEnd = moment(roundedStart);
         eventEnd.add(duration, 'minute');
 
-        const earlyHourLimit = moment(roundedStart); // 23-10-07T15:00:00.000Z
+        const earlyHourLimit = moment(roundedStart);
         earlyHourLimit.set('hour', parseInt(beginHour.slice(0, 2), 10));
         earlyHourLimit.set('minute', parseInt(beginHour.slice(3, 5), 10));
         earlyHourLimit.set('seconds', parseInt(beginHour.slice(6, 8), 10));
-        // 23-10-07T15:00:00.000Z
 
-        const lateHourLimit = moment(roundedStart); // 23-10-07T17:00:00.000Z
+        const lateHourLimit = moment(roundedStart);
         lateHourLimit.set('hour', parseInt(endHour.slice(0, 2), 10));
         lateHourLimit.set('minute', parseInt(endHour.slice(3, 5), 10));
         lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
-        // 23-10-07T22:00:00.000Z
 
         while (eventEnd <= roundedEnd && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
           freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });

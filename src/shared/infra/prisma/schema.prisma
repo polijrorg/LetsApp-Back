@@ -78,8 +78,8 @@ model PseudoUser {
 model Contato {
   id     String  @id @default(uuid())
   name   String
-  phone  String
-  email  String
+  phone  String?
+  email  String?
   User   User?   @relation(fields: [userId], references: [id])
   userId String?
 
