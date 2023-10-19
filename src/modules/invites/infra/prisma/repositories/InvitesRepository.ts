@@ -348,7 +348,9 @@ export default class InvitesRepository implements IInvitesRepository {
       where: {
         id: eventId,
       },
-      data: { ...inviteUser, begin, end },
+      data: {
+        ...inviteUser, begin, end, phone,
+      },
 
     });
     const user = await prisma.user.findUnique({ where: { phone } });

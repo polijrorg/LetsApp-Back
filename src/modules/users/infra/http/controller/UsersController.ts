@@ -33,12 +33,13 @@ import AppError from '@shared/errors/AppError';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
-import UpdateEventService from '@modules/users/services/UpdateEventService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
 import ListContactsService from '@modules/users/services/ListContactsService';
+import UpdateEventService from '@modules/users/services/UpdateEventService';
+import updateAllEventsService from '@modules/users/services/updateAllEventsService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -270,6 +271,18 @@ export default class UserController {
 
     const Url = await urlservice.authenticate({
       phone, begin, end, eventId,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async updateAllEvents(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(updateAllEventsService);
+    const {
+      phone, begin, end, idInvite,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, begin, end, idInvite,
     });
     return res.status(201).json(Url);
   }

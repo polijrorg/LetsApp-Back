@@ -49,6 +49,7 @@ usersRoutes.get('/GetUserByEmail/:email', usersController.GetUserByEmail);
 usersRoutes.post('/addContact', usersController.addContact);
 usersRoutes.post('/updateState', usersController.updateEventState);
 usersRoutes.post('/updateEvent', usersController.updateEvent);
+usersRoutes.post('/updateAllEvents', usersController.updateAllEvents);
 usersRoutes.post('/suggestNewTime', usersController.SuggestNewTime);
 usersRoutes.post('/checkUserAvailability', usersController.CheckUserAvailability);
 
