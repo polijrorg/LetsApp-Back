@@ -19,11 +19,11 @@ export default class CheckUserAvailabilityService {
 
     const invite = await this.invitesRepository.findInviteById(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
-    // const tokenCache = JSON.parse(user.tokens!);
-    console.log(user.tokens!);
+
     // console.log(JSON.parse(user.tokens!));
 
     if (user.type === 'OUTLOOK') {
+      const tokenCache = JSON.parse(user.tokens!);
       const clientConfig = {
         auth: {
           clientId: process.env.OUTLOOK_CLIENT_ID as string,
@@ -84,31 +84,19 @@ export default class CheckUserAvailabilityService {
       auth: oAuth2Client,
 
     });
-    const requestParams = {
-      timeMin: '2023-10-05T18:00:00-03:00',
-      timeMax: '2023-10-05T19:00:00-03:00',
-      items: [
-        {
-          id: 'primary', // 'primary' representa o próprio calendário do usuário
-        },
-      ],
+
+    const check = {
+      auth: oAuth2Client,
+      resource: {
+        timeMin: invite.begin,
+        timeMax: invite.end,
+        items: [{ id: user.email }],
+      },
     };
 
-    try {
-      const response = await calendar.freebusy.query(requestParams);
-      const primaryCalendar = response.data.calendars.primary;
-
-      // Check if the user is busy during the specified time
-      if (primaryCalendar.busy.length > 0) {
-        return false; // User is busy
-      }
-
-      return true; // User is available
-    } catch (error) {
-      console.error('Error:', error);
-      throw new AppError('Error checking availability', 500);
-    }
-  // Lida com outros tipos de conta, como Outlook
-  // ...
+    const response = await calendar.freebusy.query(check);
+    const busyArray = response.data.calendars[user.email].busy;
+    if (busyArray.length === 0) return true;
+    return false;
   }
 }
