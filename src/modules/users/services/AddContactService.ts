@@ -26,22 +26,16 @@ export default class AddContactService {
   public async execute({
     userPhone, phone, name, email,
   }: IRequest): Promise<User> {
-    let userId = null;
+    const userId = null;
     const mainUser = await this.usersRepository.findByPhoneWithContacts(userPhone);
     if (!mainUser) throw new AppError('User Not Found', 400);
-
-    // REVER
-    const isContactRegistered = await this.usersRepository.findByPhone(phone);
-    if (isContactRegistered) { userId = isContactRegistered.id; }
-
-    const isContactAlreadyAddedByPhone = await this.usersRepository.findContactByPhone(phone, mainUser.id);
-    const isContactAlreadyAddedByEmail = await this.usersRepository.findContactByEmail(email, mainUser.id);
-
-    if (isContactAlreadyAddedByPhone || isContactAlreadyAddedByEmail) throw new AppError('Contact already added', 400);
 
     const data = {
       phone, name, email, userId,
     };
+    if (phone) { const isContactAlreadyAddedByPhone = await this.usersRepository.findContactByPhone(phone, mainUser.id); if (isContactAlreadyAddedByPhone) throw new AppError('Contact already added', 400); }
+    if (email) { const isContactAlreadyAddedByEmail = await this.usersRepository.findContactByEmail(email, mainUser.id); if (isContactAlreadyAddedByEmail) throw new AppError('Contact already added', 400); }
+
     const user = this.usersRepository.addContact(userPhone, data);
 
     return user;
