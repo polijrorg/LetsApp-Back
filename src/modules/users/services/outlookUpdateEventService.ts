@@ -1,5 +1,5 @@
 import msal from '@azure/msal-node';
-import { container, inject, injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
 import IInvitesRepository from '@modules/invites/repositories/IInvitesRepository';
