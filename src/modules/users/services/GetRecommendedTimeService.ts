@@ -30,7 +30,7 @@ export default class GetRecommendedTimesService {
 
   public async authenticate({
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
-  }:IRequest): Promise<IFreeTime[]> {
+  }:IRequest): Promise<{ freeTimes: IFreeTime[], anyMissingAuthentication: boolean }> {
     moment.tz.setDefault('America/Sao_Paulo');
 
     const user = await this.usersRepository.findByPhone(phone);
@@ -58,9 +58,13 @@ export default class GetRecommendedTimesService {
       }
     }
 
-    const googleBusyTimes = await googleGetTime.authenticate(googleUsers);
+    const { horariosGoogle, anyMissingGoogleAuthentication } = await googleGetTime.authenticate(googleUsers);
+    const googleBusyTimes = horariosGoogle;
 
-    const outlookBusyTimes = await outlookGetTime.authenticate(outlookUsers);
+    const { horariosOutlook, anyMissingOutlookAuthentication } = await outlookGetTime.authenticate(outlookUsers);
+    const outlookBusyTimes = horariosOutlook;
+
+    const anyMissingAuthentication = anyMissingGoogleAuthentication || anyMissingOutlookAuthentication;
 
     const roundUp = (start: moment.Moment) => {
       if (start.minute() === 0 && start.second() === 0) return start;
@@ -147,7 +151,7 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return freeTimes;
+      return { freeTimes, anyMissingAuthentication };
     }
     const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
 
@@ -179,7 +183,7 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return freeTimes;
+      return { freeTimes, anyMissingAuthentication };
     }
 
     let start: moment.Moment;
@@ -227,6 +231,6 @@ export default class GetRecommendedTimesService {
       } catch (e) { console.log('error', e); }
     }
 
-    return freeTimes;
+    return { freeTimes, anyMissingAuthentication };
   }
 }
