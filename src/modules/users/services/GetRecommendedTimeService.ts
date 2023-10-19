@@ -4,6 +4,7 @@ import moment, { Moment } from 'moment-timezone';
 import IUsersRepository from '../repositories/IUsersRepository';
 import googleGetRecommendedTimeService from './googleGetRecommendedTimeService';
 import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
+import UserManagementService from './UserManagementService';
 
 interface IFreeTime {
   date?: Moment|string |null;
@@ -39,6 +40,7 @@ export default class GetRecommendedTimesService {
 
     const googleGetTime = container.resolve(googleGetRecommendedTimeService);
     const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
+    const managementService = container.resolve(UserManagementService);
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mandatoryGuests.push(user.email!);
@@ -46,6 +48,9 @@ export default class GetRecommendedTimesService {
     const outlookUsers: string[] = [];
     const googleUsers: string[] = [];
 
+    const { guests } = await managementService.execute(mandatoryGuests, []);
+
+    // fix
     // eslint-disable-next-line no-restricted-syntax
     for (const element of mandatoryGuests) {
       // eslint-disable-next-line no-await-in-loop
