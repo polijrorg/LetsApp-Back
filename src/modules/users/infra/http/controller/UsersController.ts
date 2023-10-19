@@ -371,7 +371,8 @@ export default class UserController {
       phone,
       inviteId,
     } = req.body;
-
+    console.log(phone,
+      inviteId);
     const times = await time.authenticate(
       {
         phone,

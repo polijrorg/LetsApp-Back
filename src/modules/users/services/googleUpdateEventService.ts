@@ -53,7 +53,7 @@ export default class UpdateEventService {
     };
 
     await calendar.events.patch({
-      eventId,
+      eventId: inviteFound.googleId,
       calendarId: 'primary',
       requestBody: event,
       sendUpdates: 'all',
