@@ -7,7 +7,7 @@ import IUsersRepository from '../repositories/IUsersRepository';
 
 interface IRequest {
   idInvite:string,
-  phone:string,
+  email:string,
   begin:string,
   end:string
 }
@@ -24,12 +24,12 @@ export default class outlookUpdateEvent {
   ) { }
 
   public async authenticate({
-    phone, idInvite, begin, end,
+    email, idInvite, begin, end,
   }: IRequest): Promise<Response> {
     const invite = await this.usersRepository.findInvite(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
 
-    const user = await this.usersRepository.findByPhone(invite.phone);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     if (!user.tokens) throw new AppError('Token not found', 400);
@@ -84,13 +84,6 @@ export default class outlookUpdateEvent {
     };
 
     const updatedEvent = await graphClient.api(`/me/events/${idEvent}`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').update(event);
-
-    await this.invitesRepository.UpdatedInviteById(
-      invite.id,
-      begin,
-      end,
-      phone,
-    );
 
     return updatedEvent;
   }
