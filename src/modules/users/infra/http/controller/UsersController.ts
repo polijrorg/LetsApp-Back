@@ -33,11 +33,13 @@ import AppError from '@shared/errors/AppError';
 import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService';
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
-import UpdateEventService from '@modules/users/services/UpdateEventService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
 import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
 import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
+import ListContactsService from '@modules/users/services/ListContactsService';
+import UpdateEventService from '@modules/users/services/UpdateEventService';
+import updateAllEventsService from '@modules/users/services/updateAllEventsService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -245,6 +247,7 @@ export default class UserController {
     const invite = await urlservice.authenticate({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
     });
+
     return res.status(201).json(invite);
   }
 
@@ -268,6 +271,18 @@ export default class UserController {
 
     const Url = await urlservice.authenticate({
       phone, begin, end, eventId,
+    });
+    return res.status(201).json(Url);
+  }
+
+  public async updateAllEvents(req: Request, res: Response): Promise<Response> {
+    const urlservice = container.resolve(updateAllEventsService);
+    const {
+      phone, begin, end, idInvite,
+    } = req.body;
+
+    const Url = await urlservice.authenticate({
+      phone, begin, end, idInvite,
     });
     return res.status(201).json(Url);
   }
@@ -356,7 +371,8 @@ export default class UserController {
       phone,
       inviteId,
     } = req.body;
-
+    console.log(phone,
+      inviteId);
     const times = await time.authenticate(
       {
         phone,
@@ -391,5 +407,14 @@ export default class UserController {
     const user = await send.execute(phone);
 
     return res.status(201).json(user);
+  }
+
+  public async listContacts(req: Request, res: Response): Promise<Response> {
+    const { phone } = req.params;
+    const urlService = container.resolve(ListContactsService);
+
+    const user = await urlService.execute(phone);
+
+    return res.status(200).json({ ...user, tokens: 'secured' });
   }
 }

@@ -14,32 +14,27 @@ export default class GetCalendarEvents {
   public async authenticate(
     outlookUsers: string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any[]> {
+  ): Promise<{ horariosOutlook: any[], anyMissingOutlookAuthentication: boolean }> {
     const urlservice = container.resolve(GetOutlookCalendarEventsService);
 
-    const usersEmail: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const horarios: any[] = [];
-    // eslint-disable-next-line no-plusplus
+    const horariosOutlook: any[] = [];
+
+    let anyMissingOutlookAuthentication = false;
+
     const promises = outlookUsers.map(async (outlookUser) => {
-      if (outlookUser.includes('@')) {
-        usersEmail.push(outlookUser);
-      } else {
-        const email = await this.usersRepository.findEmailByPhone(outlookUser);
-        usersEmail.push(email);
+      try {
+        const aux = await urlservice.authenticate(outlookUser);
+        for (let index = 0; index < aux.value.length; index += 1) {
+          horariosOutlook.push(aux.value[index]);
+        }
+      } catch (error) {
+        anyMissingOutlookAuthentication = true;
       }
     });
 
     await Promise.all(promises);
 
-    for (let i = 0; i < usersEmail.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      const aux = await urlservice.authenticate(usersEmail[i]);
-
-      for (let index = 0; index < aux.value.length; index += 1) {
-        horarios.push(aux.value[index]);
-      }
-    }
-    return horarios;
+    return { horariosOutlook, anyMissingOutlookAuthentication };
   }
 }

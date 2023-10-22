@@ -54,7 +54,8 @@ export default class UserManagementService {
             console.log(error.message);
           }
         } else {
-          guests.push(guest);
+          // user could still have not registered email so this could be a problem for a definitive version
+          guests.push(userAlreadyExists.email!);
         }
       }
     });
@@ -86,7 +87,7 @@ export default class UserManagementService {
             console.log(error.message);
           }
         } else {
-          guests.push(optionalGuest);
+          guests.push(userAlreadyExists.email!);
         }
       }
     });

@@ -14,30 +14,27 @@ export default class GetCalendarEvents {
   public async authenticate(
     googleUsers: string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any[]> {
+  ): Promise<{ horariosGoogle: any[], anyMissingGoogleAuthentication: boolean }> {
     const urlservice = container.resolve(GetCalendarEventsService);
 
-    const horarios:calendar_v3.Schema$Event[] = [];
+    const horariosGoogle:calendar_v3.Schema$Event[] = [];
 
+    let anyMissingGoogleAuthentication = false;
+
+    // Considering this version an MVP, we decided to broke the call for any unlogged user;
+    // For future versions is viable to implement the try-catch block inside the map loop
     const promises = googleUsers.map(async (user) => {
-      const aux = await urlservice.authenticate(user);
-      for (let index = 0; index < aux.length; index += 1) {
-        horarios.push(aux[index]);
+      try {
+        const aux = await urlservice.authenticate(user);
+        for (let index = 0; index < aux.length; index += 1) {
+          horariosGoogle.push(aux[index]);
+        }
+      } catch (error) {
+        anyMissingGoogleAuthentication = true;
       }
     });
-
     await Promise.all(promises);
 
-    // for (let i = 0; i < googleUsers.length; i += 1) {
-    //   // eslint-disable-next-line no-await-in-loop
-    //   const aux = await urlservice.authenticate(googleUsers[i]);
-
-    //   for (let index = 0; index < aux.length; index += 1) {
-    //     horarios.push(aux[index]);
-    //   }
-    // }
-    // console.log(horarios);
-
-    return horarios;
+    return { horariosGoogle, anyMissingGoogleAuthentication };
   }
 }

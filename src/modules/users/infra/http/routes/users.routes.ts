@@ -22,6 +22,7 @@ usersRoutes.delete('/deleteUser', usersController.deleteUser);
 usersRoutes.get('/listUsers', usersController.listUsers);
 usersRoutes.get('/listPseudoUsers', usersController.listPseudoUsers);
 usersRoutes.post('/resendCode', usersController.resendVerificationCode);
+usersRoutes.get('/listContacts/:phone', usersController.listContacts);
 
 // tokens
 usersRoutes.get('/google', usersController.getGoogleTokens);
@@ -48,6 +49,7 @@ usersRoutes.get('/GetUserByEmail/:email', usersController.GetUserByEmail);
 usersRoutes.post('/addContact', usersController.addContact);
 usersRoutes.post('/updateState', usersController.updateEventState);
 usersRoutes.post('/updateEvent', usersController.updateEvent);
+usersRoutes.post('/updateAllEvents', usersController.updateAllEvents);
 usersRoutes.post('/suggestNewTime', usersController.SuggestNewTime);
 usersRoutes.post('/checkUserAvailability', usersController.CheckUserAvailability);
 

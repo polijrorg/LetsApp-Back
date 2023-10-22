@@ -21,8 +21,8 @@ model Invite {
 
 model InviteUser {
   id        String  @id @default(uuid())
-  User      User    @relation(fields: [userEmail], references: [email])
-  Invite    Invite  @relation(fields: [inviteId], references: [id])
+  User      User    @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+  Invite    Invite  @relation(fields: [inviteId], references: [id], onDelete: Cascade)
   optional  Boolean
   userEmail String
   inviteId  String
@@ -31,8 +31,8 @@ model InviteUser {
 
 model PseudoInviteUser {
   id           String     @id @default(uuid())
-  pseudoUser   PseudoUser @relation(fields: [pseudoUserId], references: [id])
-  Invite       Invite     @relation(fields: [inviteId], references: [id])
+  pseudoUser   PseudoUser @relation(fields: [pseudoUserId], references: [id], onDelete: Cascade)
+  Invite       Invite     @relation(fields: [inviteId], references: [id], onDelete: Cascade)
   optional     Boolean
   pseudoUserId String
   inviteId     String
