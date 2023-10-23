@@ -15,6 +15,16 @@ interface IFreeTime {
   end?: Moment|string|null;
 }
 
+interface IMissingAuthentications {
+  google: string[];
+  outlook: string[];
+}
+
+interface IResponse {
+  freeTimes: IFreeTime[];
+  missingAuthentications: IMissingAuthentications;
+}
+
 @injectable()
 export default class SuggestNewTimeService {
   constructor(
@@ -25,7 +35,7 @@ export default class SuggestNewTimeService {
 
   public async authenticate({
     inviteId, phone,
-  }:IRequest): Promise<IFreeTime[]> {
+  }:IRequest): Promise<IResponse> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 

@@ -256,4 +256,13 @@ export default class UsersRepository implements IUsersRepository {
 
     return contact;
   }
+
+  public async updateCode(phone: string, code: number): Promise<User> {
+    const user = await this.ormRepository.update({
+      where: { phone },
+      data: { code },
+    });
+
+    return user;
+  }
 }

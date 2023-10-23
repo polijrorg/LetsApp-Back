@@ -373,8 +373,7 @@ export default class UserController {
       phone,
       inviteId,
     } = req.body;
-    console.log(phone,
-      inviteId);
+
     const times = await time.authenticate(
       {
         phone,
@@ -407,6 +406,8 @@ export default class UserController {
     const { phone } = req.body;
 
     const user = await send.execute(phone);
+
+    user.tokens = '###';
 
     return res.status(201).json(user);
   }
