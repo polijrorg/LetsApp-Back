@@ -1,9 +1,8 @@
 import { container, inject, injectable } from 'tsyringe';
 
 import { User } from '@prisma/client';
-
 import AppError from '@shared/errors/AppError';
-
+import crypto from 'crypto';
 import IUsersRepository from '../repositories/IUsersRepository';
 import SmsService from './SmsService';
 
@@ -19,10 +18,7 @@ export default class resendVerificationCodeService {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
 
-    let code = Math.floor(Math.random() * 999999);
-    while (code < 100000) {
-      code *= 10;
-    }
+    const code = crypto.randomInt(100000, 999999);
 
     const updatedUser = await this.usersRepository.updateCode(phone, code);
 
