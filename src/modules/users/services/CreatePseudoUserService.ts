@@ -18,7 +18,7 @@ export default class CreatePseudoUserService {
     if (email) {
       const pseudoUserAlreadyExistsByEmail = await this.pseudoUsersRepository.findByEmail(email);
       if (pseudoUserAlreadyExistsByEmail) {
-        throw new AppError('PseudoUser already exists');
+        return pseudoUserAlreadyExistsByEmail;
       }
 
       pseudoUser = await this.pseudoUsersRepository.create({ email, phone: null });
@@ -28,9 +28,8 @@ export default class CreatePseudoUserService {
     if (!phone) throw new AppError('Phone must be provided');
 
     const pseudoUserAlreadyExistsByPhone = await this.pseudoUsersRepository.findByPhone(phone);
-
     if (pseudoUserAlreadyExistsByPhone) {
-      throw new AppError('PseudoUser already exists');
+      return pseudoUserAlreadyExistsByPhone;
     }
 
     pseudoUser = await this.pseudoUsersRepository.create({ email: null, phone });
