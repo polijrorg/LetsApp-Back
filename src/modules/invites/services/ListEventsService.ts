@@ -24,8 +24,23 @@ export default class ListEventsService {
     const user = await this.invitesRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
-    const invite = this.invitesRepository.listEventsByUser(email);
+    const invites = await this.invitesRepository.listEventsByUser(email);
 
-    return invite;
+    invites.forEach((invite) => {
+      invite.yes.ateendees.forEach((attendee) => {
+        // eslint-disable-next-line no-param-reassign
+        attendee.tokens = '###';
+      });
+      invite.no.ateendees.forEach((attendee) => {
+        // eslint-disable-next-line no-param-reassign
+        attendee.tokens = '###';
+      });
+      invite.maybe.ateendees.forEach((attendee) => {
+        // eslint-disable-next-line no-param-reassign
+        attendee.tokens = '###';
+      });
+    });
+
+    return invites;
   }
 }
