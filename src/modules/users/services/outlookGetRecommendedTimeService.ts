@@ -14,13 +14,13 @@ export default class GetCalendarEvents {
   public async authenticate(
     outlookUsers: string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<{ horariosOutlook: any[], anyMissingOutlookAuthentication: boolean }> {
+  ): Promise<{ horariosOutlook: any[], missingOutlookAuthentications: string[] }> {
     const urlservice = container.resolve(GetOutlookCalendarEventsService);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const horariosOutlook: any[] = [];
 
-    let anyMissingOutlookAuthentication = false;
+    const missingOutlookAuthentications: string[] = [];
 
     const promises = outlookUsers.map(async (outlookUser) => {
       try {
@@ -29,12 +29,12 @@ export default class GetCalendarEvents {
           horariosOutlook.push(aux.value[index]);
         }
       } catch (error) {
-        anyMissingOutlookAuthentication = true;
+        missingOutlookAuthentications.push(outlookUser);
       }
     });
 
     await Promise.all(promises);
 
-    return { horariosOutlook, anyMissingOutlookAuthentication };
+    return { horariosOutlook, missingOutlookAuthentications };
   }
 }

@@ -21,6 +21,12 @@ interface IRequest{
       mandatoryGuests:string[],
       optionalGuests:string
 }
+
+interface IMissingAuthentications {
+  google: string[];
+  outlook: string[];
+}
+
 @injectable()
 export default class GetRecommendedTimesService {
   constructor(
@@ -31,7 +37,7 @@ export default class GetRecommendedTimesService {
 
   public async authenticate({
     beginDate, beginHour, duration, endDate, endHour, mandatoryGuests, phone,
-  }:IRequest): Promise<{ freeTimes: IFreeTime[], anyMissingAuthentication: boolean }> {
+  }:IRequest): Promise<{ freeTimes: IFreeTime[], missingAuthentications: IMissingAuthentications }> {
     moment.tz.setDefault('America/Sao_Paulo');
 
     const user = await this.usersRepository.findByPhone(phone);
@@ -63,13 +69,16 @@ export default class GetRecommendedTimesService {
       }
     }
 
-    const { horariosGoogle, anyMissingGoogleAuthentication } = await googleGetTime.authenticate(googleUsers);
+    const { horariosGoogle, missingGoogleAuthentications } = await googleGetTime.authenticate(googleUsers);
     const googleBusyTimes = horariosGoogle;
 
-    const { horariosOutlook, anyMissingOutlookAuthentication } = await outlookGetTime.authenticate(outlookUsers);
+    const { horariosOutlook, missingOutlookAuthentications } = await outlookGetTime.authenticate(outlookUsers);
     const outlookBusyTimes = horariosOutlook;
 
-    const anyMissingAuthentication = anyMissingGoogleAuthentication || anyMissingOutlookAuthentication;
+    const missingAuthentications = {
+      google: missingGoogleAuthentications,
+      outlook: missingOutlookAuthentications,
+    };
 
     const roundUp = (start: moment.Moment) => {
       if (start.minute() === 0 && start.second() === 0) return start;
@@ -154,7 +163,7 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return { freeTimes, anyMissingAuthentication };
+      return { freeTimes, missingAuthentications };
     }
     const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
 
@@ -186,7 +195,7 @@ export default class GetRecommendedTimesService {
 
       const loopTimes = getFreeTimes(start, end);
       loopTimes.map((loopTime) => freeTimes.push(loopTime));
-      return { freeTimes, anyMissingAuthentication };
+      return { freeTimes, missingAuthentications };
     }
 
     let start: moment.Moment;
@@ -234,6 +243,6 @@ export default class GetRecommendedTimesService {
       } catch (e) { console.log('error', e); }
     }
 
-    return { freeTimes, anyMissingAuthentication };
+    return { freeTimes, missingAuthentications };
   }
 }
