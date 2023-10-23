@@ -103,11 +103,11 @@ export default class CreateOutlookCalendarEventService {
       },
       start: {
         dateTime: begin,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       end: {
         dateTime: end,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       attendees: attendeesEmail.map((email) => ({
         emailAddress: {
@@ -118,7 +118,7 @@ export default class CreateOutlookCalendarEventService {
     };
 
     // Creates an event on the user's calendar and invites the attendees
-    await graphClient.api('me/events').post(event);
+    await graphClient.api('me/events').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(event);
 
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {

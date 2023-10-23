@@ -5,6 +5,7 @@ import { User } from '@prisma/client';
 // import AppError from '@shared/errors/AppError';
 
 import AppError from '@shared/errors/AppError';
+import crypto from 'crypto';
 import IUsersRepository from '../repositories/IUsersRepository';
 import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 import IInvitesRepository from '../../invites/repositories/IInvitesRepository';
@@ -35,10 +36,7 @@ export default class CreateUserService {
     const oldUser = await this.usersRepository.findByPhone(phone);
     if (oldUser) { return oldUser; }
 
-    let code = Math.floor(Math.random() * 999999);
-    while (code < 100000) {
-      code *= 10;
-    }
+    const code = crypto.randomInt(100000, 999999);
 
     if (pseudoUserId) {
       const pseudoUser = await this.pseudoUsersRepository.findById(pseudoUserId);

@@ -73,11 +73,11 @@ export default class CreateGoogleEventService {
       attendees: attendeesEmail.map((email) => ({ email })),
       start: {
         dateTime: begin,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       end: {
         dateTime: end,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       conferenceData: {
         createRequest: {
