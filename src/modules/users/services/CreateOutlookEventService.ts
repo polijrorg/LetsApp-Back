@@ -103,11 +103,11 @@ export default class CreateOutlookCalendarEventService {
       },
       start: {
         dateTime: begin,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       end: {
         dateTime: end,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
       },
       attendees: attendeesEmail.map((email) => ({
         emailAddress: {
