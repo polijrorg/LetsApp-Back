@@ -115,6 +115,8 @@ export default class UserController {
       hasPhoto: !!photo,
     });
 
+    user.tokens = 'secured';
+
     return res.status(201).json(user);
   }
 
