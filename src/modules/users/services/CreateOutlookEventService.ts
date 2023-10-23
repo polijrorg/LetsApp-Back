@@ -118,7 +118,7 @@ export default class CreateOutlookCalendarEventService {
     };
 
     // Creates an event on the user's calendar and invites the attendees
-    await graphClient.api('me/events').post(event);
+    await graphClient.api('me/events').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(event);
 
     // Tries to create a meeting link for the event
     const getMeetLink = async (): Promise<IMeeting | null> => {
