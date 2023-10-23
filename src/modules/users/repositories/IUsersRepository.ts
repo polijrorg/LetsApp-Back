@@ -43,6 +43,7 @@ interface IUsersRepository {
   findByPhoneWithContacts(phone: string): Promise<(User & { contatos: Contato[] }) | null>;
   findContactByPhone(phone:string, userId:string): Promise<Contato|null>;
   findContactByEmail(email:string, userId:string): Promise<Contato|null>;
+  updateCode(phone:string, code:number): Promise<User>;
 }
 
 export default IUsersRepository;
