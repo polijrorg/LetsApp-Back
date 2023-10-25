@@ -40,7 +40,7 @@ export default class UpdateInviteStateService {
     if (!invite) throw new AppError('Invite Not Found', 400);
 
     const urlservice = container.resolve(OutlookUpdateInviteState);
-    await urlservice.execute(inviteId, state, email);
+    await urlservice.execute(email, inviteId, state);
     return invite;
   }
 }

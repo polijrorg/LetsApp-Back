@@ -74,9 +74,9 @@ export default class OutlookUpdateInviteState {
     }
     if (!idEvent) throw new AppError('Users invite not found', 400);
 
-    if (state === 'accept') {
+    if (state === 'accepted') {
       await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/accept`).post(accept);
-    } else if (state === 'decline') {
+    } else if (state === 'declined') {
       await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/decline`).post(decline);
     } else { throw new AppError('Invalid status'); }
 
