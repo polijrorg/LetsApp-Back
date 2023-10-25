@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 import ListEventsService from '@modules/invites/services/ListEventsService';
 import ListInvitesService from '@modules/invites/services/ListInvitesService';
 import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekService';
-import UpdateInviteStateService from '@modules/invites/services/UpdateInviteStateService';
+import UpdateInviteStateService from '@modules/invites/services/GoogleUpdateInviteStateService';
 import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 import OutlookUpdateInviteState from '@modules/invites/services/OutlookUpdateInviteStateService';
 
@@ -93,9 +93,9 @@ export default class InviteController {
 
   public async outlookUpdateInviteState(req: Request, res: Response): Promise<Response> {
     const invite = container.resolve(OutlookUpdateInviteState);
-    const { id, idInvite, status } = req.body;
+    const { email, idInvite, state } = req.body;
 
-    const inviteUser = await invite.execute(id, idInvite, status);
+    const inviteUser = await invite.execute(email, idInvite, state);
 
     return res.status(201).json(inviteUser);
   }
