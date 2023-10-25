@@ -7,8 +7,8 @@ import IUsersRepository from '../repositories/IUsersRepository';
 import SmsService from './SmsService';
 
 interface IRequest {
-
   phone:string;
+  link: string;
 }
 
 @injectable()
@@ -19,9 +19,9 @@ export default class NotifyUserbySmsService {
 
   ) { }
 
-  public async execute({ phone }: IRequest): Promise<string> {
-    const message = 'Cadastre-se no Letsapp "LINK"';
-    const sendSms = await container.resolve(SmsService);
+  public async execute({ phone, link }: IRequest): Promise<string> {
+    const message = `Cadastre-se no Letsapp ${link}`;
+    const sendSms = container.resolve(SmsService);
     const status = await sendSms.execute({ phone, message });
     if (status === 'Error') throw new AppError('SMS not sent', 400);
 
