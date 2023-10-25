@@ -2,6 +2,8 @@ import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
+import IUsersRepository from '@modules/users/repositories/IUsersRepository';
+import IInvitesRepository from '../repositories/IInvitesRepository';
 
 @injectable()
 export default class OutlookUpdateInviteState {
@@ -9,16 +11,19 @@ export default class OutlookUpdateInviteState {
     @inject('InvitesRepository')
     private invitesRepository: IInvitesRepository,
 
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
+
   ) { }
 
-  public async execute(id: string, idInvite: string, status: string): Promise<Response> {
-    const user = await this.invitesRepository.findById(id);
+  public async execute(email: string, idInvite: string, state: string): Promise<Response> {
+    const user = await this.invitesRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     const invite = await this.invitesRepository.findInviteById(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
 
-    const tokenCache = JSON.parse(user.token!);
+    const tokenCache = JSON.parse(user.tokens!);
 
     const clientConfig = {
       auth: {
@@ -69,9 +74,9 @@ export default class OutlookUpdateInviteState {
     }
     if (!idEvent) throw new AppError('Users invite not found', 400);
 
-    if (status === 'accept') {
+    if (state === 'accepted') {
       await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/accept`).post(accept);
-    } else if (status === 'decline') {
+    } else if (state === 'declined') {
       await graphClient.api(`users/${user.email}/calendar/events/${idEvent}/decline`).post(decline);
     } else { throw new AppError('Invalid status'); }
 
