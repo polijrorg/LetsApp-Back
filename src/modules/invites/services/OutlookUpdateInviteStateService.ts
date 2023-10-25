@@ -1,5 +1,6 @@
 import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
+import { InviteUser } from '@prisma/client';
 import AppError from '@shared/errors/AppError';
 import { Client } from '@microsoft/microsoft-graph-client';
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
@@ -16,7 +17,7 @@ export default class OutlookUpdateInviteState {
 
   ) { }
 
-  public async execute(email: string, idInvite: string, state: string): Promise<Response> {
+  public async execute(email: string, idInvite: string, state: string): Promise<InviteUser> {
     const user = await this.invitesRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
