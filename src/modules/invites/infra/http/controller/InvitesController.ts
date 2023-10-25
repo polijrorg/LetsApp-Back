@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 import ListEventsService from '@modules/invites/services/ListEventsService';
 import ListInvitesService from '@modules/invites/services/ListInvitesService';
 import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekService';
-import GoogleUpdateInviteStateService from '@modules/invites/services/GoogleUpdateInviteStateService';
+// import GoogleUpdateInviteStateService from '@modules/invites/services/GoogleUpdateInviteStateService';
 import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 import OutlookUpdateInviteState from '@modules/invites/services/OutlookUpdateInviteStateService';
 import UpdateInviteStateService from '@modules/invites/services/UpdateInviteStateService';
