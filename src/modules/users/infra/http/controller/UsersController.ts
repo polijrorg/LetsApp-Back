@@ -34,12 +34,11 @@ import GetUserByPhoneService from '@modules/users/services/GetUserByPhoneService
 import GetUserByEmailService from '@modules/users/services/GetUserByEmailService';
 import SuggestNewTimeService from '@modules/users/services/SuggestNewTimeService';
 import CheckUserAvailabilityService from '@modules/invites/services/CheckUserAvailabilityService';
-import NotifyUserbySmsService from '@modules/users/services/NotifyUserBySmsService';
-import NotifyUserbyEmailService from '@modules/users/services/NotifyUserByEmailService';
 import resendVerificationCodeService from '@modules/users/services/ResendVerificationCodeService';
 import ListContactsService from '@modules/users/services/ListContactsService';
 import UpdateEventService from '@modules/users/services/UpdateEventService';
 import updateAllEventsService from '@modules/users/services/updateAllEventsService';
+import SignUpLinkManagerService from '@modules/users/services/SignUpLinkManagerService';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -57,30 +56,12 @@ export default class UserController {
     return res.status(201).json(user);
   }
 
-  public async NotifyBySms(req: Request, res: Response): Promise<Response> {
-    const {
-      phone,
-    } = req.params;
-    const createUser = container.resolve(NotifyUserbySmsService);
+  public async SendSignUpLink(req: Request, res: Response): Promise<Response> {
+    const urlService = container.resolve(SignUpLinkManagerService);
+    const { pseudoUserId, link } = req.body;
 
-    const user = await createUser.execute({
-      phone,
-    });
-
-    return res.status(201).json(user);
-  }
-
-  public async NotifyByEmail(req: Request, res: Response): Promise<Response> {
-    const {
-      email, name,
-    } = req.body;
-    const createUser = container.resolve(NotifyUserbyEmailService);
-
-    const user = await createUser.execute({
-      email, name,
-    });
-
-    return res.status(201).json(user);
+    const response = await urlService.execute({ pseudoUserId, link });
+    return res.status(201).json(response);
   }
 
   public async verifyCode(req: Request, res: Response): Promise<Response> {
