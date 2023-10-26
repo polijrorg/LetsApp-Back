@@ -43,8 +43,7 @@ usersRoutes.get('/getGoogleEvents', usersController.getGoogleEvents);
 usersRoutes.get('/getOutlookEvents', usersController.getOutlookEvents);
 
 usersRoutes.get('/GetUserByPhone/:phone', usersController.GetUserByPhone);
-usersRoutes.post('/notifyBySms/:phone', usersController.NotifyBySms);
-usersRoutes.post('/notifyByEmail', usersController.NotifyByEmail);
+usersRoutes.post('/SendSignUpLink', usersController.SendSignUpLink);
 usersRoutes.get('/GetUserByEmail/:email', usersController.GetUserByEmail);
 usersRoutes.post('/addContact', usersController.addContact);
 usersRoutes.post('/updateState', usersController.updateEventState);
