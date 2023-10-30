@@ -45,7 +45,9 @@ export default class NotifyUserbyEmailService {
           variables: { link },
         },
       });
-    } catch (e) { console.log(e.message); }
+    } catch (error) {
+      throw new AppError('Error sending email', 400);
+    }
 
     return 'Email sent';
   }

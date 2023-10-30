@@ -22,8 +22,12 @@ export default class NotifyUserbySmsService {
   public async execute({ phone, link }: IRequest): Promise<string> {
     const message = `Você foi convidado para um evento LetsApp. Cadastre-se acessando: ${link}`;
     const sendSms = container.resolve(SmsService);
-    const status = await sendSms.execute({ phone, message });
-    if (status === 'Error') throw new AppError('SMS not sent', 400);
+    try {
+      const status = await sendSms.execute({ phone, message });
+      if (status === 'Error') throw new AppError('SMS not sent', 400);
+    } catch (error) {
+      throw new AppError('Error sending SMS', 400);
+    }
 
     return 'SMS sent';
   }

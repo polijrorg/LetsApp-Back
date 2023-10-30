@@ -1,6 +1,5 @@
 import { inject, injectable, container } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
-import IMailProvider from '@shared/container/providers/MailProvider/models/IMailProvider';
 import IPseudoUsersRepository from '../repositories/IPseudoUsersRepository';
 
 import NotifyUserBySmsService from './NotifyUserBySmsService';
@@ -16,8 +15,6 @@ export default class SignUpLinkManagerService {
   constructor(
     @inject('PseudoUsersRepository')
     private usersPseudoUserRepository: IPseudoUsersRepository,
-    @inject('MailProvider')
-    private mailProvider: IMailProvider,
 
   ) { }
 
