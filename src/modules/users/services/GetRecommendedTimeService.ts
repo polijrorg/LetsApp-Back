@@ -186,6 +186,15 @@ export default class GetRecommendedTimesService {
       }
     });
 
+    if (data.length === 0) {
+      const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+      const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+      const loopTimes = getFreeTimes(start, end);
+      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      return { freeTimes, missingAuthentications };
+    }
+
     const isIntervalBeforeEventStart = intervalEnd.isBefore(data[0][0]);
     const isIntervalAfterEventEnd = intervalStart.isAfter(data[data.length - 1][1]);
 
