@@ -40,7 +40,7 @@ export default class UserManagementService {
             console.log(error.message);
           }
         } else {
-          guests.push(guest);
+          guests.push(userAlreadyExists.email!);
         }
       } else {
         const userAlreadyExists = await this.usersRepository.findByPhone(guest);
@@ -73,7 +73,7 @@ export default class UserManagementService {
             console.log(error.message);
           }
         } else {
-          guests.push(optionalGuest);
+          guests.push(userAlreadyExists.email!);
         }
       } else {
         const userAlreadyExists = await this.usersRepository.findByPhone(optionalGuest);
