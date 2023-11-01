@@ -63,13 +63,9 @@ export default class CheckUserAvailabilityService {
 
       const check = await graphClient.api(`/users/${user.email}/calendar/getSchedule`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(scheduleInformation);
 
-      const availability = check.value[0].availabilityView;
+      const numberOfAppointements = check.value[0].scheduleItems.length;
 
-      for (let i = 0; i < availability.length; i += 1) {
-        if (availability[i] !== '0') {
-          return false;
-        }
-      }
+      if (numberOfAppointements > 1) return false;
       return true;
     }
 
@@ -95,9 +91,11 @@ export default class CheckUserAvailabilityService {
 
     const response = await calendar.freebusy.query(check);
 
-    const busyArray = response.data.calendars![user.email!].busy;
-    if (busyArray!.length === 0) return true;
+    console.log(response.data.calendars![user.email!]);
 
-    return false;
+    const busyArray = response.data.calendars![user.email!].busy;
+    if (busyArray!.length > 1) return false;
+
+    return true;
   }
 }
