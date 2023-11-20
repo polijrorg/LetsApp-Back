@@ -44,6 +44,8 @@ export default class GetRecommendedTimesService {
 
     if (!user) throw new AppError('User not found', 400);
 
+    const currentTime = moment();
+
     const googleGetTime = container.resolve(googleGetRecommendedTimeService);
     const outlookGetTime = container.resolve(outlookGetRecommendedTimeService);
     const managementService = container.resolve(UserManagementService);
@@ -129,7 +131,9 @@ export default class GetRecommendedTimesService {
         lateHourLimit.set('seconds', parseInt(endHour.slice(6, 8), 10));
 
         while (eventEnd <= roundedEnd && eventStart >= earlyHourLimit && eventStart <= lateHourLimit && eventEnd <= lateHourLimit && eventEnd >= earlyHourLimit) {
-          freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
+          if (eventStart >= currentTime) {
+            freeTimes.push({ start: eventStart.tz('America/Sao_Paulo').format(), end: eventEnd.tz('America/Sao_Paulo').format() });
+          }
           eventStart = moment(eventEnd);
           eventEnd.add(duration, 'minute');
         }
@@ -141,6 +145,7 @@ export default class GetRecommendedTimesService {
     const busyTimes: any[] = googleBusyTimes.concat(outlookBusyTimes);
 
     const freeTimes: IFreeTime[] = [];
+
     // eslint-disable-next-line no-sequences
     const simplerS = busyTimes.map((event) => ([moment(event.start?.dateTime), moment(event.end?.dateTime)]));
 
@@ -157,7 +162,12 @@ export default class GetRecommendedTimesService {
       return dateTimeA.diff(dateTimeB);
     }
 
-    if (googleBusyTimes.length === 0 && outlookBusyTimes.length === 0) {
+    const beginSearch = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
+    const endSearch = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
+
+    if (beginSearch.isBefore(currentTime) && endSearch.isBefore(currentTime)) return { freeTimes, missingAuthentications };
+
+    if ((googleBusyTimes.length === 0 && outlookBusyTimes.length === 0)) {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
@@ -251,7 +261,6 @@ export default class GetRecommendedTimesService {
         // eslint-disable-next-line no-console
       } catch (e) { console.log('error', e); }
     }
-
     return { freeTimes, missingAuthentications };
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
@@ -50,8 +51,9 @@ export default class GetOutlookCalendarEvents {
     };
 
     const graphClient = Client.initWithMiddleware({ authProvider });
-    const events = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}'`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
 
-    return events;
+    const getEvents = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`(start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}') or (start/dateTime le '${now.toISOString()}' and end/dateTime ge '${now.toISOString()}')`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
+
+    return getEvents;
   }
 }
