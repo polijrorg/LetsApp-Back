@@ -11,7 +11,7 @@ export default class GetOutlookTokensService {
     private usersRepository: IUsersRepository,
   ) { }
 
-  public async authenticate(code: string, phone: string): Promise<void> {
+  public async authenticate(code: string, phone: string): Promise<boolean> {
     const clientConfig = {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
@@ -38,11 +38,18 @@ export default class GetOutlookTokensService {
     const graphClient = Client.initWithMiddleware({ authProvider });
     const userInfo = await graphClient.api('/me').get();
 
-    const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found', 400);
-    await this.usersRepository.updateEmail(user.id, userInfo.mail);
-    this.usersRepository.updateToken(user.id, tokenCache);
+    try {
+      const user = await this.usersRepository.findByPhone(phone);
+      if (!user) throw new AppError('User not found', 400);
+      await this.usersRepository.updateEmail(user.id, userInfo.mail);
 
-    this.usersRepository.updateUserType(user.id, 'OUTLOOK');
+      this.usersRepository.updateToken(user.id, tokenCache);
+
+      this.usersRepository.updateUserType(user.id, 'OUTLOOK');
+
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
