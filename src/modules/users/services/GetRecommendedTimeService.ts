@@ -5,7 +5,6 @@ import IUsersRepository from '../repositories/IUsersRepository';
 import googleGetRecommendedTimeService from './googleGetRecommendedTimeService';
 import outlookGetRecommendedTimeService from './outlookGetRecommendedTimeService';
 import UserManagementService from './UserManagementService';
-import { SimpleConsoleLogger } from 'typeorm';
 
 interface IFreeTime {
   date?: Moment|string |null;
