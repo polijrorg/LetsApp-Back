@@ -171,8 +171,28 @@ export default class GetRecommendedTimesService {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
-      const loopTimes = getFreeTimes(start, end);
-      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      if (start.date() < end.date()) {
+        if (end.date() - start.date() !== 1) {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          while (start.date() < end.date() - 1) {
+            start.add(1, 'days');
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+          const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+        } else {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+        }
+      } else {
+        const loopTimes = getFreeTimes(start, end);
+        loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      }
+
       return { freeTimes, missingAuthentications };
     }
     const intervalStart1 = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
@@ -200,8 +220,27 @@ export default class GetRecommendedTimesService {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
-      const loopTimes = getFreeTimes(start, end);
-      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      if (start.date() < end.date()) {
+        if (end.date() - start.date() !== 1) {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          while (start.date() < end.date() - 1) {
+            start.add(1, 'days');
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+          const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+        } else {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+        }
+      } else {
+        const loopTimes = getFreeTimes(start, end);
+        loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      }
       return { freeTimes, missingAuthentications };
     }
 
@@ -212,8 +251,28 @@ export default class GetRecommendedTimesService {
       const start = moment(`${beginDate.slice(0, 11)}${beginHour}${beginDate.slice(19, 25)}`);
       const end = moment(`${endDate.slice(0, 11)}${endHour}${endDate.slice(19, 25)}`);
 
-      const loopTimes = getFreeTimes(start, end);
-      loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      if (start.date() < end.date()) {
+        if (end.date() - start.date() !== 1) {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          while (start.date() < end.date() - 1) {
+            start.add(1, 'days');
+            const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(start.date()), moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+            loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+          }
+          const loopTimes3 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes3.map((loopTime) => freeTimes.push(loopTime));
+        } else {
+          const loopTimes = getFreeTimes(start, moment(`${beginDate.slice(0, 11)}${endHour}${beginDate.slice(19, 25)}`).date(start.date()));
+          loopTimes.map((loopTime) => freeTimes.push(loopTime));
+          const loopTimes2 = getFreeTimes(moment(`${endDate.slice(0, 11)}${beginHour}${endDate.slice(19, 25)}`).date(end.date()), end);
+          loopTimes2.map((loopTime) => freeTimes.push(loopTime));
+        }
+      } else {
+        const loopTimes = getFreeTimes(start, end);
+        loopTimes.map((loopTime) => freeTimes.push(loopTime));
+      }
+
       return { freeTimes, missingAuthentications };
     }
 
