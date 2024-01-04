@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import moment, { Moment } from 'moment-timezone';
@@ -212,7 +213,10 @@ export default class GetRecommendedTimesService {
     // eslint-disable-next-line array-callback-return
     dataAllTimes.map((event) => {
       if ((event[0] <= intervalStart && event[1] > intervalStart) || (event[0] >= intervalStart && event[1] <= intervalEnd) || (event[0] < intervalEnd && event[1] >= intervalEnd)) {
-        data.push(event);
+        if ((event[0].hour() < intervalStart.hour() && event[1].hour() < intervalStart.hour())
+        || (event[0].hour() < intervalStart.hour() && event[1].hour() === intervalStart.hour() && event[1].minute() <= intervalStart.minute())
+        || (event[0].hour() > intervalEnd.hour() && event[1].hour() > intervalEnd.hour())
+        || (event[0].hour() === intervalEnd.hour() && event[1].hour() > intervalEnd.hour() && event[0].minute() >= intervalEnd.minute())) {} else data.push(event);
       }
     });
 
