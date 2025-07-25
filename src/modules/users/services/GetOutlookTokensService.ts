@@ -16,19 +16,29 @@ export default class GetOutlookTokensService {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
         clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        authority: 'https://login.microsoftonline.com/common',
       },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel: any, message: any, containsPii: any) {
+            console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: 3,
+        }
+      }
     };
 
     const tokenRequest = {
       code,
       redirectUri: process.env.OUTLOOK_CLIENT_URI as string,
-      scopes: ['https://graph.microsoft.com/.default'],
+      scopes: ['openid', 'offline_access', 'User.Read', 'Calendars.Read'],
     };
 
     const cca = new msal.ConfidentialClientApplication(clientConfig);
     const tokens = await cca.acquireTokenByCode(tokenRequest);
     if (!tokens.accessToken) throw new AppError('Token not found', 400);
-
+    console.log(`GetOutlookTokensService 45: tokens: ${JSON.stringify(tokens)}`);
     const tokenCache = JSON.stringify(cca.getTokenCache().serialize());
 
     const authProvider = {
@@ -40,7 +50,7 @@ export default class GetOutlookTokensService {
 
     try {
       const user = await this.usersRepository.findByPhone(phone);
-      if (!user) throw new AppError('User not found', 400);
+      if (!user) throw new AppError('User not found GetOutlookTokens findByPhone53', 400);
       await this.usersRepository.updateEmail(user.id, userInfo.mail);
 
       this.usersRepository.updateToken(user.id, tokenCache);

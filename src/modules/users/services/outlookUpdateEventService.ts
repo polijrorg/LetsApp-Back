@@ -40,7 +40,17 @@ export default class outlookUpdateEvent {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
         clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        authority: 'https://login.microsoftonline.com/common',
       },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel: any, message: any, containsPii: any) {
+            console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: 3,
+        }
+      }
     };
 
     const cca = new msal.ConfidentialClientApplication(clientConfig);

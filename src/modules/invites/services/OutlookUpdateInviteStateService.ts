@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable no-console */
 import msal from '@azure/msal-node';
 import { inject, injectable } from 'tsyringe';
 import { InviteUser } from '@prisma/client';
@@ -19,7 +21,7 @@ export default class OutlookUpdateInviteState {
 
   public async execute(email: string, idInvite: string, state: string): Promise<InviteUser> {
     const user = await this.invitesRepository.findByEmail(email);
-    if (!user) throw new AppError('User not found', 400);
+    if (!user) throw new AppError('User not found user OutlookUptadeInStateServices', 400);
 
     const invite = await this.invitesRepository.findInviteById(idInvite);
     if (!invite) throw new AppError('Invite not found', 400);
@@ -30,6 +32,16 @@ export default class OutlookUpdateInviteState {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
         clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        authority: 'https://login.microsoftonline.com/common',
+      },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel: any, message: any, containsPii: any) {
+            console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: 3,
+        },
       },
     };
 
