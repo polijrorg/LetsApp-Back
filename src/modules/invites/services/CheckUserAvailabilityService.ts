@@ -26,7 +26,17 @@ export default class CheckUserAvailabilityService {
         auth: {
           clientId: process.env.OUTLOOK_CLIENT_ID as string,
           clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+          authority: 'https://login.microsoftonline.com/common',
         },
+        system: {
+          loggerOptions: {
+            loggerCallback(loglevel: any, message: any, containsPii: any) {
+              console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: 3,
+          }
+        }
       };
 
       const cca = new msal.ConfidentialClientApplication(clientConfig);
@@ -69,7 +79,7 @@ export default class CheckUserAvailabilityService {
       return true;
     }
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, `${process.env.GOOGLE_CLIENT_URI}`);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });
 

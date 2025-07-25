@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
@@ -43,15 +44,16 @@ export default class InviteController {
   public async listEventsByUser(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(ListEventsService);
     const { email } = req.body;
-    const invites = await list.execute(email);
-
-    return res.status(201).json(invites);
+    const events = await list.getEventsUserFromGoogle(email);
+    console.log(`InvitesController 50: Events${JSON.stringify(events)}`);
+    return res.status(201).json(events);
   }
 
   public async listInvitesByUser(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(ListInvitesService);
     const { email } = req.body;
     const invites = await list.execute(email);
+    console.log(`InvitesController 57: Invites${invites}`);
 
     return res.status(201).json(invites);
   }

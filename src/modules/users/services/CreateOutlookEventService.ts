@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import msal from '@azure/msal-node';
 import { Event } from '@microsoft/microsoft-graph-types';
 import { Client } from '@microsoft/microsoft-graph-client';
@@ -50,7 +51,7 @@ export default class CreateOutlookCalendarEventService {
     attendeesEmail.concat(optionalGuests);
 
     const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found', 400);
+    if (!user) throw new AppError('User not found user CreateOulookEventService', 400);
 
     const tokenCache = JSON.parse(user.tokens!);
 
@@ -58,6 +59,16 @@ export default class CreateOutlookCalendarEventService {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
         clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        authority: 'https://login.microsoftonline.com/common',
+      },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel: any, message: any, containsPii: any) {
+            console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: 3,
+        },
       },
     };
 

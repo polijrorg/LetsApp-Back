@@ -22,14 +22,12 @@ export default class UpdateEventService {
     begin, end, email, eventId,
   }:IRequest): Promise<void> {
     // const oauth2Client = new google.auth.OAuth2();
-
-    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
+    const user = await this.usersRepository.findByEmail(email);
+    if (!user) throw new AppError('User not found', 400);
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, `${process.env.GOOGLE_CLIENT_URI}`);
 
     const inviteFound = await this.usersRepository.findInvite(eventId);
     if (!inviteFound) throw new AppError('Invite not found', 400);
-
-    const user = await this.usersRepository.findByEmail(email);
-    if (!user) throw new AppError('User not found', 400);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });
 

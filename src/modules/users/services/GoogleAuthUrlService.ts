@@ -27,7 +27,7 @@ export default class GoogleAuthUrlService {
       redirect_uri: process.env.GOOGLE_CLIENT_URI,
       state: phone,
     });
-
+    console.log(`GoogleAuthURLService 26: URL ${process.env.GOOGLE_CLIENT_URI}`);
     return authUrl;
   }
 }
