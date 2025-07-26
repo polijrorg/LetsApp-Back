@@ -1,166 +1,96 @@
 /* eslint-disable no-console */
-import msal from '@azure/msal-node';
-import { Event } from '@microsoft/microsoft-graph-types';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import CreateInviteService from '@modules/invites/services/CreateInviteService';
 import UserManagementService from '@modules/users/services/UserManagementService';
 import { Invite } from '@prisma/client';
-
 import IUsersRepository from '../repositories/IUsersRepository';
+import {
+  buildMsalClient,
+  getGraphClient,
+  resolveEmails,
+  buildEvent,
+  tryCreateMeetingLink,
+} from '@shared/utils/outlookHelpers/outlookHelpers';
 
 interface IRequest {
-  phone:string;
-  begin:string; end:string;
-  beginSearch:string; endSearch:string;
+  phone: string;
+  begin: string;
+  end: string;
+  beginSearch: string;
+  endSearch: string;
   attendees: string[];
-  description:string;
-  address:string;
-  createMeetLink:boolean;
-  name:string;
-  optionalAttendees:string[];
-}
-
-interface IMeeting {
-  url:string;
-  conferenceId:string;
+  description: string;
+  address: string;
+  createMeetLink: boolean;
+  name: string;
+  optionalAttendees: string[];
 }
 
 @injectable()
 export default class CreateOutlookCalendarEventService {
   constructor(
     @inject('UsersRepository')
-    private usersRepository: IUsersRepository,
-
-  ) { }
+    private usersRepository: IUsersRepository
+  ) {}
 
   public async authenticate({
-    phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
+    phone,
+    begin,
+    end,
+    beginSearch,
+    endSearch,
+    attendees,
+    description,
+    address,
+    name,
+    optionalAttendees,
+    createMeetLink,
   }: IRequest): Promise<Invite> {
-    // To create the invite we need a valid full-registered-users guest list.
-    // In order to achieve this, we call a service that separates the guests into four lists:
-    const userManagementService = container.resolve(UserManagementService);
+    const user = await this.usersRepository.findByPhone(phone);
+    if (!user) throw new AppError('User not found in CreateOutlookEventService', 400);
 
-    // Guests management
+    console.log(`CreateOutlookEventService 45: User found: ${JSON.stringify(user.tokens)}`);
+
+    const userManagementService = container.resolve(UserManagementService);
     const {
-      guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
+      guests,
+      pseudoGuests,
+      optionalGuests,
+      pseudoOptionalGuests,
     } = await userManagementService.execute(attendees, optionalAttendees);
 
-    const attendeesEmail = guests;
-    attendeesEmail.concat(optionalGuests);
+    const allEmails = [...guests, ...optionalGuests];
+    const resolvedEmails = await resolveEmails(
+      allEmails,
+      this.usersRepository.findEmailByPhone.bind(this.usersRepository)
+    );
 
-    const user = await this.usersRepository.findByPhone(phone);
-    if (!user) throw new AppError('User not found user CreateOulookEventService', 400);
+    const tokenCache = JSON.parse(user?.tokens!);
+    const cca = buildMsalClient(JSON.stringify(tokenCache));
+    const graphClient: Client = await getGraphClient(cca);
 
-    const tokenCache = JSON.parse(user.tokens!);
+    const event = buildEvent({
+      name,
+      description,
+      address,
+      begin,
+      end,
+      attendees: resolvedEmails,
+    });
 
-    const clientConfig = {
-      auth: {
-        clientId: process.env.OUTLOOK_CLIENT_ID as string,
-        clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
-        authority: 'https://login.microsoftonline.com/common',
-      },
-      system: {
-        loggerOptions: {
-          loggerCallback(loglevel: any, message: any, containsPii: any) {
-            console.log(message);
-          },
-          piiLoggingEnabled: false,
-          logLevel: 3,
-        },
-      },
-    };
+    await graphClient
+      .api('me/events')
+      .header('Prefer', 'outlook.timezone="America/Sao_Paulo"')
+      .post(event);
 
-    const cca = new msal.ConfidentialClientApplication(clientConfig);
-    cca.getTokenCache().deserialize(tokenCache);
+    const meeting = createMeetLink
+      ? await tryCreateMeetingLink(graphClient, { name, begin, end })
+      : null;
 
-    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
-
-    const tokenRequest = {
-      account,
-      scopes: ['https://graph.microsoft.com/.default'],
-    };
-
-    const tokens = await cca.acquireTokenSilent(tokenRequest);
-    if (!tokens) throw new AppError('Token not found', 400);
-
-    // Graph client configuration
-
-    const authProvider = {
-      getAccessToken: async () => tokens.accessToken as string,
-    };
-
-    const graphClient = Client.initWithMiddleware({ authProvider });
-
-    // eslint-disable-next-line no-plusplus
-    for (let index = 0; index < attendeesEmail.length; index++) {
-      const element = attendeesEmail[index];
-      if (!element.includes('@')) {
-        try {
-          // eslint-disable-next-line no-await-in-loop
-          attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
-        } catch (error) {
-          console.log(error.message);
-        }
-      }
-    }
-
-    const event: Event = {
-      subject: name,
-      body: { content: description },
-      location: {
-        displayName: address,
-      },
-      start: {
-        dateTime: begin,
-        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
-      },
-      end: {
-        dateTime: end,
-        timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,
-      },
-      attendees: attendeesEmail.map((email) => ({
-        emailAddress: {
-          address: email,
-        },
-        type: 'required',
-      })),
-    };
-
-    // Creates an event on the user's calendar and invites the attendees
-    await graphClient.api('me/events').header('Prefer', 'outlook.timezone="America/Sao_Paulo"').post(event);
-
-    // Tries to create a meeting link for the event
-    const getMeetLink = async (): Promise<IMeeting | null> => {
-      if (createMeetLink) {
-        console.log('creating meeting link');
-        try { // will only work with business or school accounts
-          const meeting = await graphClient.api('/me/onlineMeetings').post({
-            startDateTime: begin,
-            endDateTime: end,
-            subject: name,
-            joinMeetingIdSettings: {
-              isPasscodeRequired: false,
-            },
-          });
-          return {
-            url: meeting.joinWebUrl,
-            conferenceId: meeting.id,
-          };
-        } catch (error) {
-          console.log(error.body);
-          return null;
-        }
-      }
-      return null;
-    };
-
-    const meeting = await getMeetLink();
-
-    // Creates the invite on the database
     const CreateInviteEvent = container.resolve(CreateInviteService);
-    const state = 'accepted';
+
     const invite = await CreateInviteEvent.execute({
       name,
       begin,
@@ -175,7 +105,7 @@ export default class CreateOutlookCalendarEventService {
       description,
       address,
       link: meeting?.url || null,
-      state,
+      state: 'accepted',
       googleId: meeting?.conferenceId || 'none',
       organizerPhoto: user.photo,
       organizerName: user.name || 'organizer',

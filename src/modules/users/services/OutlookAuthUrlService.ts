@@ -31,7 +31,7 @@ export default class OutlookAuthUrlService {
     const cca = new msal.ConfidentialClientApplication(clientConfig);
 
     const authCodeUrlParameters = {
-      scopes: ['openid', 'offline_access', 'User.Read', 'Calendars.Read'],
+      scopes: ['openid','profile', 'offline_access', 'User.Read', 'Calendars.ReadWrite', 'OnlineMeetings.ReadWrite'],
       redirectUri: process.env.OUTLOOK_CLIENT_URI as string,
       state: phone,
       responseMode: ResponseMode.QUERY
