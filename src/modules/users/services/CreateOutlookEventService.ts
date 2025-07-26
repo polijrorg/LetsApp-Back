@@ -13,6 +13,7 @@ import {
   buildEvent,
   tryCreateMeetingLink,
 } from '@shared/utils/outlookHelpers/outlookHelpers';
+import msal from '@azure/msal-node';
 
 interface IRequest {
   phone: string;
@@ -50,26 +51,58 @@ export default class CreateOutlookCalendarEventService {
   }: IRequest): Promise<Invite> {
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found in CreateOutlookEventService', 400);
-
-    console.log(`CreateOutlookEventService 45: User found: ${JSON.stringify(user.tokens)}`);
-
+    // console.log(`CreateOutlookEventService 45: User found: ${JSON.stringify(user.tokens)}`);
     const userManagementService = container.resolve(UserManagementService);
+    const optionalAttendeesRefined = optionalAttendees.filter((item): item is NonNullable<typeof item> => item != null);
+    const attendeesRefined = attendees.filter((item): item is NonNullable<typeof item> => item != null);
+
+    console.log(`CreateOutlookEventService 45: ${JSON.stringify(attendees)}, ${JSON.stringify(optionalAttendees)}`);
     const {
       guests,
       pseudoGuests,
       optionalGuests,
       pseudoOptionalGuests,
-    } = await userManagementService.execute(attendees, optionalAttendees);
+    } = await userManagementService.execute(attendeesRefined, optionalAttendeesRefined);
 
     const allEmails = [...guests, ...optionalGuests];
-    const resolvedEmails = await resolveEmails(
-      allEmails,
-      this.usersRepository.findEmailByPhone.bind(this.usersRepository)
-    );
-
+    const resolvedEmails = await resolveEmails(allEmails, this.usersRepository.findEmailByPhone.bind(this.usersRepository));
     const tokenCache = JSON.parse(user?.tokens!);
-    const cca = buildMsalClient(JSON.stringify(tokenCache));
-    const graphClient: Client = await getGraphClient(cca);
+
+    const clientConfig = {
+        auth: {
+          clientId: process.env.OUTLOOK_CLIENT_ID!,
+          clientSecret: process.env.OUTLOOK_CLIENT_SECRET!,
+          authority: 'https://login.microsoftonline.com/common',
+        },
+        system: {
+          loggerOptions: {
+            loggerCallback: (_level: any, message: any) => console.log(message),
+            piiLoggingEnabled: false,
+            logLevel: 3,
+          },
+        },
+      };
+    
+    const cca = new msal.ConfidentialClientApplication(clientConfig);
+    cca.getTokenCache().deserialize(tokenCache);
+    
+    // const cca = buildMsalClient(user.tokens!);
+    // const graphClient: Client = await getGraphClient(cca);
+    const account = JSON.parse(cca.getTokenCache().serialize()).Account;
+
+      const tokenRequest = {
+        account,
+          scopes: ['openid','profile', 'offline_access', 'User.Read', 'Calendars.ReadWrite', 'OnlineMeetings.ReadWrite'],
+      };
+    
+      const tokens = await cca.acquireTokenSilent(tokenRequest);
+      if (!tokens) throw new Error('❌ AccessToken não encontrado com acquireTokenSilent.');
+    
+     const client = Client.initWithMiddleware({
+        authProvider: {
+          getAccessToken: async () => tokens.accessToken as string,
+        },
+      });
 
     const event = buildEvent({
       name,
@@ -80,13 +113,13 @@ export default class CreateOutlookCalendarEventService {
       attendees: resolvedEmails,
     });
 
-    await graphClient
+    await client
       .api('me/events')
       .header('Prefer', 'outlook.timezone="America/Sao_Paulo"')
       .post(event);
 
     const meeting = createMeetLink
-      ? await tryCreateMeetingLink(graphClient, { name, begin, end })
+      ? await tryCreateMeetingLink(client, { name, begin, end })
       : null;
 
     const CreateInviteEvent = container.resolve(CreateInviteService);

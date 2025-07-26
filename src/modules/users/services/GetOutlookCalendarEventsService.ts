@@ -51,7 +51,7 @@ export default class GetOutlookCalendarEvents {
 
     const tokenRequest = {
       account,
-      scopes: ['openid', 'offline_access', 'User.Read', 'Calendars.Read'],
+      scopes: ['openid','profile', 'offline_access', 'User.Read', 'Calendars.ReadWrite', 'OnlineMeetings.ReadWrite'],
     };
 
     const tokens = await cca.acquireTokenSilent(tokenRequest);

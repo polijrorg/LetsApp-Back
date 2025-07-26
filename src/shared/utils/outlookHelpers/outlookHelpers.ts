@@ -29,7 +29,7 @@ export async function getGraphClient(cca: msal.ConfidentialClientApplication) {
 //   const accounts = await cca.getTokenCache().getAllAccounts();
     const account = JSON.parse(cca.getTokenCache().serialize()).Account;
 
-    console.log(`❌❌OutlookHelpers 20: Accounts found: ${JSON.stringify(account)}`);
+    // console.log(`❌❌OutlookHelpers 20: Accounts found: ${JSON.stringify(accounts)}`);
   if (!account ) {
     throw new Error('❌ Nenhuma conta encontrada no cache MSAL. O usuário precisa se autenticar novamente.');
   }
