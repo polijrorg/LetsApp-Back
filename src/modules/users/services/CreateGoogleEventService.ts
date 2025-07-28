@@ -37,10 +37,11 @@ export default class CreateGoogleEventService {
     const {
       guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
     } = await userManagementService.execute(attendees, optionalAttendees);
-
-    const attendeesEmail = [...guests, ...optionalGuests];
+    const attendeesEmail = [...guests, ...optionalGuests,...pseudoGuests, ...pseudoOptionalGuests];
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
+    // if (user) throw new AppError('User not found', 400);
+
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, `${process.env.GOOGLE_CLIENT_URI}`);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });

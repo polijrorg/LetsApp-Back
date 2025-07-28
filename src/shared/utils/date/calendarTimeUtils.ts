@@ -41,12 +41,15 @@ export function mergeBusyTimes(
   outlook: IBusyTime[]
 ): IBusyTime[] {
   const all = [...google, ...outlook];
+    console.log('Building busy intervals from:', all);
+
   return all.sort((a, b) => moment(a.start.dateTime).diff(moment(b.start.dateTime)));
+  
 }
 
 export function buildBusyIntervals(busyTimes: IBusyTime[]): [Moment, Moment][] {
   const merged: [Moment, Moment][] = [];
-
+  console.log('Building busy intervals from:', busyTimes);
   for (const event of busyTimes) {
     const start = moment(event.start.dateTime);
     const end = moment(event.end.dateTime);
@@ -92,53 +95,45 @@ export function generateFreeTimes({
   endHour,
 }: IGenerateFreeTimesInput): IFreeTime[] {
   const freeTimes: IFreeTime[] = [];
-  let pointer = moment(beginMoment);
+  const current = beginMoment.clone().startOf('day');
 
-  const earlyLimit = moment(beginMoment).set({
-    hour: parseInt(beginHour.slice(0, 2), 10),
-    minute: parseInt(beginHour.slice(3, 5), 10),
-    second: 0,
-  });
+  while (current.isSameOrBefore(endMoment, 'day')) {
+    const dayStart = current.clone().set({
+      hour: parseInt(beginHour.slice(0, 2), 10),
+      minute: parseInt(beginHour.slice(3, 5), 10),
+      second: 0,
+    });
 
-  const lateLimit = moment(endMoment).set({
-    hour: parseInt(endHour.slice(0, 2), 10),
-    minute: parseInt(endHour.slice(3, 5), 10),
-    second: 0,
-  });
+    const dayEnd = current.clone().set({
+      hour: parseInt(endHour.slice(0, 2), 10),
+      minute: parseInt(endHour.slice(3, 5), 10),
+      second: 0,
+    });
 
-  for (const [start, end] of busyIntervals) {
-    while (pointer.add(0, 'minute').isBefore(start)) {
-      const slotEnd = moment(pointer).add(duration, 'minute');
-      if (slotEnd.isAfter(start)) break;
-      if (
-        pointer.isSameOrAfter(earlyLimit) &&
-        slotEnd.isSameOrBefore(lateLimit) &&
-        slotEnd.isSameOrBefore(endMoment)
-      ) {
+    let pointer = dayStart.clone();
+
+    while (pointer.clone().add(duration, 'minutes').isSameOrBefore(dayEnd)) {
+      const slotEnd = pointer.clone().add(duration, 'minutes');
+
+      // Checar se esse bloco conflita com algum intervalo ocupado
+      const overlaps = busyIntervals.some(
+        ([busyStart, busyEnd]) =>
+          pointer.isBefore(busyEnd) && slotEnd.isAfter(busyStart)
+      );
+
+      if (!overlaps && slotEnd.isSameOrBefore(endMoment)) {
         freeTimes.push({
           start: pointer.clone().format(),
           end: slotEnd.clone().format(),
         });
       }
-      pointer = pointer.add(duration, 'minute');
-    }
-    pointer = moment.max(pointer, end);
-  }
 
-  // Check for remaining slot at the end
-  while (pointer.add(0, 'minute').add(duration, 'minute').isSameOrBefore(endMoment)) {
-    const slotEnd = pointer.clone().add(duration, 'minute');
-    if (
-      pointer.isSameOrAfter(earlyLimit) &&
-      slotEnd.isSameOrBefore(lateLimit)
-    ) {
-      freeTimes.push({
-        start: pointer.clone().format(),
-        end: slotEnd.clone().format(),
-      });
+      pointer.add(duration, 'minutes');
     }
-    pointer = pointer.add(duration, 'minute');
+
+    current.add(1, 'day');
   }
 
   return freeTimes;
 }
+
