@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-param-reassign */
 import { S3 } from '@aws-sdk/client-s3';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
@@ -12,6 +10,7 @@ const storageTypes = (type: 'audio' | 'user' | 'music') => ({
   local: multer.diskStorage({
     destination: tmpFolder,
     filename(req, file, cb) {
+      // eslint-disable-next-line no-param-reassign
       file.key = `${Date.now()}-${file.originalname.replace(/\s/g, '_')}`;
 
       return cb(null, file.key);

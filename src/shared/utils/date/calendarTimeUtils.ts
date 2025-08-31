@@ -41,7 +41,7 @@ export function mergeBusyTimes(
   outlook: IBusyTime[]
 ): IBusyTime[] {
   const all = [...google, ...outlook];
-    console.log('Building busy intervals from:', all);
+    // console.log('Building busy intervals from:', all);
 
   return all.sort((a, b) => moment(a.start.dateTime).diff(moment(b.start.dateTime)));
   

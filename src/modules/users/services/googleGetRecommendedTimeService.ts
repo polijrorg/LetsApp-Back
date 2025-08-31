@@ -25,7 +25,7 @@ export default class GetCalendarEvents {
     // For future versions is viable to implement the try-catch block inside the map loop
     const promises = googleUsers.map(async (user) => {
       try {
-        const aux = await urlservice.authenticate(user);
+        const aux = await urlservice.getTimes(user);
         for (let index = 0; index < aux.length; index += 1) {
           horariosGoogle.push(aux[index]);
         }

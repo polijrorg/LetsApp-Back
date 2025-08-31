@@ -78,7 +78,7 @@ export default class ListEventsService {
     // console.log(`ListEventsService 69: events after change: ${JSON.stringify(this.addResponseStatusArrays(events))}`);
 
     const invitesDTO: ICreateInviteDTO[] = events.map((event: calendar_v3.Schema$Event) => {
-      console.log(`Event Email organzer : ${JSON.stringify(event.organizer?.displayName)}`)
+      // console.log(`Event Email organzer : ${JSON.stringify(event.organizer?.displayName)}`)
       mapGoogleEventToInviteDTO({
         event,
         phone: user.phone,
@@ -96,16 +96,16 @@ export default class ListEventsService {
     }
     return events;
   }
-  public async getEventsUserFromGoogle(email: string): Promise<any[]> {
+  public async getEventsUser(email: string): Promise<any[]> {
     const userData = await this.invitesRepository.findByEmail(email);
-    console.log(`ListEventsService 67 user: ${JSON.stringify(userData?.type)}`);
+    // console.log(`ListEventsService 67 user: ${JSON.stringify(userData?.type)}`);
     if (userData?.type === 'OUTLOOK') {
       const events = await this.getOutlookEvent(email);
-      console.log(`ListEventsService 70: Events after getOutlookEvent: ${JSON.stringify(this.addResponseStatusArrays(events))}`);
+      // console.log(`ListEventsService 70: Events after getOutlookEvent: ${JSON.stringify(this.addResponseStatusArrays(events))}`);
       return this.addResponseStatusArrays(events);
     }
     if (userData?.type === 'GOOGLE') {
-      console.log(`ListEventsService 72: userData: ${JSON.stringify(userData)}`);
+      // console.log(`ListEventsService 72: userData: ${JSON.stringify(userData)}`);
       const events = await this.getGoogleEvents(email);
       return this.addResponseStatusArrays(events);
     }
