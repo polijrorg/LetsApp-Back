@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { google } from 'googleapis';
 import { container, inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
@@ -26,7 +27,7 @@ export default class CreateGoogleEventService {
 
   ) { }
 
-  public async authenticate({
+  public async createGoogleCalendarEvent({
     address, attendees, begin, createMeetLink, description, end, beginSearch, endSearch, phone, name, optionalAttendees,
   }:IRequest): Promise<Invite> {
     // To create the invite we need a valid full-registered-users guest list.
@@ -36,14 +37,12 @@ export default class CreateGoogleEventService {
     const {
       guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
     } = await userManagementService.execute(attendees, optionalAttendees);
-
-    const attendeesEmail = guests;
-    attendeesEmail.concat(optionalGuests);
-
-    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_CLIENT_URI);
-
+    const attendeesEmail = [...guests, ...optionalGuests,...pseudoGuests, ...pseudoOptionalGuests];
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
+    // if (user) throw new AppError('User not found', 400);
+
+    const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, `${process.env.GOOGLE_CLIENT_URI}`);
 
     oAuth2Client.setCredentials({ access_token: user.tokens });
 
@@ -54,23 +53,27 @@ export default class CreateGoogleEventService {
     });
 
     // eslint-disable-next-line no-plusplus
-    for (let index = 0; index < attendeesEmail.length; index++) {
-      const element = attendeesEmail[index];
-      if (!element.includes('@')) {
+    const resolvedEmails = await Promise.all(
+      attendeesEmail.map(async (item) => {
+        if (item.includes('@')) return item;
         try {
-          // eslint-disable-next-line no-await-in-loop
-          attendeesEmail[index] = await this.usersRepository.findEmailByPhone(element);
+          return await this.usersRepository.findEmailByPhone(item);
         } catch (error) {
-          console.log(error.message);
+          console.warn(`Erro ao buscar email para ${item}: ${error}`);
+          return null;
         }
-      }
-    }
+      }),
+    );
+
+    const finalAttendees = resolvedEmails
+      .filter((email): email is string => Boolean(email))
+      .map((email) => ({ email }));
 
     const event = {
       summary: name,
       description,
       location: address,
-      attendees: attendeesEmail.map((email) => ({ email })),
+      attendees: finalAttendees,
       start: {
         dateTime: begin,
         timeZone: Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo' }).resolvedOptions().timeZone,

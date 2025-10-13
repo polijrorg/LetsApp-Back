@@ -1,4 +1,4 @@
-import msal from '@azure/msal-node';
+import msal, { ResponseMode } from '@azure/msal-node';
 import { injectable, inject } from 'tsyringe';
 import IUsersRepository from '../repositories/IUsersRepository';
 
@@ -15,15 +15,26 @@ export default class OutlookAuthUrlService {
       auth: {
         clientId: process.env.OUTLOOK_CLIENT_ID as string,
         clientSecret: process.env.OUTLOOK_CLIENT_SECRET,
+        authority: 'https://login.microsoftonline.com/common',
       },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel: any, message: any, containsPii: any) {
+            console.log(`Mesagem after loggin ${message}`);
+          },
+          piiLoggingEnabled: false,
+          logLevel: 3,
+        }
+      }
     };
 
     const cca = new msal.ConfidentialClientApplication(clientConfig);
 
     const authCodeUrlParameters = {
-      scopes: ['https://graph.microsoft.com/.default'],
+      scopes: ['openid','profile', 'offline_access', 'User.Read', 'Calendars.ReadWrite', 'OnlineMeetings.ReadWrite'],
       redirectUri: process.env.OUTLOOK_CLIENT_URI as string,
       state: phone,
+      responseMode: ResponseMode.QUERY
     };
 
     const authCodeUrl = cca.getAuthCodeUrl(authCodeUrlParameters);

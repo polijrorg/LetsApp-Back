@@ -26,6 +26,8 @@ interface IInvitesRepository {
   connect(user: User, invite: Invite): Promise<InviteUser>
   findInvitesByOrganizerName(eventId:string): Promise<(Invite & { pseudoGuests: PseudoInviteUser[] })[] | null>;
   delete(id:string): Promise<Invite|null>;
+  createMany(data: ICreateInviteDTO[]): Promise<Invite[]>;
+
 }
 
 export default IInvitesRepository;

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint src --ext ts,tsx",
-    "dev:server": "ts-node-dev -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules src/shared/infra/http/server.ts",
+    "dev:server": "cross-env ts-node-dev -r dotenv/config -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules src/shared/infra/http/server.ts",
     "build": "babel src --extensions \".js,.ts\" --out-dir dist --copy-files",
     "docs": "npx insomnia-documenter --output docs"
   },
@@ -33,6 +33,7 @@
     "@typescript-eslint/parser": "^4.15.1",
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-plugin-transform-typescript-metadata": "^0.3.1",
+    "cross-env": "^7.0.3",
     "eslint": "^7.20.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-typescript": "^2.4.0",

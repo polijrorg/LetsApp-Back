@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
@@ -39,6 +40,7 @@ import ListContactsService from '@modules/users/services/ListContactsService';
 import UpdateEventService from '@modules/users/services/UpdateEventService';
 import updateAllEventsService from '@modules/users/services/updateAllEventsService';
 import SignUpLinkManagerService from '@modules/users/services/SignUpLinkManagerService';
+import { messageConnectionSuccess } from '@shared/utils/messageConnection/messageConnectionSucces';
 
 export default class UserController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -46,13 +48,14 @@ export default class UserController {
       phone,
       pseudoUserId,
     } = req.body;
+    console.log('UserController 47: Creating user with phone:', phone, 'and pseudoUserId:', pseudoUserId);
     const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
       phone,
       pseudoUserId,
     });
-
+    console.log('UserController 53: User created:', user);
     return res.status(201).json(user);
   }
 
@@ -61,6 +64,7 @@ export default class UserController {
     const { pseudoUserId, link } = req.body;
 
     const response = await urlService.execute({ pseudoUserId, link });
+    console.log('UserController 66: Sign-up link sent:', response);
     return res.status(201).json(response);
   }
 
@@ -76,7 +80,7 @@ export default class UserController {
     });
 
     user.tokens = 'secured';
-
+    console.log('UserController 79: User verified:', user);
     return res.status(201).json(user);
   }
 
@@ -95,9 +99,11 @@ export default class UserController {
       photoFile: photo as Express.Multer.File| null,
       hasPhoto: !!photo,
     });
-
+    if (!user) {
+      throw new AppError('User not found upload', 404);
+    }
     user.tokens = 'secured';
-
+    console.log('UserController 96: User uploaded:', user);
     return res.status(201).json(user);
   }
 
@@ -111,7 +117,10 @@ export default class UserController {
     const user = await updateEmail.execute({
       id, email,
     });
-
+    if (!user) {
+      throw new AppError('User not found updateEmail', 404);
+    }
+    console.log('UserController 113: User email updated:', user);
     return res.status(201).json(user);
   }
 
@@ -125,9 +134,11 @@ export default class UserController {
     const user = await deleteUser.execute({
       phone,
     });
-
+    if (!user) {
+      throw new AppError('User not found deletUser', 404);
+    }
     user.tokens = 'secured';
-
+    console.log('UserController 127: User deleted:', user);
     return res.status(201).json(user);
   }
 
@@ -141,7 +152,10 @@ export default class UserController {
       user.tokens = 'secured';
       return user;
     });
-
+    if (!users) {
+      throw new AppError('No users found', 404);
+    }
+    console.log('UserController 140: Users listed:', users);
     return res.status(201).json(users);
   }
 
@@ -165,39 +179,50 @@ export default class UserController {
     const urlservice = container.resolve(GoogleAuthUrlService);
     const { phone } = req.params;
 
+    console.log('UserController 182: Getting Google Auth URL for phone:', phone);
     const Url = await urlservice.authenticate(phone);
+    console.log('UserController 182 Google Auth URL:', Url);
     return res.status(201).json(Url);
   }
 
   public async getOutlookAuthUrl(req: Request, res: Response): Promise<Response> {
     const urlservice = container.resolve(OutlookAuthUrlService);
     const { phone } = req.params;
-
     const Url = await urlservice.authenticate(phone);
+    console.warn('UserController 192: Outlook Auth URL:', Url);
     return res.status(201).json(Url);
   }
 
+ 
+
   public async getGoogleTokens(req: Request, res: Response): Promise<Response> {
     const { code, state } = req.query;
+    console.log(`UserController 262: code ${code} status ${state}`);
     const urlservice = container.resolve(GetGoogleTokensService);
+    console.log(`UserController 264: urlSerrvice ${urlservice}`);
     if (!code) throw new AppError('Code not found', 400);
     if (!state) throw new AppError('state not found', 400);
 
     const status = await urlservice.authenticate(code.toString(), state.toString());
 
-    if (status) return res.status(201).json('ok');
+    if (status) {
+      return res.status(200).send(messageConnectionSuccess('Calendario Google'));
+    }
     return res.status(201).json('error');
   }
 
   public async getOutlookTokens(req: Request, res: Response): Promise<Response> {
     const { code, state } = req.query;
+    console.log(`UserController 207: code ${code} status ${state}`);
     const urlservice = container.resolve(GetOutlookTokensService);
-    if (!code) throw new AppError('User not found', 400);
-    if (!state) throw new AppError('User not found', 400);
+    if (!code) throw new AppError('User not found Code', 400);
+    if (!state) throw new AppError('User not found State', 400);
 
     const status = await urlservice.authenticate(code.toString(), state.toString());
-
-    if (status) return res.status(201).json('ok');
+    console.log('UserController 210: Outlook tokens status:', status);
+    if (status) {
+      return res.status(200).send(messageConnectionSuccess('Calendario Outlook'));
+    }
     return res.status(201).json('error');
   }
 
@@ -207,9 +232,10 @@ export default class UserController {
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     } = req.body;
 
-    const Url = await urlservice.authenticate({
+    const Url = await urlservice.createGoogleCalendarEvent({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, createMeetLink, optionalAttendees,
     });
+    console.log('UserController 225: Google event created:', Url);
     return res.status(201).json(Url);
   }
 
@@ -232,7 +258,7 @@ export default class UserController {
     const invite = await urlservice.authenticate({
       phone, begin, end, beginSearch, endSearch, attendees, description, address, name, optionalAttendees, createMeetLink,
     });
-
+    console.log('UserController 240: Outlook event created:', invite);
     return res.status(201).json(invite);
   }
 
@@ -245,6 +271,7 @@ export default class UserController {
     const Url = await urlservice.updateEventState({
       email, state, eventId,
     });
+    console.log('UserController 252: Event state updated:', Url);
     return res.status(201).json(Url);
   }
 
@@ -257,6 +284,7 @@ export default class UserController {
     const Url = await urlservice.authenticate({
       phone, begin, end, eventId,
     });
+    console.log('UserController 264: Event updated:', Url);
     return res.status(201).json(Url);
   }
 
@@ -269,14 +297,17 @@ export default class UserController {
     const Url = await urlservice.authenticate({
       phone, begin, end, idInvite,
     });
+    console.log('UserController 276: All events updated:', Url);
     return res.status(201).json(Url);
   }
 
   public async getGoogleEvents(req: Request, res: Response): Promise<Response> {
+    console.log(`UserController 282: Params: ${JSON.stringify(req.params)}`);
     const urlservice = container.resolve(GetGoogleCalendarEventsService);
-    const { email } = req.body;
-
+    const { email } = req.params;
+    console.log('UserController 282: Getting Google events for email:', email);
     const Url = await urlservice.authenticate(email);
+    console.log('UserController 286: Google events retrieved:', Url);
     return res.status(201).json(Url);
   }
 
@@ -291,18 +322,20 @@ export default class UserController {
   public async GetUserByPhone(req: Request, res: Response): Promise<Response> {
     const findUser = container.resolve(GetUserByPhoneService);
     const { phone } = req.params;
-
     const user = await findUser.execute(phone);
     user.user.tokens = 'secured';
+    console.log(`UserControlle 385 GetUserByPhone: ${JSON.stringify(user)}`);
+
     return res.status(201).json(user);
   }
 
   public async GetUserByEmail(req: Request, res: Response): Promise<Response> {
     const findUser = container.resolve(GetUserByEmailService);
     const { email } = req.params;
-
     const user = await findUser.execute(email);
     user.user.tokens = 'secured';
+    console.log(`UsersController 396: ${user}`);
+
     return res.status(201).json(user);
   }
 

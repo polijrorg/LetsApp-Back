@@ -25,7 +25,7 @@ usersRoutes.post('/resendCode', usersController.resendVerificationCode);
 usersRoutes.get('/listContacts/:phone', usersController.listContacts);
 
 // tokens
-usersRoutes.get('/google', usersController.getGoogleTokens);
+usersRoutes.get('/google', usersController.getGoogleTokens.bind(usersController));
 usersRoutes.get('/outlook', usersController.getOutlookTokens);
 
 // urls
@@ -39,8 +39,8 @@ usersRoutes.post('/createGoogleEvent', usersController.createGoogleEvent);
 usersRoutes.post('/createOutlookEvent', usersController.createOutlookEvent);
 
 // get events
-usersRoutes.get('/getGoogleEvents', usersController.getGoogleEvents);
-usersRoutes.get('/getOutlookEvents', usersController.getOutlookEvents);
+usersRoutes.get('/getGoogleEvents/:email', usersController.getGoogleEvents);
+usersRoutes.get('/getOutlookEvents/:email', usersController.getOutlookEvents);
 
 usersRoutes.get('/GetUserByPhone/:phone', usersController.GetUserByPhone);
 usersRoutes.post('/SendSignUpLink', usersController.SendSignUpLink);

@@ -51,6 +51,8 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async findByPhone(phone: string): Promise<(User & { contatos: Contato[] }) | null> {
+    if (!phone) return null;
+
     const user = await this.ormRepository.findUnique({
       where: { phone },
       include: { contatos: true },

@@ -9,9 +9,9 @@ import ICreateInviteDTO from '@modules/invites/dtos/ICreateInviteDTO';
 
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
-  yes: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
-  no: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
-  maybe: {amount: number, ateendees:User[], pseudoAttendes : PseudoUser[]};
+  yes: { amount: number, ateendees: User[], pseudoAttendes: PseudoUser[] };
+  no: { amount: number, ateendees: User[], pseudoAttendes: PseudoUser[] };
+  maybe: { amount: number, ateendees: User[], pseudoAttendes: PseudoUser[] };
 }
 export default class InvitesRepository implements IInvitesRepository {
   private ormRepository: Prisma.InviteDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>
@@ -43,19 +43,19 @@ export default class InvitesRepository implements IInvitesRepository {
       description,
       guests: {
         create:
-        guests.map((guest) => ({
-          Status: 'needsAction',
-          optional: false,
-          User: { connect: { email: guest } },
-        })),
+          guests.map((guest) => ({
+            Status: 'needsAction',
+            optional: false,
+            User: { connect: { email: guest } },
+          })),
       },
       pseudoGuests: {
         create:
-        pseudoGuests.map((pseudoGuest) => ({
-          Status: 'pseudoUser',
-          optional: false,
-          pseudoUser: { connect: { id: pseudoGuest } },
-        })),
+          pseudoGuests.map((pseudoGuest) => ({
+            Status: 'pseudoUser',
+            optional: false,
+            pseudoUser: { connect: { id: pseudoGuest } },
+          })),
 
       },
       address,
@@ -184,7 +184,7 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
-      const yesAteendees1:User[] = [];
+      const yesAteendees1: User[] = [];
       yesAttendees.map(async (ateendee) => {
         const y = await this.ormRepository2.findUnique({
           where: {
@@ -207,7 +207,7 @@ export default class InvitesRepository implements IInvitesRepository {
           inviteId: element.id,
         },
       });
-      const noAteendees1:User[] = [];
+      const noAteendees1: User[] = [];
       noAttendees.map(async (ateendee) => {
         const n = await this.ormRepository2.findUnique({
           where: {
@@ -272,7 +272,7 @@ export default class InvitesRepository implements IInvitesRepository {
     return invitedWithConfirmation;
   }
 
-  public async UpdatedInviteStatusById(id: string, state:string, email:string): Promise<Invite|null> {
+  public async UpdatedInviteStatusById(id: string, state: string, email: string): Promise<Invite | null> {
     const invit = await this.ormRepository.update({
       where: {
         id,
@@ -293,7 +293,7 @@ export default class InvitesRepository implements IInvitesRepository {
     return invit;
   }
 
-  public async UpdatedInviteById(eventId:string, begin:string, end:string, phone:string): Promise<Invite|null> {
+  public async UpdatedInviteById(eventId: string, begin: string, end: string, phone: string): Promise<Invite | null> {
     const inviteUser = await this.ormRepository.findFirst({
       where: {
         id: eventId,
@@ -317,7 +317,7 @@ export default class InvitesRepository implements IInvitesRepository {
     return invit;
   }
 
-  public async listEventsInAWeekByUser(phone: string, beginWeek:string, endWeek:string): Promise<Invite[]> {
+  public async listEventsInAWeekByUser(phone: string, beginWeek: string, endWeek: string): Promise<Invite[]> {
     const events = await this.ormRepository.findMany({
       where: {
         phone, state: 'accepted', begin: { gte: beginWeek }, end: { lte: endWeek },
@@ -414,4 +414,132 @@ export default class InvitesRepository implements IInvitesRepository {
 
     return invite;
   }
+  private async filterNewInvites(invites: ICreateInviteDTO[]): Promise<ICreateInviteDTO[]> {
+    const validInvites = invites.filter((i) => i && typeof i.googleId === 'string' && i.googleId.trim() !== '');
+
+    const googleIds = invites
+      .map((i) => i?.googleId)
+      .filter((id): id is string => !!id);
+
+    const createdInvites = await this.ormRepository.findMany({
+      where: {
+        googleId: { in: googleIds },
+      },
+    });
+
+    if (validInvites.length < invites.length) {
+      console.warn(
+        '⚠️ Alguns invites estavam inválidos e foram ignorados:',
+        invites.filter(i => !i || !i.googleId)
+      );
+    }
+    const existingIds = new Set(createdInvites.map(i => i.googleId));
+    return validInvites.filter(i => !existingIds.has(i.googleId));
+  }
+
+  private async createInvitesWithoutRelations(invites: ICreateInviteDTO[]): Promise<Invite[]> {
+    const baseData = invites.map((invite) => ({
+      name: invite.name,
+      begin: invite.begin,
+      end: invite.end,
+      beginSearch: invite.beginSearch,
+      endSearch: invite.endSearch,
+      phone: invite.phone,
+      description: invite.description,
+      address: invite.address,
+      link: invite.link,
+      state: invite.state,
+      googleId: invite.googleId,
+      organizerPhoto: invite.organizerPhoto,
+      organizerName: invite.organizerName,
+    }));
+
+    await this.ormRepository.createMany({ data: baseData });
+
+    return this.ormRepository.findMany({
+      where: {
+        googleId: { in: invites.map((i) => i.googleId) },
+      },
+    });
+  }
+  private async prepareRelations(invites: ICreateInviteDTO[], createdInvites: Invite[]) {
+    const inviteUserData: Prisma.InviteUserCreateManyInput[] = [];
+    const pseudoInviteUserData: Prisma.PseudoInviteUserCreateManyInput[] = [];
+
+    for (const invite of invites) {
+      const created = createdInvites.find(i => i.googleId === invite.googleId);
+      if (!created) continue;
+
+      invite.guests.forEach(email => {
+        inviteUserData.push({
+          inviteId: created.id,
+          userEmail: email,
+          optional: false,
+          Status: 'needsAction',
+        });
+      });
+
+      invite.optionalGuests.forEach(email => {
+        inviteUserData.push({
+          inviteId: created.id,
+          userEmail: email,
+          optional: true,
+          Status: 'needsAction',
+        });
+      });
+
+      invite.pseudoGuests.forEach(id => {
+        pseudoInviteUserData.push({
+          inviteId: created.id,
+          pseudoUserId: id,
+          optional: false,
+          Status: 'pseudoUser',
+        });
+      });
+
+      invite.pseudoOptionalGuests.forEach(id => {
+        pseudoInviteUserData.push({
+          inviteId: created.id,
+          pseudoUserId: id,
+          optional: true,
+          Status: 'pseudoUser',
+        });
+      });
+
+      const organizer = await this.ormRepository2.findUnique({ where: { phone: invite.phone } });
+      if (organizer?.email) {
+        inviteUserData.push({
+          inviteId: created.id,
+          userEmail: organizer.email,
+          optional: false,
+          Status: 'accepted',
+        });
+      }
+    }
+
+    return { inviteUserData, pseudoInviteUserData };
+  }
+  private async createRelations(
+    inviteUserData: Prisma.InviteUserCreateManyInput[],
+    pseudoInviteUserData: Prisma.PseudoInviteUserCreateManyInput[]
+  ) {
+    if (inviteUserData.length) {
+      await this.ormRepository3.createMany({ data: inviteUserData, skipDuplicates: true });
+    }
+
+    if (pseudoInviteUserData.length) {
+      await this.ormRepository4.createMany({ data: pseudoInviteUserData, skipDuplicates: true });
+    }
+  }
+  public async createMany(invites: ICreateInviteDTO[]): Promise<Invite[]> {
+    const newInvites = await this.filterNewInvites(invites);
+    if (!newInvites.length) return [];
+
+    const createdInvites = await this.createInvitesWithoutRelations(newInvites);
+    const { inviteUserData, pseudoInviteUserData } = await this.prepareRelations(newInvites, createdInvites);
+    await this.createRelations(inviteUserData, pseudoInviteUserData);
+
+    return createdInvites;
+  }
+
 }

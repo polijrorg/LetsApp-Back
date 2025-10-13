@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
@@ -9,6 +10,7 @@ import ListEventsByWeekService from '@modules/invites/services/ListEventsByWeekS
 import UpdateInviteService from '@modules/invites/services/UpdateInviteService';
 import OutlookUpdateInviteState from '@modules/invites/services/OutlookUpdateInviteStateService';
 import UpdateInviteStateService from '@modules/invites/services/UpdateInviteStateService';
+import AppError from '@shared/errors/AppError';
 
 export default class InviteController {
   // public async create(req: Request, res: Response): Promise<Response> {
@@ -43,17 +45,32 @@ export default class InviteController {
   public async listEventsByUser(req: Request, res: Response): Promise<Response> {
     const list = container.resolve(ListEventsService);
     const { email } = req.body;
-    const invites = await list.execute(email);
-
-    return res.status(201).json(invites);
+    const events = await list.getEventsUser(email);
+    console.log(`InvitesController 50: Events${JSON.stringify(events)}`);
+    return res.status(201).json(events);
   }
 
   public async listInvitesByUser(req: Request, res: Response): Promise<Response> {
-    const list = container.resolve(ListInvitesService);
+     console.log('InvitesController → req.body:', req.body);
+  console.log('InvitesController → Content-Type:', req.headers['content-type']);
     const { email } = req.body;
-    const invites = await list.execute(email);
+    if (!email) {
+      return res.status(400).json({ message: 'É preciso enviar um email no corpo da requisição.' });
+    }
 
-    return res.status(201).json(invites);
+    try {
+      const invites = await container
+        .resolve(ListInvitesService)
+        .getInvites(email);
+
+      return res.status(200).json(invites);
+    } catch (err) {
+      if (err instanceof AppError) {
+        return res.status(err.statusCode).json({ message: err.message });
+      }
+      console.error(err);
+      return res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
   }
 
   public async listEventsInAWeekByUser(req: Request, res: Response): Promise<Response> {
