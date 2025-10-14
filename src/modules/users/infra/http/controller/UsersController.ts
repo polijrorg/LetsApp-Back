@@ -193,8 +193,6 @@ export default class UserController {
     return res.status(201).json(Url);
   }
 
- 
-
   public async getGoogleTokens(req: Request, res: Response): Promise<Response> {
     const { code, state } = req.query;
     console.log(`UserController 262: code ${code} status ${state}`);
