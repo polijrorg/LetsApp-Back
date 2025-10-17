@@ -11,23 +11,28 @@ export default class GoogleAuthUrlService {
   ) { }
 
   public async authenticate(phone: string): Promise<string> {
-    const oauth2Client = new google.auth.OAuth2();
+    // CRITICAL: Must pass credentials to OAuth2Client
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_CLIENT_URI,
+    );
 
-    const scopes = ['https://www.googleapis.com/auth/calendar',
+    const scopes = [
+      'https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events',
-      'https://www.googleapis.com/auth/calendar.events.readonly',
-      'https://www.googleapis.com/auth/calendar.readonly',
-      'https://www.googleapis.com/auth/calendar.settings.readonly',
-      'https://www.googleapis.com/auth/userinfo.email'];
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ];
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      redirect_uri: process.env.GOOGLE_CLIENT_URI,
       state: phone,
+      prompt: 'consent',
+      response_type: 'code',
     });
-    console.log(`GoogleAuthURLService 26: URL ${process.env.GOOGLE_CLIENT_URI}`);
+
     return authUrl;
   }
 }
