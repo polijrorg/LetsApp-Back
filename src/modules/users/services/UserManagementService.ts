@@ -15,7 +15,7 @@ const urlService = container.resolve(CreatePseudoUserService);
 export default class UserManagementService {
   constructor(
     @inject('UsersRepository')
-    private usersRepository: IUsersRepository
+    private usersRepository: IUsersRepository,
   ) {}
 
   public async execute(attendees: string[], optionalAttendees: string[]): Promise<IResponse> {
@@ -25,44 +25,64 @@ export default class UserManagementService {
     const pseudoOptionalGuests: string[] = [];
     console.log(`❌❌UserManagementService 45: attendees: ${JSON.stringify(attendees)}`);
     console.log(`❌❌UserManagementService 45: optionalAttendees: ${JSON.stringify(optionalAttendees)}`);
-      console.log(`😳UserManagementService 45: guesasasast: `);
+    console.log('😳UserManagementService 45: guesasasast: ');
 
     const attendeesPromises = attendees.map(async (guest) => {
-      if (guest && guest.includes('@')) {
+      // Skip null/undefined guests
+      if (!guest) {
+        console.warn('Skipping null/undefined guest');
+        return;
+      }
+
+      if (guest.includes('@')) {
         const user = await this.usersRepository.findByEmail(guest);
-        if (user) {
-          guests.push(user.email!);
+        if (user && user.email) {
+          guests.push(user.email);
         } else {
           const pseudo = await urlService.execute({ email: guest, phone: null });
-          pseudoGuests.push(pseudo.id);
+          if (pseudo && pseudo.id) {
+            pseudoGuests.push(pseudo.id);
+          }
         }
       } else {
         const user = await this.usersRepository.findByPhone(guest);
-        if (user) {
-          guests.push(user.email!);
+        if (user && user.email) {
+          guests.push(user.email);
         } else {
           const pseudo = await urlService.execute({ email: null, phone: guest });
-          pseudoGuests.push(pseudo.id);
+          if (pseudo && pseudo.id) {
+            pseudoGuests.push(pseudo.id);
+          }
         }
       }
     });
-    // console.log(`❌❌UserManagementService 51: Attendees promises: ${JSON.stringify(attendeesPromises)}`);  
+    // console.log(`❌❌UserManagementService 51: Attendees promises: ${JSON.stringify(attendeesPromises)}`);
     const optionalPromises = optionalAttendees.map(async (optional) => {
-      if (optional && optional?.includes('@')) {
+      // Skip null/undefined optional attendees
+      if (!optional) {
+        console.warn('Skipping null/undefined optional attendee');
+        return;
+      }
+
+      if (optional.includes('@')) {
         const user = await this.usersRepository.findByEmail(optional);
-        if (user) {
-          optionalGuests.push(user.email!);
+        if (user && user.email) {
+          optionalGuests.push(user.email);
         } else {
           const pseudo = await urlService.execute({ email: optional, phone: null });
-          pseudoOptionalGuests.push(pseudo.email!);
+          if (pseudo && pseudo.email) {
+            pseudoOptionalGuests.push(pseudo.email);
+          }
         }
       } else {
         const user = await this.usersRepository.findByPhone(optional);
-        if (user) {
-          optionalGuests.push(user.email!);
+        if (user && user.email) {
+          optionalGuests.push(user.email);
         } else {
           const pseudo = await urlService.execute({ email: null, phone: optional });
-          pseudoOptionalGuests.push(pseudo.id);
+          if (pseudo && pseudo.id) {
+            pseudoOptionalGuests.push(pseudo.id);
+          }
         }
       }
     });

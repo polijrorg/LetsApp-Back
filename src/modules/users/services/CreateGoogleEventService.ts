@@ -37,7 +37,7 @@ export default class CreateGoogleEventService {
     const {
       guests, pseudoGuests, optionalGuests, pseudoOptionalGuests,
     } = await userManagementService.execute(attendees, optionalAttendees);
-    const attendeesEmail = [...guests, ...optionalGuests,...pseudoGuests, ...pseudoOptionalGuests];
+    const attendeesEmail = [...guests, ...optionalGuests, ...pseudoGuests, ...pseudoOptionalGuests];
     const user = await this.usersRepository.findByPhone(phone);
     if (!user) throw new AppError('User not found', 400);
     // if (user) throw new AppError('User not found', 400);
@@ -55,9 +55,22 @@ export default class CreateGoogleEventService {
     // eslint-disable-next-line no-plusplus
     const resolvedEmails = await Promise.all(
       attendeesEmail.map(async (item) => {
+        // Check if item exists and is not null/undefined
+        if (!item) {
+          console.warn('Skipping null/undefined attendee');
+          return null;
+        }
+
+        // If already an email, return it
         if (item.includes('@')) return item;
+
+        // Otherwise, try to find email by phone
         try {
-          return await this.usersRepository.findEmailByPhone(item);
+          const email = await this.usersRepository.findEmailByPhone(item);
+          if (!email) {
+            console.warn(`No email found for phone: ${item}`);
+          }
+          return email;
         } catch (error) {
           console.warn(`Erro ao buscar email para ${item}: ${error}`);
           return null;
