@@ -26,6 +26,8 @@ app.use(cors());
 
 app.use('/docs', express.static(path.join(__dirname, '..', '..', '..', '..', 'docs')));
 
+app.use('/politica-de-privacidade', express.static(path.join(__dirname, '..', '..', '..', '..', 'politica-de-privacidade.html')));
+
 app.use(express.json());
 
 app.use(routes);
