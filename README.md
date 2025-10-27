@@ -1,4 +1,6 @@
-﻿# Prisma project template
+as credenciais estão usando a conta de email principal do ntec via oauth google
+ 
+ # Prisma project template
 
 ## Description
 
