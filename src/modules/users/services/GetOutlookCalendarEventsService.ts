@@ -16,10 +16,12 @@ export default class GetOutlookCalendarEvents {
   public async authenticate(email:string): Promise<any> {
     console.log(`🔍 GetOutlookCalendarEvents: Starting authentication for ${email}`);
     
-    // Get current time and 180 days in the future (no timezone adjustment needed - Graph API handles it)
+    // Get events from 30 days ago to 180 days in the future
     const now = new Date();
+    now.setDate(now.getDate() - 30); // Start from 30 days ago to include recent past events
+    
     const end = new Date();
-    end.setDate(now.getDate() + 180);
+    end.setDate(end.getDate() + 180); // 180 days in the future
 
     console.log(`📅 Date range: ${now.toISOString()} to ${end.toISOString()}`);
 
