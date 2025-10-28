@@ -9,10 +9,10 @@ import AppError from '@shared/errors/AppError';
 import GetGoogleCalendarEventsService from '@modules/users/services/GetGoogleCalendarEventsService';
 import { calendar_v3 } from 'googleapis';
 import mapGoogleEventToInviteDTO from '@shared/utils/mappers/mapGoogleEventDTO';
-import IInvitesRepository from '../repositories/IInvitesRepository';
-import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 import GetOutlookCalendarEvents from '@modules/users/services/GetOutlookCalendarEventsService';
 import { mapOutlookToGoogle } from '@shared/utils/mappers/mapOutlookToGoogle';
+import IInvitesRepository from '../repositories/IInvitesRepository';
+import ICreateInviteDTO from '../dtos/ICreateInviteDTO';
 
 interface IInviteWithConfirmation {
   element: Invite; // Replace 'YourElementType' with the actual type of 'element'
@@ -58,20 +58,20 @@ export default class ListEventsService {
 
     return invites;
   }
+
   public async getOutlookEvent(email: string): Promise<calendar_v3.Schema$Event[]> {
     const getOutlookCalendarEvents = container.resolve(GetOutlookCalendarEvents);
     console.log(`🔍 getOutlookEvent: Fetching events for ${email}`);
     const events = await getOutlookCalendarEvents.authenticate(email);
     console.log(`📊 Raw Outlook API response: ${JSON.stringify(events).substring(0, 500)}...`);
-    
+
     const user = await this.invitesRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
 
     const mappedEvents: calendar_v3.Schema$Event[] = events?.value.map((event: any) =>
-      mapOutlookToGoogle(event) as calendar_v3.Schema$Event,
-    );
+      mapOutlookToGoogle(event) as calendar_v3.Schema$Event);
     console.log(`🗺️ Mapped ${mappedEvents?.length || 0} events to Google format`);
-    
+
     // Save Outlook events to database (same as Google flow)
     const invitesDTO: ICreateInviteDTO[] = mappedEvents
       .map((event: calendar_v3.Schema$Event) =>
@@ -84,18 +84,19 @@ export default class ListEventsService {
           endSearch: event.end?.dateTime || '',
         }))
       .filter((invite: ICreateInviteDTO | null): invite is ICreateInviteDTO => invite !== null);
-    
+
     console.log(`💾 Prepared ${invitesDTO.length} invites for database`);
-    
+
     try {
       const createdInvites = await this.invitesRepository.createMany(invitesDTO);
       console.log('✅ Outlook events created successfully:', createdInvites);
     } catch (error) {
       console.error('❌ Error creating Outlook invites:', error);
     }
-    
+
     return mappedEvents;
   }
+
   public async getGoogleEvents(email: string) {
     const getGoogleCalendarEvents = container.resolve(GetGoogleCalendarEventsService);
     const { events, user } = await getGoogleCalendarEvents.authenticate(email);
@@ -124,6 +125,7 @@ export default class ListEventsService {
     }
     return events;
   }
+
   public async getEventsUser(email: string): Promise<any[]> {
     const userData = await this.invitesRepository.findByEmail(email);
     console.log(`🔍 ListEventsService getEventsUser: email=${email}, userType=${userData?.type}`);
@@ -140,7 +142,7 @@ export default class ListEventsService {
       const events = await this.getGoogleEvents(email);
       return this.addResponseStatusArrays(events);
     }
-    console.log(`⚠️ No user type matched or user not found. Returning empty array.`);
+    console.log('⚠️ No user type matched or user not found. Returning empty array.');
     return [];
   }
 

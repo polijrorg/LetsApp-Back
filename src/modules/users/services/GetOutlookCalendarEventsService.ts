@@ -67,21 +67,41 @@ export default class GetOutlookCalendarEvents {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
-    // Simplified filter: get all events that end after now and start before the end date
-    const filterQuery = `start/dateTime lt '${end.toISOString()}' and end/dateTime ge '${now.toISOString()}'`;
-    console.log(`🔍 Filter query: ${filterQuery}`);
+    // First, try to get ALL events to see if there are any at all
+    console.log(`🔍 Attempting to fetch ALL calendar events (no filter)`);
     
-    const getEvents = await graphClient
-      .api(`/users/${user.email}/calendar/events`)
-      .filter(filterQuery)
-      .header('Prefer', 'outlook.timezone="America/Sao_Paulo"')
-      .top(250) // Limit to 250 events
-      .get();
+    let getEvents;
+    try {
+      // Try fetching without date filter first
+      getEvents = await graphClient
+        .api(`/me/calendar/events`)
+        .select('subject,start,end,location,bodyPreview,attendees,organizer,onlineMeeting,isAllDay,id')
+        .orderby('start/dateTime')
+        .top(250)
+        .header('Prefer', 'outlook.timezone="America/Sao_Paulo"')
+        .get();
+        
+      console.log(`📊 Total events in calendar: ${getEvents?.value?.length || 0}`);
       
-    console.log(`📊 GetOutlookCalendarEvents: Retrieved ${getEvents?.value?.length || 0} events from Microsoft Graph`);
-    
-    if (getEvents?.value?.length > 0) {
-      console.log(`📝 First event sample: ${JSON.stringify(getEvents.value[0]).substring(0, 300)}...`);
+      if (getEvents?.value?.length > 0) {
+        console.log(`📝 First event: ${JSON.stringify(getEvents.value[0])}}`);
+        console.log(`📝 Last event: ${JSON.stringify(getEvents.value[getEvents.value.length - 1])}`);
+        
+        // Now filter in JavaScript for the date range
+        const filteredEvents = getEvents.value.filter((event: any) => {
+          const eventEnd = new Date(event.end.dateTime);
+          const eventStart = new Date(event.start.dateTime);
+          return eventEnd >= now && eventStart <= end;
+        });
+        
+        console.log(`📊 Events in date range (${now.toISOString()} to ${end.toISOString()}): ${filteredEvents.length}`);
+        getEvents.value = filteredEvents;
+      } else {
+        console.log(`⚠️ No events found in calendar at all!`);
+      }
+    } catch (error: any) {
+      console.error(`❌ Error fetching Outlook events:`, error?.message || error);
+      throw error;
     }
     
     return getEvents;
