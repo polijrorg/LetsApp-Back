@@ -36,13 +36,17 @@ export function mapOutlookToGoogle(input: any): calendar_v3.Schema$Event {
       ? { date: input.end.dateTime.split('T')[0], timeZone: input.end.timeZone }
       : { dateTime: input.end.dateTime, timeZone: input.end.timeZone },
     attendees: mapAttendees(input.attendees),
+    organizer: input.organizer ? {
+      email: input.organizer.emailAddress?.address || '',
+      displayName: input.organizer.emailAddress?.name || '',
+      self: false,
+    } : undefined,
     // Campos extras como undefined
     recurrence: undefined,
     reminders: undefined,
     conferenceData: undefined,
-    hangoutLink: undefined,
+    hangoutLink: input.onlineMeeting?.joinUrl || undefined,
     creator: undefined,
-    organizer: undefined,
     status: undefined,
   };
 

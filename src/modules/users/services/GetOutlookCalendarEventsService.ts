@@ -14,14 +14,17 @@ export default class GetOutlookCalendarEvents {
   ) { }
 
   public async authenticate(email:string): Promise<any> {
+    console.log(`🔍 GetOutlookCalendarEvents: Starting authentication for ${email}`);
+    
+    // Get current time and 180 days in the future (no timezone adjustment needed - Graph API handles it)
     const now = new Date();
-    now.setHours(now.getHours() - (now.getTimezoneOffset() / 60));
     const end = new Date();
-    end.setDate(end.getDate() + 180);
-    end.setHours(end.getHours() - (end.getTimezoneOffset() / 60));
+    end.setDate(now.getDate() + 180);
+
+    console.log(`📅 Date range: ${now.toISOString()} to ${end.toISOString()}`);
 
     const user = await this.usersRepository.findByEmail(email);
-    console.log(`GetOutlookCalendarEvents 30: User: ${JSON.stringify(user)}`);
+    console.log(`GetOutlookCalendarEvents 30: User found: ${!!user}, Email: ${user?.email}`);
     if (!user) throw new AppError('User not found', 400);
 
     if (!user.tokens) throw new AppError('Token not found', 400);
@@ -64,8 +67,23 @@ export default class GetOutlookCalendarEvents {
 
     const graphClient = Client.initWithMiddleware({ authProvider });
 
-    const getEvents = await graphClient.api(`/users/${user.email}/calendar/events`).filter(`(start/dateTime ge '${now.toISOString()}' and end/dateTime le '${end.toISOString()}') or (start/dateTime le '${now.toISOString()}' and end/dateTime ge '${now.toISOString()}')`).header('Prefer', 'outlook.timezone="America/Sao_Paulo"').get();
-    // console.log(`GetOutlookCalendarEvent/s 50: Events${JSON.stringify(getEvents)}`);
+    // Simplified filter: get all events that end after now and start before the end date
+    const filterQuery = `start/dateTime lt '${end.toISOString()}' and end/dateTime ge '${now.toISOString()}'`;
+    console.log(`🔍 Filter query: ${filterQuery}`);
+    
+    const getEvents = await graphClient
+      .api(`/users/${user.email}/calendar/events`)
+      .filter(filterQuery)
+      .header('Prefer', 'outlook.timezone="America/Sao_Paulo"')
+      .top(250) // Limit to 250 events
+      .get();
+      
+    console.log(`📊 GetOutlookCalendarEvents: Retrieved ${getEvents?.value?.length || 0} events from Microsoft Graph`);
+    
+    if (getEvents?.value?.length > 0) {
+      console.log(`📝 First event sample: ${JSON.stringify(getEvents.value[0]).substring(0, 300)}...`);
+    }
+    
     return getEvents;
   }
 }

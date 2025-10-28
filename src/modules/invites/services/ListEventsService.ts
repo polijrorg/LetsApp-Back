@@ -60,8 +60,9 @@ export default class ListEventsService {
   }
   public async getOutlookEvent(email: string): Promise<calendar_v3.Schema$Event[]> {
     const getOutlookCalendarEvents = container.resolve(GetOutlookCalendarEvents);
+    console.log(`🔍 getOutlookEvent: Fetching events for ${email}`);
     const events = await getOutlookCalendarEvents.authenticate(email);
-    // console.log(`ListEventsService 50: Events${JSON.stringify(events)}`);
+    console.log(`📊 Raw Outlook API response: ${JSON.stringify(events).substring(0, 500)}...`);
     
     const user = await this.invitesRepository.findByEmail(email);
     if (!user) throw new AppError('User not found', 400);
@@ -69,7 +70,7 @@ export default class ListEventsService {
     const mappedEvents: calendar_v3.Schema$Event[] = events?.value.map((event: any) =>
       mapOutlookToGoogle(event) as calendar_v3.Schema$Event,
     );
-    // console.log(`ListEventsService 53: Events after mapOutlookToGoogle: ${JSON.stringify(mappedEvents)}`);
+    console.log(`🗺️ Mapped ${mappedEvents?.length || 0} events to Google format`);
     
     // Save Outlook events to database (same as Google flow)
     const invitesDTO: ICreateInviteDTO[] = mappedEvents
@@ -83,6 +84,8 @@ export default class ListEventsService {
           endSearch: event.end?.dateTime || '',
         }))
       .filter((invite: ICreateInviteDTO | null): invite is ICreateInviteDTO => invite !== null);
+    
+    console.log(`💾 Prepared ${invitesDTO.length} invites for database`);
     
     try {
       const createdInvites = await this.invitesRepository.createMany(invitesDTO);
@@ -123,18 +126,21 @@ export default class ListEventsService {
   }
   public async getEventsUser(email: string): Promise<any[]> {
     const userData = await this.invitesRepository.findByEmail(email);
-    // console.log(`ListEventsService 67 user: ${JSON.stringify(userData?.type)}`);
+    console.log(`🔍 ListEventsService getEventsUser: email=${email}, userType=${userData?.type}`);
     if (userData?.type === 'OUTLOOK') {
+      console.log(`📅 Fetching OUTLOOK events for ${email}`);
       const events = await this.getOutlookEvent(email);
-      // console.log(`ListEventsService 70: Events after getOutlookEvent: ${JSON.stringify(this.addResponseStatusArrays(events))}`);
-      return this.addResponseStatusArrays(events);
+      console.log(`✅ Retrieved ${events?.length || 0} Outlook events`);
+      const processedEvents = this.addResponseStatusArrays(events);
+      console.log(`📤 Returning ${processedEvents?.length || 0} processed Outlook events`);
+      return processedEvents;
     }
     if (userData?.type === 'GOOGLE') {
-      // console.log(`ListEventsService 72: userData: ${JSON.stringify(userData)}`);
+      console.log(`📅 Fetching GOOGLE events for ${email}`);
       const events = await this.getGoogleEvents(email);
       return this.addResponseStatusArrays(events);
     }
-    // Always return an array if no condition matches
+    console.log(`⚠️ No user type matched or user not found. Returning empty array.`);
     return [];
   }
 
