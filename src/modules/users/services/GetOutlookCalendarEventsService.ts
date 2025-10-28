@@ -17,7 +17,8 @@ export default class GetOutlookCalendarEvents {
     const now = new Date();
     now.setHours(now.getHours() - (now.getTimezoneOffset() / 60));
     const end = new Date();
-    end.setDate(now.getDate() - (now.getTimezoneOffset() / 60) + 180);
+    end.setDate(end.getDate() + 180);
+    end.setHours(end.getHours() - (end.getTimezoneOffset() / 60));
 
     const user = await this.usersRepository.findByEmail(email);
     console.log(`GetOutlookCalendarEvents 30: User: ${JSON.stringify(user)}`);

@@ -62,11 +62,35 @@ export default class ListEventsService {
     const getOutlookCalendarEvents = container.resolve(GetOutlookCalendarEvents);
     const events = await getOutlookCalendarEvents.authenticate(email);
     // console.log(`ListEventsService 50: Events${JSON.stringify(events)}`);
-    // const eventsMapped = mapOutlookToGoogle(events);
+    
+    const user = await this.invitesRepository.findByEmail(email);
+    if (!user) throw new AppError('User not found', 400);
+
     const mappedEvents: calendar_v3.Schema$Event[] = events?.value.map((event: any) =>
-      mapOutlookToGoogle(event) as calendar_v3.Schema$Event
+      mapOutlookToGoogle(event) as calendar_v3.Schema$Event,
     );
     // console.log(`ListEventsService 53: Events after mapOutlookToGoogle: ${JSON.stringify(mappedEvents)}`);
+    
+    // Save Outlook events to database (same as Google flow)
+    const invitesDTO: ICreateInviteDTO[] = mappedEvents
+      .map((event: calendar_v3.Schema$Event) =>
+        mapGoogleEventToInviteDTO({
+          event,
+          phone: user.phone,
+          organizerPhoto: user.photo,
+          organizerName: event.organizer?.displayName || user.name || 'Organizador',
+          beginSearch: event.start?.dateTime || '',
+          endSearch: event.end?.dateTime || '',
+        }))
+      .filter((invite: ICreateInviteDTO | null): invite is ICreateInviteDTO => invite !== null);
+    
+    try {
+      const createdInvites = await this.invitesRepository.createMany(invitesDTO);
+      console.log('✅ Outlook events created successfully:', createdInvites);
+    } catch (error) {
+      console.error('❌ Error creating Outlook invites:', error);
+    }
+    
     return mappedEvents;
   }
   public async getGoogleEvents(email: string) {
@@ -77,17 +101,18 @@ export default class ListEventsService {
     // console.log(`ListEventsService 64: events after change: ${JSON.stringify(events)}`);
     // console.log(`ListEventsService 69: events after change: ${JSON.stringify(this.addResponseStatusArrays(events))}`);
 
-    const invitesDTO: ICreateInviteDTO[] = events.map((event: calendar_v3.Schema$Event) => {
-      // console.log(`Event Email organzer : ${JSON.stringify(event.organizer?.displayName)}`)
-      mapGoogleEventToInviteDTO({
-        event,
-        phone: user.phone,
-        organizerPhoto: user.photo,
-        organizerName: event.organizer?.displayName || user.name,
-        beginSearch: event.start?.dateTime || '', // Replace 'undefined' with actual value if available
-        endSearch: event.end?.dateTime || '', // Replace 'undefined' with actual value if available
-      })
-    }).filter((invite: any): invite is ICreateInviteDTO => invite !== null);;
+    const invitesDTO: ICreateInviteDTO[] = events
+      .map((event: calendar_v3.Schema$Event) =>
+        // console.log(`Event Email organzer : ${JSON.stringify(event.organizer?.displayName)}`)
+        mapGoogleEventToInviteDTO({
+          event,
+          phone: user.phone,
+          organizerPhoto: user.photo,
+          organizerName: event.organizer?.displayName || user.name || 'Organizador',
+          beginSearch: event.start?.dateTime || '', // Replace 'undefined' with actual value if available
+          endSearch: event.end?.dateTime || '', // Replace 'undefined' with actual value if available
+        }))
+      .filter((invite: ICreateInviteDTO | null): invite is ICreateInviteDTO => invite !== null);
     try {
       const createdInvites = await this.invitesRepository.createMany(invitesDTO);
       console.log('✅ Criado com sucesso:', createdInvites);
