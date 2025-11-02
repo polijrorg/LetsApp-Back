@@ -53,97 +53,93 @@ export function messageConnectionSuccess(title: string): string {
   </style>
   <script type="text/javascript">
     function tryCloseWindow() {
-      // Method 1: Try standard window.close()
+      console.log('🔵 Attempting to close window...');
+      
+      // Method 1: Post message to React Native WebView (works with expo-web-browser)
       try {
-        window.close();
+        if (window.ReactNativeWebView) {
+          console.log('✅ Found ReactNativeWebView, posting message');
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'dismiss' }));
+          return;
+        }
       } catch (e) {
-        console.log('window.close() failed:', e);
+        console.log('❌ ReactNativeWebView failed:', e);
       }
       
-      // Method 2: Try closing for iOS WebView
+      // Method 2: Try standard window.close()
+      try {
+        window.close();
+        console.log('✅ window.close() called');
+      } catch (e) {
+        console.log('❌ window.close() failed:', e);
+      }
+      
+      // Method 3: Try closing for iOS WebView
       try {
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.dismiss) {
+          console.log('✅ iOS webkit dismiss called');
           window.webkit.messageHandlers.dismiss.postMessage('close');
           return;
         }
       } catch (e) {
-        console.log('iOS webkit close failed:', e);
+        console.log('❌ iOS webkit close failed:', e);
       }
       
-      // Method 3: Try closing for Android WebView
+      // Method 4: Try closing for Android WebView
       try {
         if (typeof Android !== 'undefined' && Android.close) {
+          console.log('✅ Android close called');
           Android.close();
           return;
         }
       } catch (e) {
-        console.log('Android close failed:', e);
-      }
-      
-      // Method 4: Post message to parent (for expo-web-browser)
-      try {
-        if (window.ReactNativeWebView) {
-          window.ReactNativeWebView.postMessage('close');
-          return;
-        }
-      } catch (e) {
-        console.log('ReactNativeWebView close failed:', e);
+        console.log('❌ Android close failed:', e);
       }
       
       // Method 5: Try navigating back
       try {
-        window.history.back();
+        if (window.history.length > 1) {
+          console.log('✅ history.back() called');
+          window.history.back();
+        }
       } catch (e) {
-        console.log('history.back() failed:', e);
+        console.log('❌ history.back() failed:', e);
       }
       
-      // Method 6: Final fallback - redirect to deep link again
-      setTimeout(() => {
-        window.location.href = 'lets-app://';
-      }, 100);
+      // Method 6: Final message
+      console.log('⚠️ All close methods attempted - please close manually');
     }
     
     window.onload = function() {
-      let appOpened = false;
-      let deepLinkAttempted = false;
+      console.log('🔵 Page loaded - starting auto-close sequence');
+      let dismissed = false;
       
-      // Detecta se o app foi aberto
-      const detectAppOpen = () => {
-        appOpened = true;
+      // Detecta se o browser foi fechado
+      const detectDismiss = () => {
+        dismissed = true;
+        console.log('✅ Browser dismissed detected');
       };
       
-      window.addEventListener('blur', detectAppOpen);
-      window.addEventListener('pagehide', detectAppOpen);
+      window.addEventListener('blur', detectDismiss);
+      window.addEventListener('pagehide', detectDismiss);
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) detectAppOpen();
+        if (document.hidden) detectDismiss();
       });
 
-      // Função para tentar abrir o deep link
-      function attemptDeepLink() {
-        if (deepLinkAttempted) return;
-        deepLinkAttempted = true;
-        
-        const deepLink = 'lets-app://callback';
-        
-        // Tenta diferentes métodos de abrir o deep link
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = deepLink;
-        document.body.appendChild(iframe);
-        
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          window.location.href = deepLink;
-        }, 25);
+      // Try to auto-close immediately using ReactNativeWebView
+      if (window.ReactNativeWebView) {
+        console.log('🔵 ReactNativeWebView detected - posting dismiss message');
+        try {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'dismiss' }));
+        } catch (e) {
+          console.log('❌ Failed to post dismiss message:', e);
+        }
       }
 
-      // Inicia o processo de deep link
-      attemptDeepLink();
-
-      // Aguarda para verificar se o app abriu
+      // Show button after a short delay if not dismissed
       setTimeout(function() {
-        if (!appOpened) { 
-          // Se o app não abriu, mostra o botão
+        if (!dismissed) { 
+          console.log('⚠️ Auto-close failed - showing manual close button');
           const container = document.querySelector('.container');
           container.innerHTML = \`
             <div class="success-icon">✅</div>
@@ -151,11 +147,12 @@ export function messageConnectionSuccess(title: string): string {
             <p>Sua conta foi vinculada com sucesso!</p>
             <p style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">Você pode fechar esta janela e voltar ao app.</p>
             <button class="close-btn" onclick="tryCloseWindow()" type="button">
-              Voltar para o App
+              Fechar e Voltar
             </button>
+            <p style="font-size: 12px; opacity: 0.7; margin-top: 15px;">Se o botão não funcionar, use o botão "Concluído" ou "X" do navegador.</p>
           \`;
         }
-      }, 1000);
+      }, 800);
     };
   </script>
 </head>

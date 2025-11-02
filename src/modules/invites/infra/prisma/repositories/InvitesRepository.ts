@@ -32,57 +32,83 @@ export default class InvitesRepository implements IInvitesRepository {
   public async create({
     name, begin, end, beginSearch, endSearch, phone, guests, optionalGuests, pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, organizerName, organizerPhoto, link,
   }: ICreateInviteDTO): Promise<Invite> {
-    const user = await prisma.user.findUnique({ where: { phone } });
-    const createData = {
-      name,
-      begin,
-      end,
-      beginSearch,
-      endSearch,
-      phone,
-      description,
-      guests: {
-        create:
-          guests.map((guest) => ({
-            Status: 'needsAction',
-            optional: false,
-            User: { connect: { email: guest } },
-          })),
-      },
-      pseudoGuests: {
-        create:
-          pseudoGuests.map((pseudoGuest) => ({
-            Status: 'pseudoUser',
-            optional: false,
-            pseudoUser: { connect: { id: pseudoGuest } },
-          })),
+    try {
+      // Ensure Prisma is connected before querying
+      await prisma.$connect();
+      
+      const user = await prisma.user.findUnique({ where: { phone } });
+      
+      if (!user) {
+        throw new Error(`User with phone ${phone} not found`);
+      }
+      
+      const createData = {
+        name,
+        begin,
+        end,
+        beginSearch,
+        endSearch,
+        phone,
+        description,
+        guests: {
+          create:
+            guests.map((guest) => ({
+              Status: 'needsAction',
+              optional: false,
+              User: { connect: { email: guest } },
+            })),
+        },
+        pseudoGuests: {
+          create:
+            pseudoGuests.map((pseudoGuest) => ({
+              Status: 'pseudoUser',
+              optional: false,
+              pseudoUser: { connect: { id: pseudoGuest } },
+            })),
 
-      },
-      address,
-      link,
-      state,
-      googleId,
-      organizerPhoto,
-      organizerName,
-    };
+        },
+        address,
+        link,
+        state,
+        googleId,
+        organizerPhoto,
+        organizerName,
+      };
 
-    createData.guests.create.concat(optionalGuests.map((guest) => ({
-      Status: 'needsAction',
-      optional: true,
-      User: { connect: { email: guest } },
+      createData.guests.create.concat(optionalGuests.map((guest) => ({
+        Status: 'needsAction',
+        optional: true,
+        User: { connect: { email: guest } },
+      }
+      )));
+
+      createData.pseudoGuests.create.concat(pseudoOptionalGuests.map((guest) => ({
+        Status: 'pseudoUser',
+        optional: true,
+        pseudoUser: { connect: { id: guest } },
+      })));
+
+      createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
+      const invite = await this.ormRepository.create({ data: createData, include: { pseudoGuests: true } });
+
+      return invite;
+    } catch (error) {
+      console.error('❌ Error in InvitesRepository.create:', error);
+      
+      // Check if it's a Prisma connection error
+      if (error instanceof Error && error.message.includes('closed the connection')) {
+        console.error('❌ Database connection was closed - attempting to reconnect');
+        await prisma.$connect();
+        // Retry the operation once
+        return this.create({
+          name, begin, end, beginSearch, endSearch, phone, guests, optionalGuests, 
+          pseudoGuests, pseudoOptionalGuests, description, address, state, googleId, 
+          organizerName, organizerPhoto, link,
+        });
+      }
+      
+      throw error;
     }
-    )));
-
-    createData.pseudoGuests.create.concat(pseudoOptionalGuests.map((guest) => ({
-      Status: 'pseudoUser',
-      optional: true,
-      pseudoUser: { connect: { id: guest } },
-    })));
-
-    createData.guests.create.push({ Status: 'accepted', optional: false, User: { connect: { email: user!.email! } } });
-    const invite = await this.ormRepository.create({ data: createData, include: { pseudoGuests: true } });
-
-    return invite;
   }
 
   public async listInvitesByUser(email: string): Promise<IInviteWithConfirmation[]> {
