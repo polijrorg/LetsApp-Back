@@ -163,6 +163,24 @@ export function getLandingPage(): string {
       font-size: 14px;
     }
 
+    .highlight-box {
+      background-color: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+
+    .highlight-box a {
+      color: #667eea;
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .highlight-box a:hover {
+      color: #5568d3;
+    }
+
     @media (max-width: 768px) {
       .header {
         padding: 40px 24px;
@@ -217,6 +235,17 @@ export function getLandingPage(): string {
           Simples, prático e eficiente - tudo que você precisa para coordenar encontros e compromissos 
           com facilidade.
         </p>
+        <div class="highlight-box" style="background-color: #e7f3ff; border-left: 4px solid #667eea; padding: 20px; margin-top: 20px; border-radius: 8px;">
+          <p class="section-text" style="margin-bottom: 0;">
+            <strong>📋 Sobre seus dados:</strong> O LetsApp solicita acesso ao seu Google Calendar ou Outlook Calendar, 
+            número de telefone e informações básicas de perfil (nome e e-mail) para que você possa criar e sincronizar 
+            eventos, enviar convites e gerenciar sua agenda. Seus dados são utilizados exclusivamente para fornecer 
+            esses serviços e são protegidos com as melhores práticas de segurança. 
+            <a href="/politica-de-privacidade" style="color: #667eea; text-decoration: underline;">
+              Leia nossa Política de Privacidade completa aqui
+            </a>.
+          </p>
+        </div>
       </div>
 
       <div class="section">
@@ -296,6 +325,9 @@ export function getLandingPage(): string {
 
     <div class="footer">
       <p>&copy; 2025 LetsApp. Todos os direitos reservados.</p>
+      <p style="margin-top: 8px;">
+        Desenvolvido por <strong>PolijrOrg</strong> | Contato: <a href="mailto:joao.aquino@polijunior.com.br" style="color: #667eea; text-decoration: none;">joao.aquino@polijunior.com.br</a>
+      </p>
       <p style="margin-top: 8px;">
         <a href="/politica-de-privacidade" style="color: #667eea; text-decoration: none;">Política de Privacidade</a>
       </p>
